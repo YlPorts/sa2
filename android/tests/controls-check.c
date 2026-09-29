@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "global.h"
 #include "platform/shared/android_controls.h"
+#include "platform/shared/android_viewport.h"
 
 static u16 At(float x, float y, int width, int height)
 {
@@ -15,14 +16,21 @@ int main(int argc, char **argv)
         const int w = sizes[i][0], h = sizes[i][1];
         const float b = w < h ? w : h, unit = b * .105f;
         const float cx = b * .22f, cy = h - b * .25f;
+        const int sources[][2] = { {426, 240}, {240, 160} };
+        for (unsigned j = 0; j < 2; j++) {
+            SDL_Rect fitted = AndroidViewport_Fit(w, h, sources[j][0], sources[j][1]);
+            assert(fitted.w > 0 && fitted.h > 0);
+            assert(fitted.x >= 0 && fitted.y >= 0 && fitted.x + fitted.w <= w && fitted.y + fitted.h <= h);
+            assert(abs(fitted.w * sources[j][1] - fitted.h * sources[j][0]) < sources[j][0] + sources[j][1]);
+        }
         assert(At(cx, cy, w, h) == 0);
         assert(At(cx + unit, cy, w, h) == DPAD_RIGHT);
         assert(At(cx - unit, cy - unit, w, h) == (DPAD_LEFT | DPAD_UP));
         assert(At(cx + unit, cy + unit, w, h) == (DPAD_RIGHT | DPAD_DOWN));
         assert(At(w - b * .19f, h - b * .295f, w, h) == A_BUTTON);
         assert(At(w - b * .355f, h - b * .17f, w, h) == B_BUTTON);
-        assert(At(b * .17f, b * .16f, w, h) == L_BUTTON);
-        assert(At(w - b * .17f, b * .16f, w, h) == R_BUTTON);
+        assert(At(b * .17f, b * .22f, w, h) == L_BUTTON);
+        assert(At(w - b * .17f, b * .22f, w, h) == R_BUTTON);
         assert(At(w * .5f - b * .10f, h - b * .07f, w, h) == SELECT_BUTTON);
         assert(At(w * .5f + b * .10f, h - b * .07f, w, h) == START_BUTTON);
         assert(At(w * .5f, h * .5f, w, h) == 0);
@@ -39,6 +47,7 @@ int main(int argc, char **argv)
     }
     assert(AndroidControls_TouchMask(.5f, .5f, 0, 0) == 0);
     assert(AndroidControls_CreateSurface(0, 0, 0) == NULL);
+    assert(AndroidViewport_Fit(0, 0, 426, 240).w == 0);
     puts("Passed: controls, diagonals and touch regions at four display sizes");
     return 0;
 }

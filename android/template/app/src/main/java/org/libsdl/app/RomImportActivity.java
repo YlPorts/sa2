@@ -30,6 +30,7 @@ public final class RomImportActivity extends Activity {
         super.onCreate(state);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         if (!getPackageName().startsWith("com.ylports.sonicadvance1")) {
+            if (CrashReportUi.showPreviousCrash(this, this::startGame)) return;
             startGame();
             return;
         }

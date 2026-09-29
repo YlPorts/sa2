@@ -17,10 +17,10 @@ static void Layout(int width, int height, Control controls[6])
     controls[0] = (Control){ width - b * .19f, height - b * .295f, b * .082f, b * .082f, b * .082f, A_BUTTON, 'A' };
     controls[1] = (Control){ width - b * .355f, height - b * .17f, b * .073f, b * .073f, b * .073f, B_BUTTON, 'B' };
     // Keep shoulders below the ring/score HUD so their labels stay readable.
-    controls[2] = (Control){ b * .17f, b * .16f, b * .105f, b * .034f, b * .034f, L_BUTTON, 'L' };
-    controls[3] = (Control){ width - b * .17f, b * .16f, b * .105f, b * .034f, b * .034f, R_BUTTON, 'R' };
-    controls[4] = (Control){ width * .5f - b * .10f, height - b * .07f, b * .065f, b * .026f, b * .026f, SELECT_BUTTON, '=' };
-    controls[5] = (Control){ width * .5f + b * .10f, height - b * .07f, b * .065f, b * .026f, b * .026f, START_BUTTON, '>' };
+    controls[2] = (Control){ b * .17f, b * .22f, b * .105f, b * .05f, b * .05f, L_BUTTON, 'L' };
+    controls[3] = (Control){ width - b * .17f, b * .22f, b * .105f, b * .05f, b * .05f, R_BUTTON, 'R' };
+    controls[4] = (Control){ width * .5f - b * .10f, height - b * .07f, b * .07f, b * .038f, b * .038f, SELECT_BUTTON, '=' };
+    controls[5] = (Control){ width * .5f + b * .10f, height - b * .07f, b * .07f, b * .038f, b * .038f, START_BUTTON, '>' };
 }
 
 uint16_t AndroidControls_TouchMask(float x, float y, int width, int height)
@@ -103,7 +103,8 @@ static void Shape(SDL_Surface *surface, Control c, int cross, int highlight)
                 Blend(surface, x, y, 100, 192, 255, (int)(coverage * 105));
             } else {
                 const float rim = Clamp(distance + border + .5f, 0, 1);
-                const int r = 20 + (int)(rim * 194), g = 26 + (int)(rim * 197), b = 38 + (int)(rim * 194);
+                const int sheen = (int)(Clamp(-dy / c.halfH, 0, 1) * 10);
+                const int r = 20 + sheen + (int)(rim * 184), g = 26 + sheen + (int)(rim * 187), b = 38 + sheen + (int)(rim * 184);
                 Blend(surface, x, y, r, g, b, (int)(coverage * (88 + rim * 46)));
             }
         }

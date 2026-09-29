@@ -296,6 +296,9 @@ else
 		CPPFLAGS += -D TITLE_BAR=$(BUILD_NAME).$(PLATFORM) -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 $(shell sdl2-config --cflags)
 	else ifeq ($(PLATFORM),android)
 		CC1FLAGS += -fPIC -Wno-parentheses-equality -Wno-unused-value
+		# Keep source locations in the unstripped ELF for native crash reports.
+		# Packaged release libraries are stripped by android/build-apk.sh.
+		CC1FLAGS += -gline-tables-only
 		ifeq ($(ANDROID_ABI),armeabi-v7a)
 			CC1FLAGS += -mfpu=neon -mfloat-abi=softfp
 		endif
@@ -407,7 +410,7 @@ ifeq ($(PLATFORM),gba)
 else ifeq ($(PLATFORM),sdl)
     LIBS := $(shell sdl2-config --cflags --libs) $(LIBABGSYSCALL_LIBS) -lm
 else ifeq ($(PLATFORM),android)
-    LIBS := -shared -Wl,--no-undefined -L$(SDL_ANDROID_LIB) -lSDL2 $(LIBABGSYSCALL_LIBS) -lm -ldl -llog -landroid
+    LIBS := -shared -Wl,--no-undefined -Wl,--build-id=sha1 -L$(SDL_ANDROID_LIB) -lSDL2 $(LIBABGSYSCALL_LIBS) -lm -ldl -llog -landroid
 else ifeq ($(PLATFORM),sdl_psp)
     LIBS := -L$(PSPDEV)/psp/lib $(LIBABGSYSCALL_LIBS) -L$(PSPSDK)/lib -lSDL2 -lm -lGL -lpspvram -lpspaudio -lpspvfpu -lpspdisplay -lpspgu -lpspge -lpsphprm -lpspctrl -lpsppower -lpspdebug -lpspnet -lpspnet_apctl -Wl,-zmax-page-size=128
 else ifeq ($(PLATFORM),ps2)

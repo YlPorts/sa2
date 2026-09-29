@@ -14,6 +14,15 @@ verify_spec.loader.exec_module(verify_native)
 
 
 class RuntimeDataTests(unittest.TestCase):
+    def test_android_crash_report_decodes_the_crashing_thread_and_rejects_truncated_input(self):
+        with tempfile.TemporaryDirectory() as work:
+            subprocess.run([
+                "javac", "-d", work,
+                str(ROOT / "android/template/app/src/main/java/org/libsdl/app/NativeCrashReport.java"),
+                str(ROOT / "android/tests/NativeCrashReportTest.java"),
+            ], check=True)
+            subprocess.run(["java", "-cp", work, "org.libsdl.app.NativeCrashReportTest"], check=True)
+
     def test_importer_preserves_existing_data_on_invalid_or_interrupted_import(self):
         with tempfile.TemporaryDirectory() as work:
             subprocess.run([

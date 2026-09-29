@@ -6,7 +6,7 @@ importer loads remaining SA1 asset ranges; it does not execute a GBA ROM.
 ## Build
 
 - `bash android/build-apk.sh sa1` -> Sonic Advance 1, 0.1.0-alpha1
-- `bash android/build-apk.sh sa2` -> Sonic Advance 2, 0.1.0-beta3
+- `bash android/build-apk.sh sa2` -> Sonic Advance 2, 0.1.0-beta4
 
 Default: optimized release, `armeabi-v7a`, non-debuggable, Android 6+ (API 23).
 Both builds use the existing 426×240 viewport, fixed 60 Hz game timing,
@@ -14,13 +14,20 @@ automatic landscape, cached multitouch controls and app-private saves.
 Physical-device performance still needs validation; 60 Hz timing is not an FPS
 guarantee. The existing upstream single-pak/chao-garden support is incomplete.
 
-Beta3 bounds direct background copies to their source assets and fixes a
-pre-decrement mask loop that wrote before the HBlank buffer during the stage
-entrance. SDL's orientation callback now permits only the two landscape
-orientations, including when Android's automatic rotation is disabled. The
-controls share one layout for drawing and hit testing; smooth silhouettes and
-pressed highlights are cached in textures without render-target switches or
-rebuilding geometry each frame.
+Beta4 requests a fixed landscape orientation in the activity and SDL. The game
+image is centered with its aspect ratio preserved even during a transient
+portrait surface. Touch controls have larger labels and menu targets; shoulder
+buttons sit below the score HUD. Drawing and hit testing share one layout, and
+the silhouettes and pressed highlights remain cached textures.
+
+The intermittent first-level closure reported on a Samsung A15 with beta3 has
+not been reproduced or confirmed fixed. After an abnormal exit, beta4 can show
+Android's retained process exit report on the next launch, including a retained
+beta3 report. The user can copy the report to the clipboard or continue without
+copying it. Native tombstones on Android 12+ are decoded locally to show the
+crashing thread and frame addresses; no report is sent automatically. Unstripped
+native build symbols are retained separately to resolve those addresses. Beta3's
+background-copy bounds and stage-intro mask fixes remain in place.
 
 Requirements: Java 17, Android SDK platform/build-tools 34, NDK r27 or newer,
 Python 3, make, gcc/g++, curl, tar and libpng development headers. Set
@@ -74,16 +81,25 @@ Keys must stay outside the public repository and be retained for future builds.
 
 `python3 -m unittest discover -s android/tests -v` checks import validation,
 stream interruption, preservation of previous data, writable native ranges and
-atomic-save failure behavior. GitHub Actions builds both ROM-free APKs and keeps
+atomic-save failure behavior, plus native tombstone decoding and malformed input.
+GitHub Actions builds both ROM-free APKs and keeps
 the separate SA1 native compile/link check. These checks do not certify gameplay
 with the original SA1 assets or Samsung A15 frame rates.
 
 `bash android/test-runtime.sh` builds a native SDL test executable with
-AddressSanitizer. A test-only linker harness starts Leaf Forest Acts 1 and 2,
-executes 1,200 frames per act with movement, real level tasks, audio and the
-426×240 renderer, and validates controls at four surface sizes. Neither the
-harness nor its test input is packaged in APKs. This test caught both the
-30-row background overread and the stage-intro write before the buffer.
+AddressSanitizer. A test-only linker harness first follows the complete boot and
+menu path into Leaf Forest, then starts Acts 1 and 2 with each of the five
+characters. Each run executes 1,200 level frames with movement, real tasks,
+audio and the 426×240 renderer. Controls and aspect fitting are checked at four
+surface sizes. Neither the harness nor its test input is packaged in APKs.
+Earlier tests caught the 30-row background overread and the stage-intro write
+before the buffer.
+
+`SA_RUNTIME_ANDROID_BACKEND=1 bash android/test-runtime.sh` tests the Android SDL
+backend on the host with dummy video/audio and a test-only JNI storage bridge.
+Set `SA_TEST_FRAMES=3600` for a longer full-boot run. This exercises the Android
+rendering, timing, storage and controls code, but not Android's actual JNI,
+graphics drivers or activity lifecycle.
 The matching native 32-bit smoke test can be run with `SA_RUNTIME_BITS=32`
 (requires multilib and the i386 SDL runtime); add `SA_TEST_RUNNER=qemu-i386`
 on hosts without direct i386 execution. QEMU is used only for host tests; the

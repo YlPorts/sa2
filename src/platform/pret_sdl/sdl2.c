@@ -31,6 +31,7 @@
 #ifdef __ANDROID__
 #include "platform/shared/save_file.h"
 #include "platform/shared/android_controls.h"
+#include "platform/shared/android_viewport.h"
 #ifdef SA1_RUNTIME_IMPORT
 #include "platform/shared/rom_assets.h"
 #endif
@@ -297,7 +298,7 @@ int main(int argc, char **argv)
     }
 
 #ifdef __ANDROID__
-    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 #endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
 #ifdef __ANDROID__
@@ -455,8 +456,8 @@ int main(int argc, char **argv)
     // SDL_RenderSetLogicalSize is broken on PSP, stretch to fill manually
     pspDestRect = (SDL_Rect) { 0, 0, GU_SCR_WIDTH, GU_SCR_HEIGHT };
 #elif defined(__ANDROID__)
-    // Android uses the full renderer output. This keeps drawing and normalized
-    // finger coordinates in the same space and intentionally fills ultrawide.
+    // Controls and normalized finger coordinates use the full output. Fit the
+    // game separately so a portrait surface during launch never stretches it.
     SDL_RenderSetViewport(sdlRenderer, NULL);
 #else
     SDL_RenderSetLogicalSize(sdlRenderer, DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -646,11 +647,15 @@ void VBlankIntrWait(void)
 #endif
         SDL_RenderClear(sdlRenderer);
 #ifdef __ANDROID__
+        int outputW = 0, outputH = 0;
+        SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
         if (sAndroidNativeUiCrop) {
             SDL_Rect nativeUiRect = { 0, 0, 240, 160 };
-            SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, NULL);
+            SDL_Rect destination = AndroidViewport_Fit(outputW, outputH, 240, 160);
+            SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, &destination);
         } else {
-            SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+            SDL_Rect destination = AndroidViewport_Fit(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+            SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &destination);
         }
 
         AndroidDrawTouchControls(sdlRenderer);

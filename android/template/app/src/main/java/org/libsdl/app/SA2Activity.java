@@ -16,12 +16,12 @@ public class SA2Activity extends SDLActivity {
     // hint, overriding both the manifest and onCreate's request.
     @Override
     public void setOrientationBis(int width, int height, boolean resizable, String hint) {
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onCreate(savedInstanceState);
         applyImmersiveMode();
         request60Hz();
@@ -29,7 +29,7 @@ public class SA2Activity extends SDLActivity {
 
     @Override
     protected void onResume() {
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onResume();
         applyImmersiveMode();
         request60Hz();
@@ -39,6 +39,7 @@ public class SA2Activity extends SDLActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             applyImmersiveMode();
             request60Hz();
         }
