@@ -30,6 +30,7 @@
 #include "platform/shared/video/gpsp_renderer.h"
 #ifdef __ANDROID__
 #include "platform/shared/save_file.h"
+#include "platform/shared/android_controls.h"
 #ifdef SA1_RUNTIME_IMPORT
 #include "platform/shared/rom_assets.h"
 #endif
@@ -80,6 +81,7 @@ static bool sAndroidColorLutReady = false;
 static int sAndroidOutputW = 0;
 static int sAndroidOutputH = 0;
 static SDL_Texture *sAndroidControlsTexture = NULL;
+static SDL_Texture *sAndroidControlsHighlightTexture = NULL;
 static int sAndroidControlsTextureW = 0;
 static int sAndroidControlsTextureH = 0;
 
@@ -294,6 +296,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+#ifdef __ANDROID__
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+#endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
 #ifdef __ANDROID__
         AndroidSetStartupError("sdl_init_failed");
@@ -789,107 +794,9 @@ static void AndroidClearInput(void)
     REG_KEYINPUT = KEYS_MASK;
 }
 
-static int AndroidControlBaseSize(void)
-{
-    int w = sAndroidOutputW;
-    int h = sAndroidOutputH;
-
-    if (w <= 0 || h <= 0)
-        return 0;
-
-    return (w < h) ? w : h;
-}
-
-static bool AndroidPointInCircle(float px, float py, float cx, float cy, float radius)
-{
-    const float dx = px - cx;
-    const float dy = py - cy;
-    return (dx * dx + dy * dy) <= (radius * radius);
-}
-
-static bool AndroidPointInRect(float px, float py, float cx, float cy, float halfW, float halfH)
-{
-    return px >= (cx - halfW) && px <= (cx + halfW) && py >= (cy - halfH) && py <= (cy + halfH);
-}
-
 static u16 AndroidTouchMask(float x, float y)
 {
-    u16 mask = 0;
-    const int outputW = sAndroidOutputW;
-    const int outputH = sAndroidOutputH;
-    const int base = AndroidControlBaseSize();
-    float px;
-    float py;
-
-    if (base <= 0)
-        return 0;
-
-    px = x * outputW;
-    py = y * outputH;
-
-    {
-        const float unit = base * 0.095f;
-        const float cx = base * 0.22f;
-        const float cy = outputH - base * 0.22f;
-        const float dx = px - cx;
-        const float dy = py - cy;
-        const float reach = unit * 1.72f;
-        const float dead = unit * 0.22f;
-
-        // Slightly larger than the visible cross. Independent axes make
-        // diagonals natural without requiring a separate diagonal button.
-        if (fabsf(dx) <= reach && fabsf(dy) <= reach) {
-            if (dx < -dead)
-                mask |= DPAD_LEFT;
-            if (dx > dead)
-                mask |= DPAD_RIGHT;
-            if (dy < -dead)
-                mask |= DPAD_UP;
-            if (dy > dead)
-                mask |= DPAD_DOWN;
-        }
-    }
-
-    {
-        const float hitRadius = base * 0.090f;
-        const float aX = outputW - base * 0.18f;
-        const float aY = outputH - base * 0.28f;
-        const float bX = outputW - base * 0.32f;
-        const float bY = outputH - base * 0.16f;
-
-        if (AndroidPointInCircle(px, py, aX, aY, hitRadius))
-            mask |= A_BUTTON;
-        if (AndroidPointInCircle(px, py, bX, bY, hitRadius))
-            mask |= B_BUTTON;
-    }
-
-    {
-        const float halfW = base * 0.145f;
-        const float halfH = base * 0.055f;
-        const float yPos = base * 0.085f;
-        const float leftX = base * 0.19f;
-        const float rightX = outputW - base * 0.19f;
-
-        if (AndroidPointInRect(px, py, leftX, yPos, halfW, halfH))
-            mask |= L_BUTTON;
-        if (AndroidPointInRect(px, py, rightX, yPos, halfW, halfH))
-            mask |= R_BUTTON;
-    }
-
-    {
-        const float halfW = base * 0.085f;
-        const float halfH = base * 0.045f;
-        const float yPos = outputH - base * 0.070f;
-        const float selectX = outputW * 0.5f - base * 0.10f;
-        const float startX = outputW * 0.5f + base * 0.10f;
-
-        if (AndroidPointInRect(px, py, selectX, yPos, halfW, halfH))
-            mask |= SELECT_BUTTON;
-        if (AndroidPointInRect(px, py, startX, yPos, halfW, halfH))
-            mask |= START_BUTTON;
-    }
-
-    return mask;
+    return AndroidControls_TouchMask(x, y, sAndroidOutputW, sAndroidOutputH);
 }
 
 static void AndroidRebuildTouchKeys(void)
@@ -935,318 +842,41 @@ static void AndroidUpdateTouch(SDL_FingerID id, float x, float y, bool active)
     AndroidRebuildTouchKeys();
 }
 
-static void AndroidSetControlColor(SDL_Renderer *renderer, bool pressed, bool border)
-{
-    if (border) {
-        SDL_SetRenderDrawColor(renderer, 210, 214, 220, pressed ? 190 : 112);
-    } else {
-        SDL_SetRenderDrawColor(renderer, 24, 27, 31, pressed ? 150 : 82);
-    }
-}
-
-static void AndroidFillCircle(SDL_Renderer *renderer, int cx, int cy, int radius)
-{
-    int y;
-
-    for (y = -radius; y <= radius; y++) {
-        const int span = (int)sqrtf((float)(radius * radius - y * y));
-        SDL_RenderDrawLine(renderer, cx - span, cy + y, cx + span, cy + y);
-    }
-}
-
-static void AndroidFillCapsule(SDL_Renderer *renderer, int cx, int cy, int width, int height)
-{
-    const int radius = height / 2;
-    SDL_Rect middle = { cx - width / 2 + radius, cy - radius, width - radius * 2, height };
-
-    SDL_RenderFillRect(renderer, &middle);
-    AndroidFillCircle(renderer, cx - width / 2 + radius, cy, radius);
-    AndroidFillCircle(renderer, cx + width / 2 - radius, cy, radius);
-}
-
-static void AndroidDrawThickLine(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int thickness)
-{
-    int ox;
-    int oy;
-    const int r = thickness / 2;
-
-    for (oy = -r; oy <= r; oy++) {
-        for (ox = -r; ox <= r; ox++) {
-            SDL_RenderDrawLine(renderer, x1 + ox, y1 + oy, x2 + ox, y2 + oy);
-        }
-    }
-}
-
-static void AndroidDrawLetterA(SDL_Renderer *renderer, int cx, int cy, int size)
-{
-    const int h = size / 2;
-    AndroidDrawThickLine(renderer, cx - h, cy + h, cx, cy - h, 2);
-    AndroidDrawThickLine(renderer, cx, cy - h, cx + h, cy + h, 2);
-    AndroidDrawThickLine(renderer, cx - h / 2, cy + h / 5, cx + h / 2, cy + h / 5, 2);
-}
-
-static void AndroidDrawLetterB(SDL_Renderer *renderer, int cx, int cy, int size)
-{
-    const int h = size / 2;
-    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx - h / 2, cy + h, 2);
-    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx + h / 3, cy - h, 2);
-    AndroidDrawThickLine(renderer, cx - h / 2, cy, cx + h / 3, cy, 2);
-    AndroidDrawThickLine(renderer, cx - h / 2, cy + h, cx + h / 3, cy + h, 2);
-    AndroidDrawThickLine(renderer, cx + h / 3, cy - h, cx + h / 2, cy - h / 2, 2);
-    AndroidDrawThickLine(renderer, cx + h / 2, cy - h / 2, cx + h / 3, cy, 2);
-    AndroidDrawThickLine(renderer, cx + h / 3, cy, cx + h / 2, cy + h / 2, 2);
-    AndroidDrawThickLine(renderer, cx + h / 2, cy + h / 2, cx + h / 3, cy + h, 2);
-}
-
-static void AndroidDrawLetterL(SDL_Renderer *renderer, int cx, int cy, int size)
-{
-    const int h = size / 2;
-    AndroidDrawThickLine(renderer, cx - h / 3, cy - h, cx - h / 3, cy + h, 2);
-    AndroidDrawThickLine(renderer, cx - h / 3, cy + h, cx + h / 2, cy + h, 2);
-}
-
-static void AndroidDrawLetterR(SDL_Renderer *renderer, int cx, int cy, int size)
-{
-    const int h = size / 2;
-    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx - h / 2, cy + h, 2);
-    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx + h / 3, cy - h, 2);
-    AndroidDrawThickLine(renderer, cx + h / 3, cy - h, cx + h / 2, cy - h / 3, 2);
-    AndroidDrawThickLine(renderer, cx + h / 2, cy - h / 3, cx - h / 2, cy, 2);
-    AndroidDrawThickLine(renderer, cx, cy, cx + h / 2, cy + h, 2);
-}
-
-static void AndroidDrawArrow(SDL_Renderer *renderer, int cx, int cy, int size, u16 direction, bool pressed)
-{
-    const int half = size / 2;
-    AndroidSetControlColor(renderer, pressed, true);
-
-    if (direction == DPAD_LEFT) {
-        AndroidDrawThickLine(renderer, cx + half / 2, cy - half, cx - half / 2, cy, 2);
-        AndroidDrawThickLine(renderer, cx - half / 2, cy, cx + half / 2, cy + half, 2);
-    } else if (direction == DPAD_RIGHT) {
-        AndroidDrawThickLine(renderer, cx - half / 2, cy - half, cx + half / 2, cy, 2);
-        AndroidDrawThickLine(renderer, cx + half / 2, cy, cx - half / 2, cy + half, 2);
-    } else if (direction == DPAD_UP) {
-        AndroidDrawThickLine(renderer, cx - half, cy + half / 2, cx, cy - half / 2, 2);
-        AndroidDrawThickLine(renderer, cx, cy - half / 2, cx + half, cy + half / 2, 2);
-    } else if (direction == DPAD_DOWN) {
-        AndroidDrawThickLine(renderer, cx - half, cy - half / 2, cx, cy + half / 2, 2);
-        AndroidDrawThickLine(renderer, cx, cy + half / 2, cx + half, cy - half / 2, 2);
-    }
-}
-
-static void AndroidDrawDpad(SDL_Renderer *renderer, int base, int outputH)
-{
-    const int unit = (int)(base * 0.095f);
-    const int cx = (int)(base * 0.22f);
-    const int cy = outputH - (int)(base * 0.22f);
-    const int border = 3;
-    SDL_Rect vOuter = { cx - unit / 2, cy - (unit * 3) / 2, unit, unit * 3 };
-    SDL_Rect hOuter = { cx - (unit * 3) / 2, cy - unit / 2, unit * 3, unit };
-    SDL_Rect vInner = { vOuter.x + border, vOuter.y + border, vOuter.w - border * 2, vOuter.h - border * 2 };
-    SDL_Rect hInner = { hOuter.x + border, hOuter.y + border, hOuter.w - border * 2, hOuter.h - border * 2 };
-
-    AndroidSetControlColor(renderer, false, true);
-    SDL_RenderFillRect(renderer, &vOuter);
-    SDL_RenderFillRect(renderer, &hOuter);
-
-    AndroidSetControlColor(renderer, false, false);
-    SDL_RenderFillRect(renderer, &vInner);
-    SDL_RenderFillRect(renderer, &hInner);
-
-    if (sAndroidTouchKeys & DPAD_LEFT) {
-        SDL_Rect r = { hInner.x, hInner.y, unit, hInner.h };
-        AndroidSetControlColor(renderer, true, false);
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_RIGHT) {
-        SDL_Rect r = { hInner.x + hInner.w - unit, hInner.y, unit, hInner.h };
-        AndroidSetControlColor(renderer, true, false);
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_UP) {
-        SDL_Rect r = { vInner.x, vInner.y, vInner.w, unit };
-        AndroidSetControlColor(renderer, true, false);
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_DOWN) {
-        SDL_Rect r = { vInner.x, vInner.y + vInner.h - unit, vInner.w, unit };
-        AndroidSetControlColor(renderer, true, false);
-        SDL_RenderFillRect(renderer, &r);
-    }
-
-    AndroidDrawArrow(renderer, cx - unit, cy, unit / 3, DPAD_LEFT, (sAndroidTouchKeys & DPAD_LEFT) != 0);
-    AndroidDrawArrow(renderer, cx + unit, cy, unit / 3, DPAD_RIGHT, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
-    AndroidDrawArrow(renderer, cx, cy - unit, unit / 3, DPAD_UP, (sAndroidTouchKeys & DPAD_UP) != 0);
-    AndroidDrawArrow(renderer, cx, cy + unit, unit / 3, DPAD_DOWN, (sAndroidTouchKeys & DPAD_DOWN) != 0);
-}
-
-static void AndroidDrawFaceButton(SDL_Renderer *renderer, int cx, int cy, int radius, bool pressed, char label)
-{
-    AndroidSetControlColor(renderer, pressed, true);
-    AndroidFillCircle(renderer, cx, cy, radius);
-    AndroidSetControlColor(renderer, pressed, false);
-    AndroidFillCircle(renderer, cx, cy, radius - 3);
-
-    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 240 : 170);
-    if (label == 'A')
-        AndroidDrawLetterA(renderer, cx, cy, radius / 2);
-    else
-        AndroidDrawLetterB(renderer, cx, cy, radius / 2);
-}
-
-static void AndroidDrawShoulderButton(SDL_Renderer *renderer, int cx, int cy, int width, int height, bool pressed, char label)
-{
-    AndroidSetControlColor(renderer, pressed, true);
-    AndroidFillCapsule(renderer, cx, cy, width, height);
-    AndroidSetControlColor(renderer, pressed, false);
-    AndroidFillCapsule(renderer, cx, cy, width - 6, height - 6);
-
-    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 240 : 160);
-    if (label == 'L')
-        AndroidDrawLetterL(renderer, cx, cy, height / 2);
-    else
-        AndroidDrawLetterR(renderer, cx, cy, height / 2);
-}
-
-static void AndroidDrawMiniButton(SDL_Renderer *renderer, int cx, int cy, int width, int height, bool pressed, bool isStart)
-{
-    AndroidSetControlColor(renderer, pressed, true);
-    AndroidFillCapsule(renderer, cx, cy, width, height);
-    AndroidSetControlColor(renderer, pressed, false);
-    AndroidFillCapsule(renderer, cx, cy, width - 5, height - 5);
-
-    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 230 : 145);
-    if (isStart) {
-        const int s = height / 4;
-        AndroidDrawThickLine(renderer, cx - s / 2, cy - s, cx + s, cy, 2);
-        AndroidDrawThickLine(renderer, cx + s, cy, cx - s / 2, cy + s, 2);
-    } else {
-        const int half = width / 6;
-        AndroidDrawThickLine(renderer, cx - half, cy - 3, cx + half, cy - 3, 2);
-        AndroidDrawThickLine(renderer, cx - half, cy + 4, cx + half, cy + 4, 2);
-    }
-}
-
-static void AndroidDrawStaticControlsGeometry(SDL_Renderer *renderer, int outputW, int outputH)
-{
-    const int base = (outputW < outputH) ? outputW : outputH;
-    const int radius = (int)(base * 0.065f);
-
-    AndroidDrawDpad(renderer, base, outputH);
-    AndroidDrawFaceButton(renderer, outputW - (int)(base * 0.18f), outputH - (int)(base * 0.28f), radius, false, 'A');
-    AndroidDrawFaceButton(renderer, outputW - (int)(base * 0.32f), outputH - (int)(base * 0.16f), radius, false, 'B');
-
-    AndroidDrawShoulderButton(renderer, (int)(base * 0.19f), (int)(base * 0.085f),
-                              (int)(base * 0.23f), (int)(base * 0.060f), false, 'L');
-    AndroidDrawShoulderButton(renderer, outputW - (int)(base * 0.19f), (int)(base * 0.085f),
-                              (int)(base * 0.23f), (int)(base * 0.060f), false, 'R');
-
-    AndroidDrawMiniButton(renderer, (int)(outputW * 0.5f - base * 0.10f), outputH - (int)(base * 0.070f),
-                          (int)(base * 0.105f), (int)(base * 0.036f), false, false);
-    AndroidDrawMiniButton(renderer, (int)(outputW * 0.5f + base * 0.10f), outputH - (int)(base * 0.070f),
-                          (int)(base * 0.105f), (int)(base * 0.036f), false, true);
-}
-
 static void AndroidDestroyControlsTexture(void)
 {
-    if (sAndroidControlsTexture != NULL) {
-        SDL_DestroyTexture(sAndroidControlsTexture);
-        sAndroidControlsTexture = NULL;
-    }
-
+    SDL_DestroyTexture(sAndroidControlsTexture);
+    SDL_DestroyTexture(sAndroidControlsHighlightTexture);
+    sAndroidControlsTexture = NULL;
+    sAndroidControlsHighlightTexture = NULL;
     sAndroidControlsTextureW = 0;
     sAndroidControlsTextureH = 0;
 }
 
 static bool AndroidEnsureControlsTexture(SDL_Renderer *renderer, int outputW, int outputH)
 {
-    SDL_Texture *previousTarget;
-    u16 savedKeys;
-
-    if (sAndroidControlsTexture != NULL
-        && sAndroidControlsTextureW == outputW
-        && sAndroidControlsTextureH == outputH)
+    if (sAndroidControlsTexture != NULL && sAndroidControlsHighlightTexture != NULL
+        && sAndroidControlsTextureW == outputW && sAndroidControlsTextureH == outputH)
         return true;
-
     AndroidDestroyControlsTexture();
-
-    sAndroidControlsTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                                                SDL_TEXTUREACCESS_TARGET, outputW, outputH);
-    if (sAndroidControlsTexture == NULL)
-        return false;
-
-    SDL_SetTextureBlendMode(sAndroidControlsTexture, SDL_BLENDMODE_BLEND);
-    previousTarget = SDL_GetRenderTarget(renderer);
-
-    if (SDL_SetRenderTarget(renderer, sAndroidControlsTexture) != 0) {
+    SDL_Surface *surface = AndroidControls_CreateSurface(outputW, outputH, 0);
+    if (surface != NULL) {
+        sAndroidControlsTexture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+    }
+    surface = AndroidControls_CreateSurface(outputW, outputH, 1);
+    if (surface != NULL) {
+        sAndroidControlsHighlightTexture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+    }
+    if (sAndroidControlsTexture == NULL || sAndroidControlsHighlightTexture == NULL) {
         AndroidDestroyControlsTexture();
         return false;
     }
-
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
-    savedKeys = sAndroidTouchKeys;
-    sAndroidTouchKeys = 0;
-    AndroidDrawStaticControlsGeometry(renderer, outputW, outputH);
-    sAndroidTouchKeys = savedKeys;
-
-    SDL_SetRenderTarget(renderer, previousTarget);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
+    SDL_SetTextureBlendMode(sAndroidControlsTexture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(sAndroidControlsHighlightTexture, SDL_BLENDMODE_BLEND);
     sAndroidControlsTextureW = outputW;
     sAndroidControlsTextureH = outputH;
     return true;
-}
-
-static void AndroidDrawPressedHighlights(SDL_Renderer *renderer, int outputW, int outputH)
-{
-    const int base = (outputW < outputH) ? outputW : outputH;
-    const int radius = (int)(base * 0.055f);
-    const int unit = (int)(base * 0.095f);
-    const int cx = (int)(base * 0.22f);
-    const int cy = outputH - (int)(base * 0.22f);
-
-    SDL_SetRenderDrawColor(renderer, 235, 238, 242, 42);
-
-    if (sAndroidTouchKeys & A_BUTTON)
-        AndroidFillCircle(renderer, outputW - (int)(base * 0.18f), outputH - (int)(base * 0.28f), radius);
-    if (sAndroidTouchKeys & B_BUTTON)
-        AndroidFillCircle(renderer, outputW - (int)(base * 0.32f), outputH - (int)(base * 0.16f), radius);
-
-    if (sAndroidTouchKeys & DPAD_LEFT) {
-        SDL_Rect r = { cx - (unit * 3) / 2, cy - unit / 2, unit, unit };
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_RIGHT) {
-        SDL_Rect r = { cx + unit / 2, cy - unit / 2, unit, unit };
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_UP) {
-        SDL_Rect r = { cx - unit / 2, cy - (unit * 3) / 2, unit, unit };
-        SDL_RenderFillRect(renderer, &r);
-    }
-    if (sAndroidTouchKeys & DPAD_DOWN) {
-        SDL_Rect r = { cx - unit / 2, cy + unit / 2, unit, unit };
-        SDL_RenderFillRect(renderer, &r);
-    }
-
-    if (sAndroidTouchKeys & L_BUTTON)
-        AndroidFillCapsule(renderer, (int)(base * 0.19f), (int)(base * 0.085f),
-                           (int)(base * 0.20f), (int)(base * 0.044f));
-    if (sAndroidTouchKeys & R_BUTTON)
-        AndroidFillCapsule(renderer, outputW - (int)(base * 0.19f), (int)(base * 0.085f),
-                           (int)(base * 0.20f), (int)(base * 0.044f));
-    if (sAndroidTouchKeys & SELECT_BUTTON)
-        AndroidFillCapsule(renderer, (int)(outputW * 0.5f - base * 0.10f), outputH - (int)(base * 0.070f),
-                           (int)(base * 0.085f), (int)(base * 0.026f));
-    if (sAndroidTouchKeys & START_BUTTON)
-        AndroidFillCapsule(renderer, (int)(outputW * 0.5f + base * 0.10f), outputH - (int)(base * 0.070f),
-                           (int)(base * 0.085f), (int)(base * 0.026f));
 }
 
 static void AndroidDrawTouchControls(SDL_Renderer *renderer)
@@ -1265,12 +895,10 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    if (AndroidEnsureControlsTexture(renderer, outputW, outputH))
+    if (AndroidEnsureControlsTexture(renderer, outputW, outputH)) {
         SDL_RenderCopy(renderer, sAndroidControlsTexture, NULL, NULL);
-    else
-        AndroidDrawStaticControlsGeometry(renderer, outputW, outputH);
-
-    AndroidDrawPressedHighlights(renderer, outputW, outputH);
+        AndroidControls_DrawHighlights(renderer, sAndroidControlsHighlightTexture, outputW, outputH, sAndroidTouchKeys);
+    }
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

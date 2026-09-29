@@ -20,6 +20,18 @@ on:
       - ".github/workflows/android.yml"
 
 jobs:
+  sa2-runtime:
+    name: sa2 level and controls regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native SDL dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev libsdl2-dev
+      - name: Run Leaf Forest Acts 1 and 2 with AddressSanitizer
+        run: bash android/test-runtime.sh
+
   build:
     name: ${{ matrix.game }}
     runs-on: ubuntu-latest

@@ -62,6 +62,18 @@ void DrawBackground(Background *background)
 
     background->layout = mapHeader->tileset.map;
 
+#if PORTABLE
+    if (!(background->flags & (BACKGROUND_FLAG_IS_LEVEL_MAP | BACKGROUND_FLAG_20))) {
+        // A direct tilemap copy has no wrapping. Leaf Forest requests a full
+        // 32-row screen block for a 30-row asset; reading its last two rows
+        // depended on adjacent ROM data and overran the native allocation.
+        const u16 columns = background->unk1E < background->xTiles ? background->xTiles - background->unk1E : 0;
+        const u16 rows = background->unk20 < background->yTiles ? background->yTiles - background->unk20 : 0;
+        background->targetTilesX = MIN(background->targetTilesX, columns);
+        background->targetTilesY = MIN(background->targetTilesY, rows);
+    }
+#endif
+
     if (background->flags & BACKGROUND_FLAG_IS_LEVEL_MAP) {
         background->metatileMap = mapHeader->metatileMap;
         background->mapWidth = mapHeader->mapWidth;

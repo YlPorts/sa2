@@ -15,7 +15,7 @@
             android:name="org.libsdl.app.RomImportActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,6 +28,6 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:preferMinimalPostProcessing="true"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
     </application>
 </manifest>

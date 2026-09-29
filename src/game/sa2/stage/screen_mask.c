@@ -16,6 +16,9 @@
 
 void ScreenMask_Lower_OriginLeft(int_vcount y, u16 angle)
 {
+#if PORTABLE
+    y = MIN(y, DISPLAY_HEIGHT);
+#endif
     int_vcount *bgOffsets = gBgOffsetsHBlankPrimary;
 #ifdef BUG_FIX
     if (bgOffsets == NULL) {
@@ -98,6 +101,10 @@ void ScreenMask_Lower_OriginLeft(int_vcount y, u16 angle)
 
 UNUSED void ScreenMask_Upper_OriginLeft(int_vcount inY, u16 inAngle)
 {
+#if PORTABLE
+    inY = MIN(inY, DISPLAY_HEIGHT);
+    if (gBgOffsetsHBlankPrimary == NULL) return;
+#endif
     u32 y = inY;
     s16 i;
     int_vcount *bgOffsets = gBgOffsetsHBlankPrimary;
@@ -132,7 +139,11 @@ UNUSED void ScreenMask_Upper_OriginLeft(int_vcount inY, u16 inAngle)
             bgOffsets = &bgOffsets[y * 2];
 
             // __0802DC56
+#if PORTABLE
+            for (i = y; i > 0; i--) {
+#else
             for (i = y; i >= 0; i--) {
+#endif
                 u16 xVal;
                 r5 = r5 + r3;
                 xVal = I(r5);
@@ -170,6 +181,10 @@ UNUSED void ScreenMask_Upper_OriginLeft(int_vcount inY, u16 inAngle)
 
 void ScreenMask_Lower_OriginRight(int_vcount y, u16 angle)
 {
+#if PORTABLE
+    y = MIN(y, DISPLAY_HEIGHT);
+    if (gBgOffsetsHBlankPrimary == NULL) return;
+#endif
     int_vcount *bgOffsets = gBgOffsetsHBlankPrimary;
     s32 r5 = 0;
     angle = angle % SIN_PERIOD;
@@ -238,7 +253,13 @@ void ScreenMask_Lower_OriginRight(int_vcount y, u16 angle)
             bgOffsets = gBgOffsetsHBlankPrimary;
             bgOffsets = &bgOffsets[y * 2];
 
+            // The pre-decrement writes row (i - 1). At i == 0 it would write
+            // before the HBlank buffer and corrupt the previous allocation.
+#if PORTABLE
+            for (i = y; i > 0; i--) {
+#else
             for (i = y; i >= 0; i--) {
+#endif
                 // _0802DC9C
                 u16 xVal;
                 r5 = r5 + r3;
@@ -258,6 +279,10 @@ void ScreenMask_Lower_OriginRight(int_vcount y, u16 angle)
 
 void ScreenMask_Upper_OriginRight(int_vcount y, u16 angle)
 {
+#if PORTABLE
+    y = MIN(y, DISPLAY_HEIGHT);
+    if (gBgOffsetsHBlankPrimary == NULL) return;
+#endif
     int_vcount *bgOffsets = gBgOffsetsHBlankPrimary;
     s32 r2;
     s32 r7 = 0;

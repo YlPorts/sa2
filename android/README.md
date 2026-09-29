@@ -6,13 +6,21 @@ importer loads remaining SA1 asset ranges; it does not execute a GBA ROM.
 ## Build
 
 - `bash android/build-apk.sh sa1` -> Sonic Advance 1, 0.1.0-alpha1
-- `bash android/build-apk.sh sa2` -> Sonic Advance 2, 0.1.0-beta2
+- `bash android/build-apk.sh sa2` -> Sonic Advance 2, 0.1.0-beta3
 
 Default: optimized release, `armeabi-v7a`, non-debuggable, Android 6+ (API 23).
 Both builds use the existing 426×240 viewport, fixed 60 Hz game timing,
 automatic landscape, cached multitouch controls and app-private saves.
 Physical-device performance still needs validation; 60 Hz timing is not an FPS
 guarantee. The existing upstream single-pak/chao-garden support is incomplete.
+
+Beta3 bounds direct background copies to their source assets and fixes a
+pre-decrement mask loop that wrote before the HBlank buffer during the stage
+entrance. SDL's orientation callback now permits only the two landscape
+orientations, including when Android's automatic rotation is disabled. The
+controls share one layout for drawing and hit testing; smooth silhouettes and
+pressed highlights are cached in textures without render-target switches or
+rebuilding geometry each frame.
 
 Requirements: Java 17, Android SDK platform/build-tools 34, NDK r27 or newer,
 Python 3, make, gcc/g++, curl, tar and libpng development headers. Set
@@ -69,3 +77,15 @@ stream interruption, preservation of previous data, writable native ranges and
 atomic-save failure behavior. GitHub Actions builds both ROM-free APKs and keeps
 the separate SA1 native compile/link check. These checks do not certify gameplay
 with the original SA1 assets or Samsung A15 frame rates.
+
+`bash android/test-runtime.sh` builds a native SDL test executable with
+AddressSanitizer. A test-only linker harness starts Leaf Forest Acts 1 and 2,
+executes 1,200 frames per act with movement, real level tasks, audio and the
+426×240 renderer, and validates controls at four surface sizes. Neither the
+harness nor its test input is packaged in APKs. This test caught both the
+30-row background overread and the stage-intro write before the buffer.
+The matching native 32-bit smoke test can be run with `SA_RUNTIME_BITS=32`
+(requires multilib and the i386 SDL runtime); add `SA_TEST_RUNNER=qemu-i386`
+on hosts without direct i386 execution. QEMU is used only for host tests; the
+Android APK remains a native ARM build. Hardware rotation, drivers and device
+frame rates require a physical-device test.
