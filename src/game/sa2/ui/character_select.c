@@ -1,4 +1,7 @@
 #include "global.h"
+#ifdef __ANDROID__
+extern void Platform_SetNativeUiCrop(bool8 enabled);
+#endif
 #include "core.h"
 #include "sprite.h"
 #include "background.h"
@@ -189,6 +192,9 @@ static const u8 sCharacterSilhouettes[] = {
 
 void CreateCharacterSelectionScreen(u8 initialSelection, bool8 allUnlocked)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     Task *t;
 
     Sprite *s = NULL;
@@ -991,6 +997,9 @@ static void Task_SelectionCompleteFadeOutAndExit(void)
 
     if ((characterScreen->animFrame >= sCharacterChosenAnimLengths[characterScreen->selectedCharacter])
         && UpdateScreenFade(unk0) == SCREEN_FADE_COMPLETE) {
+#ifdef __ANDROID__
+        Platform_SetNativeUiCrop(FALSE);
+#endif
         TaskDestroy(gCurTask);
 
         if (IS_MULTI_PLAYER) {
@@ -1031,6 +1040,9 @@ static void Task_FadeOutAndExitToPrevious(void)
     ScreenFade *unk0 = &characterScreen->fade;
 
     if (UpdateScreenFade(unk0) == SCREEN_FADE_COMPLETE) {
+#ifdef __ANDROID__
+        Platform_SetNativeUiCrop(FALSE);
+#endif
         TasksDestroyAll();
         PAUSE_BACKGROUNDS_QUEUE();
         gBgSpritesCount = 0;
