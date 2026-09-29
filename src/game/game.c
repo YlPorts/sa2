@@ -38,6 +38,13 @@
 #include "game/shared/stage/water_effects.h"
 #include "game/dummy_task.h"
 
+#ifdef __ANDROID__
+extern void Platform_SetStartupStage(const char *stage);
+#define GAME_STARTUP_STAGE(name) Platform_SetStartupStage(name)
+#else
+#define GAME_STARTUP_STAGE(name) ((void)0)
+#endif
+
 #if TAS_TESTING
 #include "data/sa2/recordings.h"
 #endif
@@ -56,6 +63,8 @@ void GameInit(void)
 {
     u32 i;
     bool32 hasProfile = FALSE;
+
+    GAME_STARTUP_STAGE("game_init_enter");
 
     // NOTE: cast because of const
     gTilemapsRef = (Tilemap **)gTilemaps;
@@ -108,7 +117,9 @@ void GameInit(void)
     }
 
 #if (GAME == GAME_SA2)
+    GAME_STARTUP_STAGE("before_save_init");
     SaveInit();
+    GAME_STARTUP_STAGE("after_save_init");
 #endif
 
 #if (GAME == GAME_SA1)
@@ -117,10 +128,14 @@ void GameInit(void)
         hasProfile = TRUE;
     }
 #elif (GAME == GAME_SA2)
+    GAME_STARTUP_STAGE("before_save_exists");
     if (SaveGameExists()) {
+        GAME_STARTUP_STAGE("before_load_save");
         LoadSaveGame();
+        GAME_STARTUP_STAGE("after_load_save");
         hasProfile = TRUE;
     }
+    GAME_STARTUP_STAGE("after_save_exists");
 #endif
 
     // This flag is only set in EngineInit
@@ -172,7 +187,9 @@ void GameInit(void)
     }
 #elif (GAME == GAME_SA2)
     if (!hasProfile) {
+        GAME_STARTUP_STAGE("before_new_profile");
         CreateNewProfileScreen();
+        GAME_STARTUP_STAGE("after_new_profile");
         return;
     }
 #endif
@@ -201,9 +218,12 @@ void GameInit(void)
     CreateSegaLogo();
 #endif
 #elif (GAME == GAME_SA2)
+    GAME_STARTUP_STAGE("before_title_screen");
     CreateTitleScreen();
+    GAME_STARTUP_STAGE("after_title_screen");
 #endif
 #endif
+    GAME_STARTUP_STAGE("game_init_complete");
 }
 #else
 void GameInit(void)
