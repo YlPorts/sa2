@@ -21,8 +21,8 @@ int main(int argc, char **argv)
         assert(At(cx + unit, cy + unit, w, h) == (DPAD_RIGHT | DPAD_DOWN));
         assert(At(w - b * .19f, h - b * .295f, w, h) == A_BUTTON);
         assert(At(w - b * .355f, h - b * .17f, w, h) == B_BUTTON);
-        assert(At(b * .17f, b * .082f, w, h) == L_BUTTON);
-        assert(At(w - b * .17f, b * .082f, w, h) == R_BUTTON);
+        assert(At(b * .17f, b * .16f, w, h) == L_BUTTON);
+        assert(At(w - b * .17f, b * .16f, w, h) == R_BUTTON);
         assert(At(w * .5f - b * .10f, h - b * .07f, w, h) == SELECT_BUTTON);
         assert(At(w * .5f + b * .10f, h - b * .07f, w, h) == START_BUTTON);
         assert(At(w * .5f, h * .5f, w, h) == 0);

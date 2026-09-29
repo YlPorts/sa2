@@ -16,8 +16,9 @@ static void Layout(int width, int height, Control controls[6])
     const float b = Base(width, height);
     controls[0] = (Control){ width - b * .19f, height - b * .295f, b * .082f, b * .082f, b * .082f, A_BUTTON, 'A' };
     controls[1] = (Control){ width - b * .355f, height - b * .17f, b * .073f, b * .073f, b * .073f, B_BUTTON, 'B' };
-    controls[2] = (Control){ b * .17f, b * .082f, b * .105f, b * .034f, b * .034f, L_BUTTON, 'L' };
-    controls[3] = (Control){ width - b * .17f, b * .082f, b * .105f, b * .034f, b * .034f, R_BUTTON, 'R' };
+    // Keep shoulders below the ring/score HUD so their labels stay readable.
+    controls[2] = (Control){ b * .17f, b * .16f, b * .105f, b * .034f, b * .034f, L_BUTTON, 'L' };
+    controls[3] = (Control){ width - b * .17f, b * .16f, b * .105f, b * .034f, b * .034f, R_BUTTON, 'R' };
     controls[4] = (Control){ width * .5f - b * .10f, height - b * .07f, b * .065f, b * .026f, b * .026f, SELECT_BUTTON, '=' };
     controls[5] = (Control){ width * .5f + b * .10f, height - b * .07f, b * .065f, b * .026f, b * .026f, START_BUTTON, '>' };
 }
