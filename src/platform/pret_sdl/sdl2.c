@@ -17,6 +17,9 @@
 #endif
 
 #include <SDL.h>
+#ifdef __ANDROID__
+#include <SDL_system.h>
+#endif
 
 #include "global.h"
 #include "core.h"
@@ -66,6 +69,12 @@ double timeScale = 1.0;
 double accumulator = 0.0;
 
 static FILE *sSaveFile = NULL;
+
+#if (GAME == GAME_SA1)
+#define SAVE_FILENAME "sa1.sav"
+#else
+#define SAVE_FILENAME "sa2.sav"
+#endif
 
 extern void AgbMain(void);
 void DoSoftReset(void) {};
@@ -151,7 +160,9 @@ int main(int argc, char **argv)
     freopen("CON", "w", stdout);
 #endif
 
-    ReadSaveFile("sa2.sav");
+#ifndef __ANDROID__
+    ReadSaveFile(SAVE_FILENAME);
+#endif
 
     // Prevent the multiplayer screen from being drawn ( see core.c:EngineInit() )
     REG_RCNT = 0x8000;
@@ -170,6 +181,22 @@ int main(int argc, char **argv)
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+
+#ifdef __ANDROID__
+    // Android's working directory is not a stable place for save data.
+    // Keep each game's SRAM inside the application's private storage.
+    {
+        const char *internalStoragePath = SDL_AndroidGetInternalStoragePath();
+        char savePath[1024];
+
+        if (internalStoragePath != NULL
+            && snprintf(savePath, sizeof(savePath), "%s/%s", internalStoragePath, SAVE_FILENAME) < (int)sizeof(savePath)) {
+            ReadSaveFile(savePath);
+        } else {
+            ReadSaveFile(SAVE_FILENAME);
+        }
+    }
+#endif
 
 #ifdef __PSP__
     if (SDL_NumJoysticks() > 0) {
@@ -371,6 +398,10 @@ void VBlankIntrWait(void)
         SDL_RenderClear(sdlRenderer);
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 
+#ifdef __ANDROID__
+        AndroidDrawTouchControls(sdlRenderer);
+#endif
+
 #if ENABLE_VRAM_VIEW
         VramDraw(vramTexture);
         SDL_RenderClear(vramRenderer);
@@ -441,6 +472,136 @@ static void CloseSaveFile()
 }
 
 static u16 keys;
+
+#ifdef __ANDROID__
+#define ANDROID_MAX_TOUCHES 10
+
+typedef struct AndroidTouchSlot {
+    SDL_FingerID id;
+    u16 mask;
+    bool active;
+} AndroidTouchSlot;
+
+static AndroidTouchSlot sAndroidTouches[ANDROID_MAX_TOUCHES];
+static u16 sAndroidTouchKeys;
+
+static u16 AndroidTouchMask(float x, float y)
+{
+    u16 mask = 0;
+
+    // D-pad. The independent axes deliberately overlap to allow diagonals.
+    if (x < 0.36f && y > 0.48f) {
+        const float dx = x - 0.18f;
+        const float dy = y - 0.72f;
+
+        if (dx < -0.045f)
+            mask |= DPAD_LEFT;
+        if (dx > 0.045f)
+            mask |= DPAD_RIGHT;
+        if (dy < -0.045f)
+            mask |= DPAD_UP;
+        if (dy > 0.045f)
+            mask |= DPAD_DOWN;
+    }
+
+    // Face buttons.
+    if (x > 0.80f && y > 0.50f)
+        mask |= A_BUTTON;
+    if (x > 0.64f && x <= 0.82f && y > 0.64f)
+        mask |= B_BUTTON;
+
+    // Shoulder buttons.
+    if (x < 0.22f && y < 0.20f)
+        mask |= L_BUTTON;
+    if (x > 0.78f && y < 0.20f)
+        mask |= R_BUTTON;
+
+    // Start / Select.
+    if (x > 0.52f && x < 0.65f && y > 0.84f)
+        mask |= START_BUTTON;
+    if (x > 0.37f && x < 0.49f && y > 0.84f)
+        mask |= SELECT_BUTTON;
+
+    return mask;
+}
+
+static void AndroidRebuildTouchKeys(void)
+{
+    u16 mask = 0;
+    int i;
+
+    for (i = 0; i < ANDROID_MAX_TOUCHES; i++) {
+        if (sAndroidTouches[i].active)
+            mask |= sAndroidTouches[i].mask;
+    }
+
+    sAndroidTouchKeys = mask;
+}
+
+static void AndroidUpdateTouch(SDL_FingerID id, float x, float y, bool active)
+{
+    int i;
+    int freeSlot = -1;
+
+    for (i = 0; i < ANDROID_MAX_TOUCHES; i++) {
+        if (sAndroidTouches[i].active && sAndroidTouches[i].id == id) {
+            if (active) {
+                sAndroidTouches[i].mask = AndroidTouchMask(x, y);
+            } else {
+                sAndroidTouches[i].active = false;
+                sAndroidTouches[i].mask = 0;
+            }
+            AndroidRebuildTouchKeys();
+            return;
+        }
+
+        if (!sAndroidTouches[i].active && freeSlot < 0)
+            freeSlot = i;
+    }
+
+    if (active && freeSlot >= 0) {
+        sAndroidTouches[freeSlot].id = id;
+        sAndroidTouches[freeSlot].mask = AndroidTouchMask(x, y);
+        sAndroidTouches[freeSlot].active = true;
+    }
+
+    AndroidRebuildTouchKeys();
+}
+
+static void AndroidDrawTouchRect(SDL_Renderer *renderer, float x, float y, float w, float h, bool pressed)
+{
+    SDL_Rect rect = {
+        (int)(x * DISPLAY_WIDTH),
+        (int)(y * DISPLAY_HEIGHT),
+        (int)(w * DISPLAY_WIDTH),
+        (int)(h * DISPLAY_HEIGHT),
+    };
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, pressed ? 100 : 48);
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, pressed ? 210 : 120);
+    SDL_RenderDrawRect(renderer, &rect);
+}
+
+static void AndroidDrawTouchControls(SDL_Renderer *renderer)
+{
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    AndroidDrawTouchRect(renderer, 0.04f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_LEFT) != 0);
+    AndroidDrawTouchRect(renderer, 0.22f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
+    AndroidDrawTouchRect(renderer, 0.13f, 0.53f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_UP) != 0);
+    AndroidDrawTouchRect(renderer, 0.13f, 0.79f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_DOWN) != 0);
+
+    AndroidDrawTouchRect(renderer, 0.82f, 0.56f, 0.12f, 0.16f, (sAndroidTouchKeys & A_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, 0.67f, 0.70f, 0.12f, 0.16f, (sAndroidTouchKeys & B_BUTTON) != 0);
+
+    AndroidDrawTouchRect(renderer, 0.03f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & L_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, 0.80f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & R_BUTTON) != 0);
+
+    AndroidDrawTouchRect(renderer, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
+}
+#endif
 
 // Key mappings
 #define KEY_A_BUTTON      SDLK_c
@@ -616,6 +777,17 @@ void ProcessSDLEvents(void)
                             break;
                     }
                 break;
+#ifdef __ANDROID__
+            case SDL_FINGERDOWN:
+                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, true);
+                break;
+            case SDL_FINGERMOTION:
+                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, true);
+                break;
+            case SDL_FINGERUP:
+                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, false);
+                break;
+#endif
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     unsigned int w = event.window.data1;
@@ -656,6 +828,10 @@ u16 Platform_GetKeyInput(void)
 
 #ifdef __PSP__
     return keys | PollJoystickButtons();
+#endif
+
+#ifdef __ANDROID__
+    return keys | sAndroidTouchKeys;
 #endif
 
     return keys;
