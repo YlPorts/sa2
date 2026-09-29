@@ -201,8 +201,10 @@ int main(int argc, char **argv)
         if (internalStoragePath != NULL
             && snprintf(savePath, sizeof(savePath), "%s/%s", internalStoragePath, SAVE_FILENAME) < (int)sizeof(savePath)) {
             ReadSaveFile(savePath);
+            SDL_Log("SA Android save: %s", savePath);
         } else {
             ReadSaveFile(SAVE_FILENAME);
+            SDL_Log("SA Android save fallback: %s", SAVE_FILENAME);
         }
     }
 #endif
@@ -282,6 +284,25 @@ int main(int argc, char **argv)
         fprintf(stderr, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+
+#ifdef __ANDROID__
+    {
+        SDL_RendererInfo rendererInfo;
+        int outputW = 0;
+        int outputH = 0;
+
+        SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
+        if (SDL_GetRendererInfo(sdlRenderer, &rendererInfo) == 0) {
+            SDL_Log("SA Android renderer: %s flags=0x%x output=%dx%d",
+                    rendererInfo.name ? rendererInfo.name : "unknown",
+                    rendererInfo.flags, outputW, outputH);
+        }
+        SDL_Log("SA Android drivers: video=%s audio=%s joysticks=%d",
+                SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "unknown",
+                SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "unknown",
+                SDL_NumJoysticks());
+    }
+#endif
 
 #if ENABLE_VRAM_VIEW
     vramRenderer = SDL_CreateRenderer(vramWindow, -1, SDL_RENDERER_PRESENTVSYNC);
