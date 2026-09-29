@@ -11,6 +11,14 @@
 #include "lib/m4a/m4a.h"
 #include "lib/agb_flash/agb_flash.h"
 
+#ifdef __ANDROID__
+extern void Platform_SetStartupStage(const char *stage);
+#define CORE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
+static bool sAndroidFirstMainLoop = true;
+#else
+#define CORE_STARTUP_STAGE(name) ((void)0)
+#endif
+
 // TODO: Better name
 #define VBLANK_FUNC_ID_NONE 0xFF
 
@@ -251,6 +259,8 @@ void EngineInit(void)
     s16 i;
     u16 errorIdentifying;
 
+    CORE_STARTUP_STAGE("engine_init_enter");
+
 #if (ENGINE == ENGINE_3)
     REG_IME = 0;
 #endif
@@ -469,26 +479,37 @@ void EngineInit(void)
     DmaWait(3);
 #endif
 
+    CORE_STARTUP_STAGE("engine_memory_init_ok");
+    CORE_STARTUP_STAGE("before_m4a_init");
     m4aSoundInit();
     m4aSoundMode(DEFAULT_SOUND_MODE);
+    CORE_STARTUP_STAGE("after_m4a_init");
 
     gExecSoundMain = TRUE;
 
+    CORE_STARTUP_STAGE("before_tasks_init");
     TasksInit();
+    CORE_STARTUP_STAGE("after_tasks_init");
 #ifndef COLLECT_RINGS_ROM
+    CORE_STARTUP_STAGE("before_ewram_heap");
     EwramInitHeap();
+    CORE_STARTUP_STAGE("after_ewram_heap");
 #endif
 
     // VRAM_TILE_SEGMENTS / 256 max useable segments
     gVramHeapMaxTileSlots = VRAM_TILE_SEGMENTS * VRAM_TILE_SLOTS_PER_SEGMENT;
     gVramHeapStartAddr = OBJ_VRAM1 - (VRAM_HEAP_TILE_COUNT * TILE_SIZE_4BPP);
 
+    CORE_STARTUP_STAGE("before_vram_heap");
     VramResetHeapState();
+    CORE_STARTUP_STAGE("after_vram_heap");
 
 #if COLLECT_RINGS_ROM
     gFlags |= FLAGS_NO_FLASH_MEMORY;
 #else
+    CORE_STARTUP_STAGE("before_identify_flash");
     errorIdentifying = IdentifyFlash();
+    CORE_STARTUP_STAGE("after_identify_flash");
     if (errorIdentifying) {
         gFlags |= FLAGS_NO_FLASH_MEMORY;
     } else {
@@ -532,7 +553,9 @@ void EngineInit(void)
     gMultiSioStatusFlags = 0;
     gMultiSioEnabled = FALSE;
 
+    CORE_STARTUP_STAGE("before_multisio_init");
     MultiSioInit(0);
+    CORE_STARTUP_STAGE("after_multisio_init");
 
 #if (ENGINE == ENGINE_3)
     gUnknown_0300620C = 0;
@@ -550,10 +573,22 @@ void EngineMainLoop(void)
     while (TRUE)
 #endif
     {
+#ifdef __ANDROID__
+        if (sAndroidFirstMainLoop)
+            CORE_STARTUP_STAGE("loop_enter");
+#endif
         gExecSoundMain = FALSE;
 #if (ENGINE != ENGINE_3)
         if (!(gFlags & FLAGS_4000)) {
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("before_sound_main");
+#endif
             m4aSoundMain();
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("after_sound_main");
+#endif
         }
 #else
         if (gFlags & FLAGS_40000) {
@@ -562,7 +597,15 @@ void EngineMainLoop(void)
 #endif
 
         if (sLastCalledVblankFuncId == VBLANK_FUNC_ID_NONE) {
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("before_get_input");
+#endif
             GetInput();
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("after_get_input");
+#endif
 
             if (gMultiSioEnabled) {
                 gMultiSioStatusFlags = MultiSioMain(&gMultiSioSend, gMultiSioRecv, 0);
@@ -573,11 +616,27 @@ void EngineMainLoop(void)
             }
 #endif
 
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("before_tasks_exec");
+#endif
             TasksExec();
+#ifdef __ANDROID__
+            if (sAndroidFirstMainLoop)
+                CORE_STARTUP_STAGE("after_tasks_exec");
+#endif
         }
 
         gFlagsPreVBlank = gFlags;
+#ifdef __ANDROID__
+        if (sAndroidFirstMainLoop)
+            CORE_STARTUP_STAGE("before_vblank_wait");
+#endif
         VBlankIntrWait();
+#ifdef __ANDROID__
+        if (sAndroidFirstMainLoop)
+            CORE_STARTUP_STAGE("after_vblank_wait");
+#endif
 
 #if (ENGINE >= ENGINE_3)
         gNextFreeAffineIndex = 0;
@@ -598,6 +657,13 @@ void EngineMainLoop(void)
                 ClearOamBufferDma();
             }
         }
+
+#ifdef __ANDROID__
+        if (sAndroidFirstMainLoop) {
+            CORE_STARTUP_STAGE("first_loop_complete");
+            sAndroidFirstMainLoop = false;
+        }
+#endif
 
         if (gFlags & FLAGS_PAUSE_GAME) {
             gFlags |= FLAGS_800;
