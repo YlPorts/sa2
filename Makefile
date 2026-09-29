@@ -281,6 +281,9 @@ else
 		CPPFLAGS += -D TITLE_BAR=$(BUILD_NAME).$(PLATFORM) -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 $(shell sdl2-config --cflags)
 	else ifeq ($(PLATFORM),android)
 		CC1FLAGS += -fPIC -Wno-parentheses-equality -Wno-unused-value
+		ifeq ($(ANDROID_ABI),armeabi-v7a)
+			CC1FLAGS += -mfpu=neon -mfloat-abi=softfp
+		endif
 		CPPFLAGS += -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 -I$(SDL_ANDROID_ROOT)/include
 	else ifeq ($(PLATFORM),sdl_psp)
 		CC1FLAGS += -G0
