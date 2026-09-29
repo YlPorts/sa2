@@ -1,5 +1,9 @@
 .macro mSectionRodata
-#if (!CPU_ARCH_X86 && defined(__APPLE__)) // On macos, native compilation uses this name for the rodata section
+#if defined(__ANDROID__)
+  // Android shared libraries cannot carry absolute pointer relocations in
+  // .rodata. Keep relocation-bearing portable tables in RELRO instead.
+  .section .data.rel.ro,"aw",%progbits
+#elif (!CPU_ARCH_X86 && defined(__APPLE__)) // On macos, native compilation uses this name for the rodata section
   .section __DATA,__data
 #else
   .section .rodata
