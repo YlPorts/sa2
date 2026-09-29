@@ -34,6 +34,10 @@
 
 ALIGNED(256) uint16_t gameImage[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 
+#ifdef __ANDROID__
+static Uint32 sAndroidFrameRGBA[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+#endif
+
 #if ENABLE_VRAM_VIEW
 uint16_t vramBuffer[VRAM_VIEW_WIDTH * VRAM_VIEW_HEIGHT];
 #endif
@@ -298,6 +302,8 @@ int main(int argc, char **argv)
     }
 #ifdef __ANDROID__
     AndroidSetStartupStage("window_ok");
+    SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_ShowCursor(SDL_DISABLE);
 #endif
 
 #if ENABLE_VRAM_VIEW
@@ -379,6 +385,10 @@ int main(int argc, char **argv)
 #ifdef __PSP__
     // SDL_RenderSetLogicalSize is broken on PSP, stretch to fill manually
     pspDestRect = (SDL_Rect) { 0, 0, GU_SCR_WIDTH, GU_SCR_HEIGHT };
+#elif defined(__ANDROID__)
+    // Android uses the full renderer output. This keeps drawing and normalized
+    // finger coordinates in the same space and intentionally fills ultrawide.
+    SDL_RenderSetViewport(sdlRenderer, NULL);
 #else
     SDL_RenderSetLogicalSize(sdlRenderer, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 #endif
@@ -388,7 +398,11 @@ int main(int argc, char **argv)
     SDL_RenderSetLogicalSize(vramRenderer, vramWindowWidth, vramWindowHeight);
 #endif
 
+#ifdef __ANDROID__
+    sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+#else
     sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR1555, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+#endif
     if (sdlTexture == NULL) {
 #ifdef __ANDROID__
         AndroidSetStartupError("texture_failed");
@@ -737,13 +751,14 @@ static void AndroidUpdateTouch(SDL_FingerID id, float x, float y, bool active)
     AndroidRebuildTouchKeys();
 }
 
-static void AndroidDrawTouchRect(SDL_Renderer *renderer, float x, float y, float w, float h, bool pressed)
+static void AndroidDrawTouchRect(SDL_Renderer *renderer, int outputW, int outputH,
+                                 float x, float y, float w, float h, bool pressed)
 {
     SDL_Rect rect = {
-        (int)(x * DISPLAY_WIDTH),
-        (int)(y * DISPLAY_HEIGHT),
-        (int)(w * DISPLAY_WIDTH),
-        (int)(h * DISPLAY_HEIGHT),
+        (int)(x * outputW),
+        (int)(y * outputH),
+        (int)(w * outputW),
+        (int)(h * outputH),
     };
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, pressed ? 100 : 48);
@@ -754,21 +769,27 @@ static void AndroidDrawTouchRect(SDL_Renderer *renderer, float x, float y, float
 
 static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 {
+    int outputW = 0;
+    int outputH = 0;
+
+    if (SDL_GetRendererOutputSize(renderer, &outputW, &outputH) != 0 || outputW <= 0 || outputH <= 0)
+        return;
+
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    AndroidDrawTouchRect(renderer, 0.04f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_LEFT) != 0);
-    AndroidDrawTouchRect(renderer, 0.22f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
-    AndroidDrawTouchRect(renderer, 0.13f, 0.53f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_UP) != 0);
-    AndroidDrawTouchRect(renderer, 0.13f, 0.79f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_DOWN) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.04f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_LEFT) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.22f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.13f, 0.53f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_UP) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.13f, 0.79f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_DOWN) != 0);
 
-    AndroidDrawTouchRect(renderer, 0.82f, 0.56f, 0.12f, 0.16f, (sAndroidTouchKeys & A_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, 0.67f, 0.70f, 0.12f, 0.16f, (sAndroidTouchKeys & B_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.82f, 0.56f, 0.12f, 0.16f, (sAndroidTouchKeys & A_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.67f, 0.70f, 0.12f, 0.16f, (sAndroidTouchKeys & B_BUTTON) != 0);
 
-    AndroidDrawTouchRect(renderer, 0.03f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & L_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, 0.80f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & R_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.03f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & L_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.80f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & R_BUTTON) != 0);
 
-    AndroidDrawTouchRect(renderer, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
+    AndroidDrawTouchRect(renderer, outputW, outputH, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
 }
 
 static u16 AndroidPollControllerButtons(void)
@@ -1115,6 +1136,30 @@ void VramDraw(SDL_Texture *texture)
 void VDraw(SDL_Texture *texture)
 {
     gpsp_draw_frame(gameImage);
+
+#ifdef __ANDROID__
+    {
+        size_t i;
+        for (i = 0; i < ARRAY_COUNT(gameImage); i++) {
+            const Uint16 pixel = gameImage[i];
+            const Uint8 r5 = pixel & 0x1F;
+            const Uint8 g5 = (pixel >> 5) & 0x1F;
+            const Uint8 b5 = (pixel >> 10) & 0x1F;
+            const Uint8 r8 = (r5 << 3) | (r5 >> 2);
+            const Uint8 g8 = (g5 << 3) | (g5 >> 2);
+            const Uint8 b8 = (b5 << 3) | (b5 >> 2);
+
+            // SDL_PIXELFORMAT_RGBA32 is byte-order RGBA. On Android/ARM this
+            // value lays out bytes as R, G, B, A in memory.
+            sAndroidFrameRGBA[i] = ((Uint32)0xFF << 24) | ((Uint32)b8 << 16)
+                                 | ((Uint32)g8 << 8) | (Uint32)r8;
+        }
+
+        SDL_UpdateTexture(texture, NULL, sAndroidFrameRGBA, DISPLAY_WIDTH * sizeof(Uint32));
+    }
+#else
     SDL_UpdateTexture(texture, NULL, gameImage, DISPLAY_WIDTH * sizeof(Uint16));
+#endif
+
     REG_VCOUNT = DISPLAY_HEIGHT + 1; // prep for being in VBlank period
 }
