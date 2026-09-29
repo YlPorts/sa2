@@ -60,6 +60,7 @@ bool headless = false;
 #ifdef __ANDROID__
 static SDL_AudioDeviceID sAndroidAudioDevice = 0;
 static bool sAndroidSuspended = false;
+static SDL_GameController *sAndroidController = NULL;
 #endif
 
 #ifdef __PSP__
@@ -185,7 +186,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
@@ -202,6 +203,19 @@ int main(int argc, char **argv)
             ReadSaveFile(savePath);
         } else {
             ReadSaveFile(SAVE_FILENAME);
+        }
+    }
+#endif
+
+#ifdef __ANDROID__
+    {
+        int i;
+        for (i = 0; i < SDL_NumJoysticks(); i++) {
+            if (SDL_IsGameController(i)) {
+                sAndroidController = SDL_GameControllerOpen(i);
+                if (sAndroidController != NULL)
+                    break;
+            }
         }
     }
 #endif
@@ -447,6 +461,10 @@ void VBlankIntrWait(void)
     CloseSaveFile();
 
 #ifdef __ANDROID__
+    if (sAndroidController != NULL) {
+        SDL_GameControllerClose(sAndroidController);
+        sAndroidController = NULL;
+    }
     if (sAndroidAudioDevice != 0) {
         SDL_CloseAudioDevice(sAndroidAudioDevice);
         sAndroidAudioDevice = 0;
@@ -633,6 +651,54 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 
     AndroidDrawTouchRect(renderer, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
     AndroidDrawTouchRect(renderer, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
+}
+
+static u16 AndroidPollControllerButtons(void)
+{
+    u16 result = 0;
+
+    if (sAndroidController == NULL)
+        return 0;
+
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_A))
+        result |= A_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_B)
+        || SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_X))
+        result |= B_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_START))
+        result |= START_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_BACK))
+        result |= SELECT_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER))
+        result |= L_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER))
+        result |= R_BUTTON;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_DPAD_UP))
+        result |= DPAD_UP;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_DPAD_DOWN))
+        result |= DPAD_DOWN;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_DPAD_LEFT))
+        result |= DPAD_LEFT;
+    if (SDL_GameControllerGetButton(sAndroidController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+        result |= DPAD_RIGHT;
+
+    return result;
+}
+
+static void AndroidOpenFirstController(void)
+{
+    int i;
+
+    if (sAndroidController != NULL)
+        return;
+
+    for (i = 0; i < SDL_NumJoysticks(); i++) {
+        if (SDL_IsGameController(i)) {
+            sAndroidController = SDL_GameControllerOpen(i);
+            if (sAndroidController != NULL)
+                return;
+        }
+    }
 }
 #endif
 
@@ -849,6 +915,17 @@ void ProcessSDLEvents(void)
                     }
                 break;
 #ifdef __ANDROID__
+            case SDL_CONTROLLERDEVICEADDED:
+                AndroidOpenFirstController();
+                break;
+            case SDL_CONTROLLERDEVICEREMOVED:
+                if (sAndroidController != NULL
+                    && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(sAndroidController)) == event.cdevice.which) {
+                    SDL_GameControllerClose(sAndroidController);
+                    sAndroidController = NULL;
+                    AndroidOpenFirstController();
+                }
+                break;
             case SDL_FINGERDOWN:
                 AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, true);
                 break;
@@ -902,7 +979,7 @@ u16 Platform_GetKeyInput(void)
 #endif
 
 #ifdef __ANDROID__
-    return keys | sAndroidTouchKeys;
+    return keys | sAndroidTouchKeys | AndroidPollControllerButtons();
 #endif
 
     return keys;
