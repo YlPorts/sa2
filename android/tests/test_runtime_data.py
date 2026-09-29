@@ -1,4 +1,5 @@
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -14,6 +15,19 @@ verify_spec.loader.exec_module(verify_native)
 
 
 class RuntimeDataTests(unittest.TestCase):
+    def test_water_palettes_accept_halfword_aligned_assets_and_task_data(self):
+        with tempfile.TemporaryDirectory() as work:
+            executable = str(Path(work) / "water-palette-check")
+            subprocess.run([
+                "cc", "-O3", "-fsanitize=undefined", "-fno-sanitize-recover=all",
+                "-ffunction-sections", "-fdata-sections", "-Wl,--gc-sections",
+                "-DPORTABLE=1", "-DPLATFORM_SDL=1", "-DPLATFORM_GBA=0", "-DGAME=GAME_SA2",
+                "-I", str(ROOT / "include"),
+                str(ROOT / "src/game/shared/stage/water_effects.c"),
+                str(ROOT / "android/tests/water-palette-check.c"), "-o", executable,
+            ], check=True)
+            subprocess.run([executable], check=True, env={**os.environ, "UBSAN_OPTIONS": "halt_on_error=1"})
+
     def test_android_crash_report_decodes_the_crashing_thread_and_rejects_truncated_input(self):
         with tempfile.TemporaryDirectory() as work:
             subprocess.run([

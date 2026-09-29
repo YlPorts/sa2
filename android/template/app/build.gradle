@@ -11,8 +11,8 @@ android {
         applicationId isSa1 ? "com.ylports.sonicadvance1" : "com.ylports.sonicadvance2"
         minSdkVersion 23
         targetSdkVersion 34
-        versionCode isSa1 ? 13 : 15
-        versionName isSa1 ? "0.1.0-alpha1" : "0.1.0-beta4"
+        versionCode isSa1 ? 13 : 16
+        versionName isSa1 ? "0.1.0-alpha1" : "0.1.0-beta5"
 
         ndk {
             abiFilters "arm64-v8a", "armeabi-v7a"

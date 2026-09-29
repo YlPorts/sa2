@@ -4,6 +4,13 @@
 #include "malloc_vram.h"
 #include "task.h"
 
+#if PORTABLE
+#include <string.h>
+#define WATER_PALETTE_DATA(p) (p)
+#else
+#define WATER_PALETTE_DATA(p) ((u32 *)(p))
+#endif
+
 #if (GAME == GAME_SA1)
 #include "trig.h"
 #include "bg_triangles.h"
@@ -75,6 +82,14 @@ static const u16 gUnknown_080D550C[NUM_CHARACTERS] = {
     SA2_ANIM_UNDERWATER_1UP_KNUCKLES, SA2_ANIM_UNDERWATER_1UP_AMY,
 };
 
+#if PORTABLE
+static inline void CopyPalette(void *dst, const void *src, s32 length)
+{
+    // Sprite palette assets are only guaranteed to be halfword aligned.
+    // A u32 cast lets ARM emit LDM on a two-byte-aligned address (SIGBUS).
+    if (length > 0) memcpy(dst, src, (length >> 4) * 16 * sizeof(u16));
+}
+#else
 static inline void CopyPalette(u32 *dst, u32 *src, s32 length)
 {
     u32 r2 = length >> 4;
@@ -91,7 +106,23 @@ static inline void CopyPalette(u32 *dst, u32 *src, s32 length)
     }
 }
 #endif
+#endif
 
+#if PORTABLE
+static inline void MaskPaletteWithUnderwaterColor_inline(void *dst, const void *src, u32 mask, s32 size)
+{
+    u8 *output = dst;
+    const u8 *input = src;
+    // Keep the original packed-color arithmetic without aligned word accesses
+    // or aliasing a ColorRaw/u16 array as u32.
+    for (s32 i = 0; i < (size >> 4) * 8; ++i) {
+        u32 colors;
+        memcpy(&colors, input + i * sizeof(colors), sizeof(colors));
+        colors = WATER_MASK_PALETTE_CHUNK(colors, mask);
+        memcpy(output + i * sizeof(colors), &colors, sizeof(colors));
+    }
+}
+#else
 static inline void MaskPaletteWithUnderwaterColor_inline(u32 *dst, u32 *src, u32 mask, s32 size)
 {
     u32 k = (size >> 4);
@@ -106,6 +137,7 @@ static inline void MaskPaletteWithUnderwaterColor_inline(u32 *dst, u32 *src, u32
         *dst++ = WATER_MASK_PALETTE_CHUNK(*src++, mask);
     }
 }
+#endif
 
 void InitWaterPalettes(void)
 {
@@ -116,8 +148,8 @@ void InitWaterPalettes(void)
     Water *water = &gWater;
     WaterData *wd = TASK_DATA(water->t);
 #if (GAME == GAME_SA1)
-    MaskPaletteWithUnderwaterColor_inline((u32 *)&sPaletteBuffer[0], (u32 *)&gObjPalette[0], water->blendColors, 16 * 16);
-    MaskPaletteWithUnderwaterColor_inline((u32 *)&sPaletteBuffer[16 * 16], (u32 *)&gBgPalette[0], water->blendColors, 16 * 16);
+    MaskPaletteWithUnderwaterColor_inline(WATER_PALETTE_DATA(&sPaletteBuffer[0]), WATER_PALETTE_DATA(&gObjPalette[0]), water->blendColors, 16 * 16);
+    MaskPaletteWithUnderwaterColor_inline(WATER_PALETTE_DATA(&sPaletteBuffer[16 * 16]), WATER_PALETTE_DATA(&gBgPalette[0]), water->blendColors, 16 * 16);
 #elif (GAME == GAME_SA2)
     if (IS_MULTI_PLAYER) {
         u8 i = 0, j = 0;
@@ -135,10 +167,10 @@ void InitWaterPalettes(void)
 #ifndef NON_MATCHING
             {
                 const u16 *src = gSpritePalettes[pal];
-                CopyPalette((u32 *)wd->pal[j], (u32 *)src, PALETTE_LEN_4BPP);
+                CopyPalette(WATER_PALETTE_DATA(wd->pal[j]), WATER_PALETTE_DATA(src), PALETTE_LEN_4BPP);
             };
 #else
-            CopyPalette((u32 *)wd->pal[j], (u32 *)gSpritePalettes[pal], PALETTE_LEN_4BPP);
+            CopyPalette(WATER_PALETTE_DATA(wd->pal[j]), WATER_PALETTE_DATA(gSpritePalettes[pal]), PALETTE_LEN_4BPP);
 #endif
         }
     } else {
@@ -147,21 +179,21 @@ void InitWaterPalettes(void)
         animId = gUnknown_080D550C[character];
         animation = gAnimations[animId];
         pal = animation[0]->pal.palId;
-        CopyPalette((u32 *)wd->pal[0], (u32 *)gSpritePalettes[pal], PALETTE_LEN_4BPP);
+        CopyPalette(WATER_PALETTE_DATA(wd->pal[0]), WATER_PALETTE_DATA(gSpritePalettes[pal]), PALETTE_LEN_4BPP);
 
         character = gPlayer.character;
         animId = sCharacterPalettesBoostEffect[character];
         animation = gAnimations[animId];
         pal = animation[0]->pal.palId;
-        CopyPalette((u32 *)wd->pal[1], (u32 *)gSpritePalettes[pal], PALETTE_LEN_4BPP);
+        CopyPalette(WATER_PALETTE_DATA(wd->pal[1]), WATER_PALETTE_DATA(gSpritePalettes[pal]), PALETTE_LEN_4BPP);
     }
 
     animId = SA2_ANIM_PALETTE_554;
     animation = gAnimations[animId];
     pal = (animation[0]->pal.palId + 4);
-    CopyPalette((u32 *)wd->pal[4], (u32 *)gSpritePalettes[pal], 12 * PALETTE_LEN_4BPP);
+    CopyPalette(WATER_PALETTE_DATA(wd->pal[4]), WATER_PALETTE_DATA(gSpritePalettes[pal]), 12 * PALETTE_LEN_4BPP);
 
-    MaskPaletteWithUnderwaterColor_inline((u32 *)wd->pal[16], (u32 *)gBgPalette, water->blendColors, 16 * 16);
+    MaskPaletteWithUnderwaterColor_inline(WATER_PALETTE_DATA(wd->pal[16]), WATER_PALETTE_DATA(gBgPalette), water->blendColors, 16 * 16);
 #endif
 }
 

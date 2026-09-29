@@ -18,4 +18,14 @@ SDL_Rect AndroidViewport_Fit(int outputWidth, int outputHeight, int sourceWidth,
     result.y = (outputHeight - result.h) / 2;
     return result;
 }
+
+SDL_Rect AndroidViewport_Game(int outputWidth, int outputHeight, int sourceWidth, int sourceHeight)
+{
+    if (outputWidth <= 0 || outputHeight <= 0 || sourceWidth <= 0 || sourceHeight <= 0)
+        return (SDL_Rect){ 0, 0, 0, 0 };
+    // Fill the landscape screen as in earlier builds. Fit only a temporary
+    // portrait surface while Android applies the activity's fixed orientation.
+    if (outputWidth >= outputHeight) return (SDL_Rect){ 0, 0, outputWidth, outputHeight };
+    return AndroidViewport_Fit(outputWidth, outputHeight, sourceWidth, sourceHeight);
+}
 #endif

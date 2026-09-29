@@ -651,10 +651,10 @@ void VBlankIntrWait(void)
         SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
         if (sAndroidNativeUiCrop) {
             SDL_Rect nativeUiRect = { 0, 0, 240, 160 };
-            SDL_Rect destination = AndroidViewport_Fit(outputW, outputH, 240, 160);
+            SDL_Rect destination = AndroidViewport_Game(outputW, outputH, 240, 160);
             SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, &destination);
         } else {
-            SDL_Rect destination = AndroidViewport_Fit(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+            SDL_Rect destination = AndroidViewport_Game(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
             SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &destination);
         }
 

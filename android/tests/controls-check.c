@@ -11,7 +11,7 @@ static u16 At(float x, float y, int width, int height)
 
 int main(int argc, char **argv)
 {
-    const int sizes[][2] = { {1280, 720}, {2400, 1080}, {720, 1600}, {426, 240} };
+    const int sizes[][2] = { {1280, 720}, {1536, 709}, {2400, 1080}, {720, 1600}, {426, 240} };
     for (unsigned i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
         const int w = sizes[i][0], h = sizes[i][1];
         const float b = w < h ? w : h, unit = b * .105f;
@@ -22,6 +22,12 @@ int main(int argc, char **argv)
             assert(fitted.w > 0 && fitted.h > 0);
             assert(fitted.x >= 0 && fitted.y >= 0 && fitted.x + fitted.w <= w && fitted.y + fitted.h <= h);
             assert(abs(fitted.w * sources[j][1] - fitted.h * sources[j][0]) < sources[j][0] + sources[j][1]);
+            SDL_Rect game = AndroidViewport_Game(w, h, sources[j][0], sources[j][1]);
+            if (w >= h) {
+                assert(game.x == 0 && game.y == 0 && game.w == w && game.h == h);
+            } else {
+                assert(game.x == fitted.x && game.y == fitted.y && game.w == fitted.w && game.h == fitted.h);
+            }
         }
         assert(At(cx, cy, w, h) == 0);
         assert(At(cx + unit, cy, w, h) == DPAD_RIGHT);
@@ -48,6 +54,7 @@ int main(int argc, char **argv)
     assert(AndroidControls_TouchMask(.5f, .5f, 0, 0) == 0);
     assert(AndroidControls_CreateSurface(0, 0, 0) == NULL);
     assert(AndroidViewport_Fit(0, 0, 426, 240).w == 0);
-    puts("Passed: controls, diagonals and touch regions at four display sizes");
+    assert(AndroidViewport_Game(0, 0, 426, 240).w == 0);
+    puts("Passed: fullscreen landscape, transient portrait fitting, controls, diagonals and touch regions at five display sizes");
     return 0;
 }
