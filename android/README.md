@@ -33,6 +33,8 @@ active SA1 baserom incbins with writable reserved ranges plus a native registry.
 Native startup fills those exact ranges before `AgbMain`. Portable pointer tables
 retain their existing relocations. Disabled GBA multiboot/demo blocks are not
 imported. No baserom, generated imported assets or private key is committed.
+The linked ELF is checked before packaging: imported ranges must be empty,
+writable and outside GNU_RELRO. A read-only asset destination aborts the build.
 
 SA2 starts directly and requires no ROM import.
 

@@ -24,7 +24,13 @@ def transform(source: str, pointer_size: int) -> str:
         return source
     # RELRO is read-only once Android's dynamic linker finishes. Imported data
     # must instead live in writable .data, including the labels preceding it.
-    source = re.sub(r'\bmSectionRodata\b', '.data', source)
+    # The unused legacy ROM header has no section directive at all; establish
+    # a data default before its label, rather than leaving it in implicit .text.
+    source = '.section .data,"aw",%progbits\n' + source
+    # Only replace invocations. CPP also expands the included definition
+    # `.macro mSectionRodata`: renaming that macro to `.data` would shadow the
+    # assembler's built-in directive and silently put assets back into RELRO.
+    source = re.sub(r'(?m)^[ \t]*mSectionRodata\b', '.section .data,"aw",%progbits', source)
     pointer = '.quad' if pointer_size == 8 else '.long'
     index = 0
 

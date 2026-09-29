@@ -241,6 +241,7 @@ ifeq ($(PLATFORM),android)
 ifeq ($(GAME_NAME),sa1)
 ifeq ($(SA1_RUNTIME_IMPORT),1)
 SA1_IMPORT_CPPFLAGS := -DSA1_RUNTIME_IMPORT=1
+SA1_ASM_GENERATOR := android/rom-data-asm.py
 SA1_POINTER_SIZE := $(if $(filter arm64-v8a,$(ANDROID_ABI)),8,4)
 DATA_ASM_FILTER := python3 android/rom-data-asm.py --pointer-size $(SA1_POINTER_SIZE)
 endif
@@ -648,7 +649,7 @@ $(ASM_BUILDDIR)/%.o: $(ASM_SUBDIR)/%.s
 	@echo "$(AS) <flags> -o $@ $<"
 	@$(AS) $(ASFLAGS) -o $@ $<
 
-$(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
+$(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s $(SA1_ASM_GENERATOR)
 	@echo "$(AS) <flags> -o $@ $<"
 	@$(PREPROC) $< $(PLATFORM) "" | $(CPP) $(CPPFLAGS) - | $(DATA_ASM_FILTER) | $(AS) $(ASFLAGS) -o $@ -
 

@@ -8,6 +8,9 @@ ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("rom_data", ROOT / "android/rom-data-asm.py")
 rom_data = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rom_data)
+verify_spec = importlib.util.spec_from_file_location("verify_native", ROOT / "android/verify-native.py")
+verify_native = importlib.util.module_from_spec(verify_spec)
+verify_spec.loader.exec_module(verify_native)
 
 
 class RuntimeDataTests(unittest.TestCase):
@@ -28,6 +31,9 @@ class RuntimeDataTests(unittest.TestCase):
 .global test_unrelated
 test_unrelated:
     ret
+.macro mSectionRodata
+    .section .data.rel.ro,"aw",%progbits
+.endm
 mSectionRodata
 .global first_asset
 first_asset:
@@ -68,7 +74,37 @@ int main(int argc, char **argv) {
                 str(ROOT / "src/platform/shared/rom_assets.c"), str(directory / "test.c"),
                 str(directory / "assets.s"), "-o", str(directory / "test"),
             ], check=True)
+            self.assertEqual(verify_native.check_sa1_assets(directory / "test")['asset_ranges'], 2)
             subprocess.run([str(directory / "test"), str(directory / "synthetic.gba")], check=True)
+
+    def test_linked_read_only_assets_are_rejected_before_packaging(self):
+        # Reproduce the bug that a section's SHF_WRITE flag alone cannot catch:
+        # GNU_RELRO still makes it read-only after the dynamic linker runs.
+        source = '''.section .data.rel.ro,"aw",%progbits
+bad_asset:
+    .space 12, 0
+.section sa1_rom_assets,"aw",%progbits
+    .balign 8
+    .quad bad_asset
+    .long 0x487134
+    .long 12
+.section .note.GNU-stack,"",%progbits
+'''
+        with tempfile.TemporaryDirectory() as work:
+            directory = Path(work)
+            (directory / "assets.s").write_text(source)
+            subprocess.run(['cc', '-shared', str(directory / 'assets.s'), '-o', str(directory / 'test.so')], check=True)
+            with self.assertRaisesRegex(ValueError, 'RELRO'):
+                verify_native.check_sa1_assets(directory / 'test.so')
+
+    def test_legacy_header_without_a_section_is_writable(self):
+        source = '_0800032C:\n.incbin "baserom_sa1.gba", 0x32C, 0xC0\n'
+        source += '.section .note.GNU-stack,"",%progbits\n'
+        with tempfile.TemporaryDirectory() as work:
+            directory = Path(work)
+            (directory / 'header.s').write_text(rom_data.transform(source, 8))
+            subprocess.run(['cc', '-shared', str(directory / 'header.s'), '-o', str(directory / 'test.so')], check=True)
+            self.assertEqual(verify_native.check_sa1_assets(directory / 'test.so')['asset_bytes'], 0xC0)
 
     def test_unsupported_and_out_of_range_directives_are_rejected(self):
         for directive in (

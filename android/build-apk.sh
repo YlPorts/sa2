@@ -200,6 +200,10 @@ for ABI in "${ABIS[@]}"; do
         exit 1
     fi
 
+    if [[ "$GAME" == "sa1" && "$SA1_RUNTIME_IMPORT" == "1" ]]; then
+        python3 "$ANDROID_DIR/verify-native.py" "$GAME_LIB"
+    fi
+
     if [[ "$BUILD_TYPE" == "release" ]]; then
         "$TOOLBIN/llvm-strip" --strip-unneeded "$GAME_LIB"
         "$TOOLBIN/llvm-strip" --strip-unneeded "$SDL_LIB"
