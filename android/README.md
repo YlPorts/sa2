@@ -5,7 +5,7 @@ It does not embed or run a GBA emulator.
 
 ## Targets
 
-- `./android/build-apk.sh sa1` -> Sonic Advance 1 APK
+- `./android/build-apk.sh sa1 /path/to/SonicAdvance-Europe.gba` -> Sonic Advance 1 APK
 - `./android/build-apk.sh sa2` -> Sonic Advance 2 APK
 
 Both APKs contain `arm64-v8a` and `armeabi-v7a` native libraries.
@@ -37,3 +37,15 @@ Outputs are written to `android/out`.
 
 The first milestone is a bootable debug APK. Controller layout, visual polish,
 resume/suspend behavior and release signing can then be refined from device logs.
+
+
+## Sonic Advance 1 ROM dependency
+
+The upstream SA1 port still contains a number of `.incbin` data blocks sourced
+from `baserom_sa1.gba`. The Android build therefore requires the user's own
+European Sonic Advance ROM for SA1 only. The build script verifies SHA-1
+`eb00f101af23d728075ac2117e27ecd8a4b4c3e9`, copies it only for the build, and
+removes that temporary copy afterwards. The ROM is never added to the APK as a
+standalone ROM and is never committed by this project.
+
+SA2 no longer needs a baserom to build the Android APK.
