@@ -491,6 +491,7 @@ static void StoreSaveFile()
     if (sSaveFile != NULL) {
         fseek(sSaveFile, 0, SEEK_SET);
         fwrite(FLASH_BASE, 1, sizeof(FLASH_BASE), sSaveFile);
+        fflush(sSaveFile);
     }
 }
 
@@ -762,7 +763,8 @@ void ProcessSDLEvents(void)
                 }
                 break;
             case SDL_APP_WILLENTERFOREGROUND:
-                sAndroidSuspended = false;
+                // Keep the game suspended until SDL confirms the activity is
+                // fully foregrounded, but reset timing now to avoid a large dt.
                 lastGameTime = SDL_GetPerformanceCounter();
                 accumulator = 0.0;
                 break;
