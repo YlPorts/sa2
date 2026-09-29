@@ -57,6 +57,11 @@ bool paused = false;
 bool stepOneFrame = false;
 bool headless = false;
 
+#ifdef __ANDROID__
+static SDL_AudioDeviceID sAndroidAudioDevice = 0;
+static bool sAndroidSuspended = false;
+#endif
+
 #ifdef __PSP__
 static SDL_Joystick *joystick = NULL;
 static SDL_Rect pspDestRect;
@@ -301,6 +306,14 @@ int main(int argc, char **argv)
     want.samples = (want.freq / 60);
     cgb_audio_init(want.freq);
 
+#ifdef __ANDROID__
+    sAndroidAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
+    if (sAndroidAudioDevice == 0) {
+        SDL_Log("Failed to open Android audio: %s", SDL_GetError());
+    } else {
+        SDL_PauseAudioDevice(sAndroidAudioDevice, 0);
+    }
+#else
     if (SDL_OpenAudio(&want, 0) < 0) {
         SDL_Log("Failed to open audio: %s", SDL_GetError());
     } else {
@@ -308,6 +321,7 @@ int main(int argc, char **argv)
             SDL_Log("We didn't get S16 audio format.");
         SDL_PauseAudio(0);
     }
+#endif
 #endif
 
     VDraw(sdlTexture);
@@ -346,6 +360,13 @@ void VBlankIntrWait(void)
     while (isRunning) {
 #ifndef __PSP__
         ProcessSDLEvents();
+#endif
+
+#ifdef __ANDROID__
+        if (sAndroidSuspended) {
+            SDL_Delay(16);
+            continue;
+        }
 #endif
 
         if (!paused || stepOneFrame) {
@@ -422,7 +443,15 @@ void VBlankIntrWait(void)
 #endif
     }
 
+    StoreSaveFile();
     CloseSaveFile();
+
+#ifdef __ANDROID__
+    if (sAndroidAudioDevice != 0) {
+        SDL_CloseAudioDevice(sAndroidAudioDevice);
+        sAndroidAudioDevice = 0;
+    }
+#endif
 
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
@@ -686,6 +715,18 @@ void Platform_QueueAudio(const s16 *data, uint32_t bytesCount)
     if (headless) {
         return;
     }
+
+#ifdef __ANDROID__
+    if (sAndroidAudioDevice == 0 || sAndroidSuspended) {
+        return;
+    }
+
+    if (SDL_GetQueuedAudioSize(sAndroidAudioDevice) > (bytesCount * 10)) {
+        SDL_ClearQueuedAudio(sAndroidAudioDevice);
+    }
+
+    SDL_QueueAudio(sAndroidAudioDevice, data, bytesCount);
+#else
     // Reset the audio buffer if we are 10 frames out of sync
     // If this happens it suggests there was some OS level lag
     // in playing audio. The queue length should remain stable at < 10 otherwise
@@ -694,7 +735,7 @@ void Platform_QueueAudio(const s16 *data, uint32_t bytesCount)
     }
 
     SDL_QueueAudio(1, data, bytesCount);
-    // printf("Queueing %d\n, QueueSize %d\n", bytesCount, SDL_GetQueuedAudioSize(1));
+#endif
 }
 
 void ProcessSDLEvents(void)
@@ -707,8 +748,33 @@ void ProcessSDLEvents(void)
 
         switch (event.type) {
             case SDL_QUIT:
+                StoreSaveFile();
                 isRunning = false;
                 break;
+#ifdef __ANDROID__
+            case SDL_APP_WILLENTERBACKGROUND:
+            case SDL_APP_DIDENTERBACKGROUND:
+                StoreSaveFile();
+                sAndroidSuspended = true;
+                if (sAndroidAudioDevice != 0) {
+                    SDL_PauseAudioDevice(sAndroidAudioDevice, 1);
+                    SDL_ClearQueuedAudio(sAndroidAudioDevice);
+                }
+                break;
+            case SDL_APP_WILLENTERFOREGROUND:
+                sAndroidSuspended = false;
+                lastGameTime = SDL_GetPerformanceCounter();
+                accumulator = 0.0;
+                break;
+            case SDL_APP_DIDENTERFOREGROUND:
+                sAndroidSuspended = false;
+                lastGameTime = SDL_GetPerformanceCounter();
+                accumulator = 0.0;
+                if (sAndroidAudioDevice != 0) {
+                    SDL_PauseAudioDevice(sAndroidAudioDevice, 0);
+                }
+                break;
+#endif
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                     HANDLE_KEYUP(A_BUTTON)
