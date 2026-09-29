@@ -25,7 +25,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [sa1, sa2]
+        # SA1 still needs a user-supplied baserom for upstream data blobs.
+        # Keep CI reproducible/public by building SA2 only; SA1 is built locally
+        # with android/build-apk.sh sa1 /path/to/baserom.gba.
+        game: [sa2]
 
     steps:
       - name: Checkout
