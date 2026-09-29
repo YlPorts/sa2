@@ -44,6 +44,12 @@
 // PSP: Use GBA-native resolution, SDL scales to 480x272
 #define DISPLAY_WIDTH  240
 #define DISPLAY_HEIGHT 160
+#elif defined(__ANDROID__)
+// Android: use the original GBA framebuffer internally. The desktop 426x240
+// widescreen hack is incomplete in menus and costs substantially more CPU.
+// SDL stretches this native 240x160 framebuffer to the Android surface.
+#define DISPLAY_WIDTH  240
+#define DISPLAY_HEIGHT 160
 #elif defined(__PS2__)
 // Runs at 60fps with the "fast draw"
 #define DISPLAY_WIDTH  320
