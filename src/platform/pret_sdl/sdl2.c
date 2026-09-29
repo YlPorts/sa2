@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +71,8 @@ static bool sAndroidNativeUiCrop = false;
 static bool sAndroidDirectBgr555 = false;
 static Uint32 sAndroidColorLut[0x8000];
 static bool sAndroidColorLutReady = false;
+static int sAndroidOutputW = 0;
+static int sAndroidOutputH = 0;
 
 void Platform_SetStartupStage(const char *stage);
 
@@ -391,6 +394,8 @@ int main(int argc, char **argv)
         int outputH = 0;
 
         SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
+        sAndroidOutputW = outputW;
+        sAndroidOutputH = outputH;
         if (SDL_GetRendererInfo(sdlRenderer, &rendererInfo) == 0) {
             SDL_Log("SA Android renderer: %s flags=0x%x output=%dx%d",
                     rendererInfo.name ? rendererInfo.name : "unknown",
@@ -730,42 +735,105 @@ typedef struct AndroidTouchSlot {
 static AndroidTouchSlot sAndroidTouches[ANDROID_MAX_TOUCHES];
 static u16 sAndroidTouchKeys;
 
+static int AndroidControlBaseSize(void)
+{
+    int w = sAndroidOutputW;
+    int h = sAndroidOutputH;
+
+    if (w <= 0 || h <= 0)
+        return 0;
+
+    return (w < h) ? w : h;
+}
+
+static bool AndroidPointInCircle(float px, float py, float cx, float cy, float radius)
+{
+    const float dx = px - cx;
+    const float dy = py - cy;
+    return (dx * dx + dy * dy) <= (radius * radius);
+}
+
+static bool AndroidPointInRect(float px, float py, float cx, float cy, float halfW, float halfH)
+{
+    return px >= (cx - halfW) && px <= (cx + halfW) && py >= (cy - halfH) && py <= (cy + halfH);
+}
+
 static u16 AndroidTouchMask(float x, float y)
 {
     u16 mask = 0;
+    const int outputW = sAndroidOutputW;
+    const int outputH = sAndroidOutputH;
+    const int base = AndroidControlBaseSize();
+    float px;
+    float py;
 
-    // D-pad. The independent axes deliberately overlap to allow diagonals.
-    if (x < 0.36f && y > 0.48f) {
-        const float dx = x - 0.18f;
-        const float dy = y - 0.72f;
+    if (base <= 0)
+        return 0;
 
-        if (dx < -0.045f)
-            mask |= DPAD_LEFT;
-        if (dx > 0.045f)
-            mask |= DPAD_RIGHT;
-        if (dy < -0.045f)
-            mask |= DPAD_UP;
-        if (dy > 0.045f)
-            mask |= DPAD_DOWN;
+    px = x * outputW;
+    py = y * outputH;
+
+    {
+        const float unit = base * 0.095f;
+        const float cx = base * 0.22f;
+        const float cy = outputH - base * 0.22f;
+        const float dx = px - cx;
+        const float dy = py - cy;
+        const float reach = unit * 1.72f;
+        const float dead = unit * 0.22f;
+
+        // Slightly larger than the visible cross. Independent axes make
+        // diagonals natural without requiring a separate diagonal button.
+        if (fabsf(dx) <= reach && fabsf(dy) <= reach) {
+            if (dx < -dead)
+                mask |= DPAD_LEFT;
+            if (dx > dead)
+                mask |= DPAD_RIGHT;
+            if (dy < -dead)
+                mask |= DPAD_UP;
+            if (dy > dead)
+                mask |= DPAD_DOWN;
+        }
     }
 
-    // Face buttons.
-    if (x > 0.80f && y > 0.50f)
-        mask |= A_BUTTON;
-    if (x > 0.64f && x <= 0.82f && y > 0.64f)
-        mask |= B_BUTTON;
+    {
+        const float hitRadius = base * 0.090f;
+        const float aX = outputW - base * 0.18f;
+        const float aY = outputH - base * 0.28f;
+        const float bX = outputW - base * 0.32f;
+        const float bY = outputH - base * 0.16f;
 
-    // Shoulder buttons.
-    if (x < 0.22f && y < 0.20f)
-        mask |= L_BUTTON;
-    if (x > 0.78f && y < 0.20f)
-        mask |= R_BUTTON;
+        if (AndroidPointInCircle(px, py, aX, aY, hitRadius))
+            mask |= A_BUTTON;
+        if (AndroidPointInCircle(px, py, bX, bY, hitRadius))
+            mask |= B_BUTTON;
+    }
 
-    // Start / Select.
-    if (x > 0.52f && x < 0.65f && y > 0.84f)
-        mask |= START_BUTTON;
-    if (x > 0.37f && x < 0.49f && y > 0.84f)
-        mask |= SELECT_BUTTON;
+    {
+        const float halfW = base * 0.145f;
+        const float halfH = base * 0.055f;
+        const float yPos = base * 0.085f;
+        const float leftX = base * 0.19f;
+        const float rightX = outputW - base * 0.19f;
+
+        if (AndroidPointInRect(px, py, leftX, yPos, halfW, halfH))
+            mask |= L_BUTTON;
+        if (AndroidPointInRect(px, py, rightX, yPos, halfW, halfH))
+            mask |= R_BUTTON;
+    }
+
+    {
+        const float halfW = base * 0.085f;
+        const float halfH = base * 0.045f;
+        const float yPos = outputH - base * 0.070f;
+        const float selectX = outputW * 0.5f - base * 0.10f;
+        const float startX = outputW * 0.5f + base * 0.10f;
+
+        if (AndroidPointInRect(px, py, selectX, yPos, halfW, halfH))
+            mask |= SELECT_BUTTON;
+        if (AndroidPointInRect(px, py, startX, yPos, halfW, halfH))
+            mask |= START_BUTTON;
+    }
 
     return mask;
 }
@@ -813,48 +881,267 @@ static void AndroidUpdateTouch(SDL_FingerID id, float x, float y, bool active)
     AndroidRebuildTouchKeys();
 }
 
-static void AndroidDrawTouchRect(SDL_Renderer *renderer, int outputW, int outputH,
-                                 float x, float y, float w, float h, bool pressed)
+static void AndroidSetControlColor(SDL_Renderer *renderer, bool pressed, bool border)
 {
-    SDL_Rect rect = {
-        (int)(x * outputW),
-        (int)(y * outputH),
-        (int)(w * outputW),
-        (int)(h * outputH),
-    };
+    if (border) {
+        SDL_SetRenderDrawColor(renderer, 210, 214, 220, pressed ? 190 : 112);
+    } else {
+        SDL_SetRenderDrawColor(renderer, 24, 27, 31, pressed ? 150 : 82);
+    }
+}
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, pressed ? 100 : 48);
-    SDL_RenderFillRect(renderer, &rect);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, pressed ? 210 : 120);
-    SDL_RenderDrawRect(renderer, &rect);
+static void AndroidFillCircle(SDL_Renderer *renderer, int cx, int cy, int radius)
+{
+    int y;
+
+    for (y = -radius; y <= radius; y++) {
+        const int span = (int)sqrtf((float)(radius * radius - y * y));
+        SDL_RenderDrawLine(renderer, cx - span, cy + y, cx + span, cy + y);
+    }
+}
+
+static void AndroidFillCapsule(SDL_Renderer *renderer, int cx, int cy, int width, int height)
+{
+    const int radius = height / 2;
+    SDL_Rect middle = { cx - width / 2 + radius, cy - radius, width - radius * 2, height };
+
+    SDL_RenderFillRect(renderer, &middle);
+    AndroidFillCircle(renderer, cx - width / 2 + radius, cy, radius);
+    AndroidFillCircle(renderer, cx + width / 2 - radius, cy, radius);
+}
+
+static void AndroidDrawThickLine(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int thickness)
+{
+    int ox;
+    int oy;
+    const int r = thickness / 2;
+
+    for (oy = -r; oy <= r; oy++) {
+        for (ox = -r; ox <= r; ox++) {
+            SDL_RenderDrawLine(renderer, x1 + ox, y1 + oy, x2 + ox, y2 + oy);
+        }
+    }
+}
+
+static void AndroidDrawLetterA(SDL_Renderer *renderer, int cx, int cy, int size)
+{
+    const int h = size / 2;
+    AndroidDrawThickLine(renderer, cx - h, cy + h, cx, cy - h, 2);
+    AndroidDrawThickLine(renderer, cx, cy - h, cx + h, cy + h, 2);
+    AndroidDrawThickLine(renderer, cx - h / 2, cy + h / 5, cx + h / 2, cy + h / 5, 2);
+}
+
+static void AndroidDrawLetterB(SDL_Renderer *renderer, int cx, int cy, int size)
+{
+    const int h = size / 2;
+    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx - h / 2, cy + h, 2);
+    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx + h / 3, cy - h, 2);
+    AndroidDrawThickLine(renderer, cx - h / 2, cy, cx + h / 3, cy, 2);
+    AndroidDrawThickLine(renderer, cx - h / 2, cy + h, cx + h / 3, cy + h, 2);
+    AndroidDrawThickLine(renderer, cx + h / 3, cy - h, cx + h / 2, cy - h / 2, 2);
+    AndroidDrawThickLine(renderer, cx + h / 2, cy - h / 2, cx + h / 3, cy, 2);
+    AndroidDrawThickLine(renderer, cx + h / 3, cy, cx + h / 2, cy + h / 2, 2);
+    AndroidDrawThickLine(renderer, cx + h / 2, cy + h / 2, cx + h / 3, cy + h, 2);
+}
+
+static void AndroidDrawLetterL(SDL_Renderer *renderer, int cx, int cy, int size)
+{
+    const int h = size / 2;
+    AndroidDrawThickLine(renderer, cx - h / 3, cy - h, cx - h / 3, cy + h, 2);
+    AndroidDrawThickLine(renderer, cx - h / 3, cy + h, cx + h / 2, cy + h, 2);
+}
+
+static void AndroidDrawLetterR(SDL_Renderer *renderer, int cx, int cy, int size)
+{
+    const int h = size / 2;
+    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx - h / 2, cy + h, 2);
+    AndroidDrawThickLine(renderer, cx - h / 2, cy - h, cx + h / 3, cy - h, 2);
+    AndroidDrawThickLine(renderer, cx + h / 3, cy - h, cx + h / 2, cy - h / 3, 2);
+    AndroidDrawThickLine(renderer, cx + h / 2, cy - h / 3, cx - h / 2, cy, 2);
+    AndroidDrawThickLine(renderer, cx, cy, cx + h / 2, cy + h, 2);
+}
+
+static void AndroidDrawArrow(SDL_Renderer *renderer, int cx, int cy, int size, u16 direction, bool pressed)
+{
+    const int half = size / 2;
+    AndroidSetControlColor(renderer, pressed, true);
+
+    if (direction == DPAD_LEFT) {
+        AndroidDrawThickLine(renderer, cx + half / 2, cy - half, cx - half / 2, cy, 2);
+        AndroidDrawThickLine(renderer, cx - half / 2, cy, cx + half / 2, cy + half, 2);
+    } else if (direction == DPAD_RIGHT) {
+        AndroidDrawThickLine(renderer, cx - half / 2, cy - half, cx + half / 2, cy, 2);
+        AndroidDrawThickLine(renderer, cx + half / 2, cy, cx - half / 2, cy + half, 2);
+    } else if (direction == DPAD_UP) {
+        AndroidDrawThickLine(renderer, cx - half, cy + half / 2, cx, cy - half / 2, 2);
+        AndroidDrawThickLine(renderer, cx, cy - half / 2, cx + half, cy + half / 2, 2);
+    } else if (direction == DPAD_DOWN) {
+        AndroidDrawThickLine(renderer, cx - half, cy - half / 2, cx, cy + half / 2, 2);
+        AndroidDrawThickLine(renderer, cx, cy + half / 2, cx + half, cy - half / 2, 2);
+    }
+}
+
+static void AndroidDrawDpad(SDL_Renderer *renderer, int base, int outputH)
+{
+    const int unit = (int)(base * 0.095f);
+    const int cx = (int)(base * 0.22f);
+    const int cy = outputH - (int)(base * 0.22f);
+    const int border = 3;
+    SDL_Rect vOuter = { cx - unit / 2, cy - (unit * 3) / 2, unit, unit * 3 };
+    SDL_Rect hOuter = { cx - (unit * 3) / 2, cy - unit / 2, unit * 3, unit };
+    SDL_Rect vInner = { vOuter.x + border, vOuter.y + border, vOuter.w - border * 2, vOuter.h - border * 2 };
+    SDL_Rect hInner = { hOuter.x + border, hOuter.y + border, hOuter.w - border * 2, hOuter.h - border * 2 };
+
+    AndroidSetControlColor(renderer, false, true);
+    SDL_RenderFillRect(renderer, &vOuter);
+    SDL_RenderFillRect(renderer, &hOuter);
+
+    AndroidSetControlColor(renderer, false, false);
+    SDL_RenderFillRect(renderer, &vInner);
+    SDL_RenderFillRect(renderer, &hInner);
+
+    if (sAndroidTouchKeys & DPAD_LEFT) {
+        SDL_Rect r = { hInner.x, hInner.y, unit, hInner.h };
+        AndroidSetControlColor(renderer, true, false);
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_RIGHT) {
+        SDL_Rect r = { hInner.x + hInner.w - unit, hInner.y, unit, hInner.h };
+        AndroidSetControlColor(renderer, true, false);
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_UP) {
+        SDL_Rect r = { vInner.x, vInner.y, vInner.w, unit };
+        AndroidSetControlColor(renderer, true, false);
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_DOWN) {
+        SDL_Rect r = { vInner.x, vInner.y + vInner.h - unit, vInner.w, unit };
+        AndroidSetControlColor(renderer, true, false);
+        SDL_RenderFillRect(renderer, &r);
+    }
+
+    AndroidDrawArrow(renderer, cx - unit, cy, unit / 3, DPAD_LEFT, (sAndroidTouchKeys & DPAD_LEFT) != 0);
+    AndroidDrawArrow(renderer, cx + unit, cy, unit / 3, DPAD_RIGHT, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
+    AndroidDrawArrow(renderer, cx, cy - unit, unit / 3, DPAD_UP, (sAndroidTouchKeys & DPAD_UP) != 0);
+    AndroidDrawArrow(renderer, cx, cy + unit, unit / 3, DPAD_DOWN, (sAndroidTouchKeys & DPAD_DOWN) != 0);
+}
+
+static void AndroidDrawFaceButton(SDL_Renderer *renderer, int cx, int cy, int radius, bool pressed, char label)
+{
+    AndroidSetControlColor(renderer, pressed, true);
+    AndroidFillCircle(renderer, cx, cy, radius);
+    AndroidSetControlColor(renderer, pressed, false);
+    AndroidFillCircle(renderer, cx, cy, radius - 3);
+
+    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 240 : 170);
+    if (label == 'A')
+        AndroidDrawLetterA(renderer, cx, cy, radius / 2);
+    else
+        AndroidDrawLetterB(renderer, cx, cy, radius / 2);
+}
+
+static void AndroidDrawShoulderButton(SDL_Renderer *renderer, int cx, int cy, int width, int height, bool pressed, char label)
+{
+    AndroidSetControlColor(renderer, pressed, true);
+    AndroidFillCapsule(renderer, cx, cy, width, height);
+    AndroidSetControlColor(renderer, pressed, false);
+    AndroidFillCapsule(renderer, cx, cy, width - 6, height - 6);
+
+    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 240 : 160);
+    if (label == 'L')
+        AndroidDrawLetterL(renderer, cx, cy, height / 2);
+    else
+        AndroidDrawLetterR(renderer, cx, cy, height / 2);
+}
+
+static void AndroidDrawMiniButton(SDL_Renderer *renderer, int cx, int cy, int width, int height, bool pressed, bool isStart)
+{
+    AndroidSetControlColor(renderer, pressed, true);
+    AndroidFillCapsule(renderer, cx, cy, width, height);
+    AndroidSetControlColor(renderer, pressed, false);
+    AndroidFillCapsule(renderer, cx, cy, width - 5, height - 5);
+
+    SDL_SetRenderDrawColor(renderer, 225, 228, 232, pressed ? 230 : 145);
+    if (isStart) {
+        const int s = height / 4;
+        AndroidDrawThickLine(renderer, cx - s / 2, cy - s, cx + s, cy, 2);
+        AndroidDrawThickLine(renderer, cx + s, cy, cx - s / 2, cy + s, 2);
+    } else {
+        const int half = width / 6;
+        AndroidDrawThickLine(renderer, cx - half, cy - 3, cx + half, cy - 3, 2);
+        AndroidDrawThickLine(renderer, cx - half, cy + 4, cx + half, cy + 4, 2);
+    }
 }
 
 static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 {
     int outputW = 0;
     int outputH = 0;
+    int base;
+    int radius;
+
+    if (sAndroidController != NULL && SDL_GameControllerGetAttached(sAndroidController))
+        return;
 
     if (SDL_GetRendererOutputSize(renderer, &outputW, &outputH) != 0 || outputW <= 0 || outputH <= 0)
         return;
 
+    sAndroidOutputW = outputW;
+    sAndroidOutputH = outputH;
+    base = (outputW < outputH) ? outputW : outputH;
+    radius = (int)(base * 0.065f);
+
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.04f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_LEFT) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.22f, 0.66f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_RIGHT) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.13f, 0.53f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_UP) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.13f, 0.79f, 0.10f, 0.14f, (sAndroidTouchKeys & DPAD_DOWN) != 0);
+    AndroidDrawDpad(renderer, base, outputH);
 
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.82f, 0.56f, 0.12f, 0.16f, (sAndroidTouchKeys & A_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.67f, 0.70f, 0.12f, 0.16f, (sAndroidTouchKeys & B_BUTTON) != 0);
+    AndroidDrawFaceButton(renderer,
+                          outputW - (int)(base * 0.18f),
+                          outputH - (int)(base * 0.28f),
+                          radius,
+                          (sAndroidTouchKeys & A_BUTTON) != 0,
+                          'A');
 
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.03f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & L_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.80f, 0.05f, 0.17f, 0.09f, (sAndroidTouchKeys & R_BUTTON) != 0);
+    AndroidDrawFaceButton(renderer,
+                          outputW - (int)(base * 0.32f),
+                          outputH - (int)(base * 0.16f),
+                          radius,
+                          (sAndroidTouchKeys & B_BUTTON) != 0,
+                          'B');
 
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
-    AndroidDrawTouchRect(renderer, outputW, outputH, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
+    AndroidDrawShoulderButton(renderer,
+                              (int)(base * 0.19f),
+                              (int)(base * 0.085f),
+                              (int)(base * 0.23f),
+                              (int)(base * 0.060f),
+                              (sAndroidTouchKeys & L_BUTTON) != 0,
+                              'L');
 
-    // Do not leak the translucent white control color into the next frame's
-    // SDL_RenderClear(), otherwise letterbox/unused areas flash white.
+    AndroidDrawShoulderButton(renderer,
+                              outputW - (int)(base * 0.19f),
+                              (int)(base * 0.085f),
+                              (int)(base * 0.23f),
+                              (int)(base * 0.060f),
+                              (sAndroidTouchKeys & R_BUTTON) != 0,
+                              'R');
+
+    AndroidDrawMiniButton(renderer,
+                          (int)(outputW * 0.5f - base * 0.10f),
+                          outputH - (int)(base * 0.070f),
+                          (int)(base * 0.105f),
+                          (int)(base * 0.036f),
+                          (sAndroidTouchKeys & SELECT_BUTTON) != 0,
+                          false);
+
+    AndroidDrawMiniButton(renderer,
+                          (int)(outputW * 0.5f + base * 0.10f),
+                          outputH - (int)(base * 0.070f),
+                          (int)(base * 0.105f),
+                          (int)(base * 0.036f),
+                          (sAndroidTouchKeys & START_BUTTON) != 0,
+                          true);
+
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
@@ -1148,6 +1435,8 @@ void ProcessSDLEvents(void)
                     // Android owns the native surface size. Never resize it back
                     // to an integer multiple of the GBA viewport; doing so leaves
                     // uncovered strips and desynchronizes touch coordinates.
+                    sAndroidOutputW = event.window.data1;
+                    sAndroidOutputH = event.window.data2;
                     videoScaleChanged = false;
 #else
                     unsigned int w = event.window.data1;
