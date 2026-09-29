@@ -1,0 +1,70 @@
+name: Android APKs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - android-port
+    paths:
+      - "android/**"
+      - "src/**"
+      - "include/**"
+      - "data/**"
+      - "graphics/**"
+      - "sound/**"
+      - "libagbsyscall/**"
+      - "tools/preproc/**"
+      - "Makefile"
+      - "config.mk"
+      - ".github/workflows/android.yml"
+
+jobs:
+  build:
+    name: ${{ matrix.game }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [sa1, sa2]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Host build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev curl
+
+      - name: Android SDK platform
+        run: |
+          yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" >/dev/null
+
+      - name: Select installed NDK
+        shell: bash
+        run: |
+          if [[ -n "${ANDROID_NDK_LATEST_HOME:-}" && -x "$ANDROID_NDK_LATEST_HOME/ndk-build" ]]; then
+            NDK="$ANDROID_NDK_LATEST_HOME"
+          else
+            NDK="$(find "$ANDROID_SDK_ROOT/ndk" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          fi
+          test -x "$NDK/ndk-build"
+          echo "ANDROID_NDK_HOME=$NDK" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: |
+          chmod +x android/build-apk.sh
+          ./android/build-apk.sh "${{ matrix.game }}"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.game }}-android-debug"
+          path: android/out/*.apk
+          if-no-files-found: error
