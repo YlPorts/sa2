@@ -30,6 +30,12 @@ typedef enum PakModes {
     PM_COUNT
 } PakModes;
 
+#ifdef __ANDROID__
+#define PM_SELECTABLE_COUNT 1
+#else
+#define PM_SELECTABLE_COUNT PM_COUNT
+#endif
+
 typedef struct {
     /* 0x00 */ Background bg;
     /* 0x40 */ Sprite s[3];
@@ -157,15 +163,15 @@ void Task_800E648()
     if (DPAD_UP & gRepeatedKeys) {
         m4aSongNumStart(SE_MENU_CURSOR_MOVE);
 
-        if (--modeSelect->mode >= PM_COUNT) {
-            modeSelect->mode = PM_SINGLE_PAK;
+        if (--modeSelect->mode >= PM_SELECTABLE_COUNT) {
+            modeSelect->mode = PM_SELECTABLE_COUNT - 1;
         }
 
         modeSelect->qUnk1FC = 0;
     } else if (DPAD_DOWN & gRepeatedKeys) {
         m4aSongNumStart(SE_MENU_CURSOR_MOVE);
 
-        if (++modeSelect->mode >= PM_COUNT) {
+        if (++modeSelect->mode >= PM_SELECTABLE_COUNT) {
             modeSelect->mode = PM_MULTI_PAK;
         }
         modeSelect->qUnk1FC = 0;
