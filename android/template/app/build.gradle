@@ -5,12 +5,12 @@ apply plugin: "com.android.application"
 
 android {
     namespace "org.libsdl.app"
-    compileSdkVersion 35
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId isSa1 ? "com.ylports.sonicadvance1" : "com.ylports.sonicadvance2"
         minSdkVersion 21
-        targetSdkVersion 35
+        targetSdkVersion 34
         versionCode 1
         versionName "0.1.0-alpha1"
 
