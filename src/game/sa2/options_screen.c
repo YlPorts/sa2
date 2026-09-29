@@ -1413,7 +1413,15 @@ static void OptionsScreenInitRegisters(struct OptionsScreen *optionsScreen, s16 
     gDispCnt = 0x1740;
     gBgCntRegs[0] = 0x703;
     gBgCntRegs[2] = 0x4E05;
+#ifdef __ANDROID__
+    // DISPCNT 0x1740 enables BG0/BG1/BG2, not BG3. Leaving BG1
+    // uninitialized makes the portable renderer sample the wrong VRAM and
+    // produces the giant duplicated yellow panels seen in Options.
+    gBgCntRegs[1] = 0xDC0E;
+    gBgCntRegs[3] = 0;
+#else
     gBgCntRegs[3] = 0xDC0E;
+#endif
 
     gBgScrollRegs[0][0] = 0;
     gBgScrollRegs[0][1] = 0;
