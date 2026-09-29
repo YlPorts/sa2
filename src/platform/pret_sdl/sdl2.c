@@ -265,6 +265,16 @@ int main(int argc, char **argv)
         sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
     if (sdlRenderer == NULL)
         sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+#elif defined(__ANDROID__)
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+
+    sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (sdlRenderer == NULL)
+        sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+    if (sdlRenderer == NULL)
+        sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC);
 #else
     sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC);
 #endif
