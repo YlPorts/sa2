@@ -67,6 +67,7 @@ static bool sAndroidSuspended = false;
 static SDL_GameController *sAndroidController = NULL;
 static char sAndroidStagePath[1024];
 static bool sAndroidNativeUiCrop = false;
+static bool sAndroidDirectBgr555 = false;
 static Uint32 sAndroidColorLut[0x8000];
 static bool sAndroidColorLutReady = false;
 
@@ -360,6 +361,7 @@ int main(int argc, char **argv)
         sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
 #elif defined(__ANDROID__)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 
@@ -429,7 +431,16 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef __ANDROID__
-    sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    // GBA colors are xBBBBBGGGGGRRRRR, exactly SDL's BGR555 layout.
+    // Avoid a full 32-bit color conversion every frame when GLES accepts it.
+    sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    if (sdlTexture != NULL) {
+        sAndroidDirectBgr555 = true;
+    } else {
+        SDL_ClearError();
+        sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        sAndroidDirectBgr555 = false;
+    }
 #else
     sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR1555, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 #endif
@@ -441,7 +452,8 @@ int main(int argc, char **argv)
         return 1;
     }
 #ifdef __ANDROID__
-    AndroidSetStartupStage("texture_ok");
+    SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+    AndroidSetStartupStage(sAndroidDirectBgr555 ? "texture_bgr555_ok" : "texture_rgba_fallback");
 #endif
 
 #if ENABLE_VRAM_VIEW
@@ -587,6 +599,14 @@ void VBlankIntrWait(void)
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &pspDestRect);
         SDL_RenderPresent(sdlRenderer);
 #else
+#ifdef __ANDROID__
+        // Do not swap duplicate frames while waiting for the next 60 Hz game
+        // tick. Repeated swaps on a 90/120 Hz panel create uneven cadence.
+        if (!frameDrawn) {
+            SDL_Delay(1);
+            continue;
+        }
+#endif
         SDL_RenderClear(sdlRenderer);
 #ifdef __ANDROID__
         if (sAndroidNativeUiCrop) {
@@ -614,6 +634,9 @@ void VBlankIntrWait(void)
 #endif
 
         SDL_RenderPresent(sdlRenderer);
+#ifdef __ANDROID__
+        frameDrawn = false;
+#endif
 #if ENABLE_VRAM_VIEW
         SDL_RenderPresent(vramRenderer);
 #endif
@@ -1189,7 +1212,9 @@ void VDraw(SDL_Texture *texture)
     gpsp_draw_frame(gameImage);
 
 #ifdef __ANDROID__
-    {
+    if (sAndroidDirectBgr555) {
+        SDL_UpdateTexture(texture, NULL, gameImage, DISPLAY_WIDTH * sizeof(Uint16));
+    } else {
         size_t i;
         AndroidInitColorLut();
 
