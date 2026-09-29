@@ -313,6 +313,8 @@ else
     CC1FLAGS += -O3 -funroll-loops -fomit-frame-pointer
   else ifeq ($(PLATFORM),ps2)
     CC1FLAGS += -O3 -fomit-frame-pointer
+  else ifeq ($(PLATFORM),android)
+    CC1FLAGS += -O3 -fomit-frame-pointer
   else
     CC1FLAGS += -O2
   endif
