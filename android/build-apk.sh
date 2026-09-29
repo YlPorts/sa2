@@ -138,7 +138,7 @@ for ABI in "${ABIS[@]}"; do
         SDL_ANDROID_LIB="$SDL_LIBS/$ABI" \
         CC1="$CC" \
         CXX="$CXX" \
-        AS="$CC -c" \
+        AS="$CC -c -x assembler" \
         AR="$LLVM_AR"
 
     GAME_LIB="$ROOT/build/android/$ABI/$GAME/libmain.so"
