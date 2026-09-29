@@ -77,3 +77,37 @@ jobs:
           name: "${{ matrix.game }}-android-release"
           path: android/out/*.apk
           if-no-files-found: error
+
+  sa1-native-check:
+    name: sa1 native compile check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Host build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev curl
+
+      - name: Android SDK/NDK environment
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$SDK_ROOT"
+          if [[ -n "${ANDROID_NDK_LATEST_HOME:-}" && -x "$ANDROID_NDK_LATEST_HOME/ndk-build" ]]; then
+            NDK="$ANDROID_NDK_LATEST_HOME"
+          else
+            NDK="$(find "$SDK_ROOT/ndk" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          fi
+          test -x "$NDK/ndk-build"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$NDK" >> "$GITHUB_ENV"
+
+      - name: Compile/link SA1 native
+        env:
+          SA1_COMPILE_CHECK: "1"
+          ANDROID_ABIS: "armeabi-v7a"
+        run: |
+          chmod +x android/build-apk.sh
+          ./android/build-apk.sh sa1
