@@ -45,11 +45,10 @@
 #define DISPLAY_WIDTH  240
 #define DISPLAY_HEIGHT 160
 #elif defined(__ANDROID__)
-// Android: use the original GBA framebuffer internally. The desktop 426x240
-// widescreen hack is incomplete in menus and costs substantially more CPU.
-// SDL stretches this native 240x160 framebuffer to the Android surface.
-#define DISPLAY_WIDTH  240
-#define DISPLAY_HEIGHT 160
+// Android gameplay uses the portable widescreen framebuffer. Menus authored
+// strictly for the GBA viewport are cropped to 240x160 at presentation time.
+#define DISPLAY_WIDTH  426
+#define DISPLAY_HEIGHT 240
 #elif defined(__PS2__)
 // Runs at 60fps with the "fast draw"
 #define DISPLAY_WIDTH  320
