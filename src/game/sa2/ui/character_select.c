@@ -1461,7 +1461,11 @@ static void RenderCarouselScrollAnim(struct CharacterSelectionScreen *characterS
 #endif
 
     s = &characterScreen->screenTitleText;
+#ifdef __ANDROID__
+    s->x = 240;
+#else
     s->x = DISPLAY_WIDTH;
+#endif
     s->y = 16;
     DisplaySprite(s);
 
