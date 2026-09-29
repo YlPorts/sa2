@@ -1,4 +1,4 @@
-name: Android APKs
+name: Android Release APKs
 
 on:
   workflow_dispatch:
@@ -74,6 +74,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ matrix.game }}-android-debug"
+          name: "${{ matrix.game }}-android-release"
           path: android/out/*.apk
           if-no-files-found: error
