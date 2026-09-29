@@ -69,6 +69,13 @@ if [[ ! -d "$SDL_SRC" ]]; then
     tar -xzf "$SDL_ARCHIVE" -C "$DEPS_DIR"
 fi
 
+# NDK 29 marks ALooper_pollAll as unavailable. SDL 2.30.3 only uses it as a
+# zero-timeout sensor poll here, so pollOnce is the compatible replacement.
+SDL_SENSOR_ANDROID="$SDL_SRC/src/sensor/android/SDL_androidsensor.c"
+if grep -q "ALooper_pollAll" "$SDL_SENSOR_ANDROID"; then
+    sed -i 's/ALooper_pollAll/ALooper_pollOnce/g' "$SDL_SENSOR_ANDROID"
+fi
+
 echo "[android] Building host preprocessing tools"
 make -C "$ROOT" -j"$JOBS" tools
 
