@@ -14,6 +14,14 @@
 #include "game/shared/stage/screen_shake.h"
 #include "game/shared/stage/stage.h"
 #include "game/shared/stage/player.h"
+
+#ifdef __ANDROID__
+extern void Platform_SetStartupStage(const char *stage);
+#define STAGE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
+#else
+#define STAGE_STARTUP_STAGE(name) ((void)0)
+#endif
+
 #include "game/shared/stage/camera.h"
 
 #include "game/shared/stage/mp_finish.h"
@@ -207,6 +215,7 @@ void ApplyGameStageSettings(void)
 
 void GameStageStart(void)
 {
+    STAGE_STARTUP_STAGE("stage_start_enter");
     gTrappedAnimalVariant = 0;
     gBossIndex = 0;
     gRingCount = 0;
@@ -221,7 +230,9 @@ void GameStageStart(void)
 #endif
     {
         if (!IS_EXTRA_STAGE(gCurrentLevel)) {
+            STAGE_STARTUP_STAGE("before_spawn_position");
             CallSetStageSpawnPos(gSelectedCharacter, gCurrentLevel, 0, &gPlayer);
+            STAGE_STARTUP_STAGE("after_spawn_position");
 
 #if (GAME == GAME_SA1)
             if (gTailsEnabled && (gSelectedCharacter == CHARACTER_SONIC)) {
@@ -259,12 +270,15 @@ void GameStageStart(void)
     }
 #endif
 
+    STAGE_STARTUP_STAGE("before_create_game_stage");
     CreateGameStage();
+    STAGE_STARTUP_STAGE("after_create_game_stage");
 }
 #endif
 
 void CreateGameStage(void)
 {
+    STAGE_STARTUP_STAGE("create_game_stage_enter");
     u8 i;
     u32 j;
 #if (GAME == GAME_SA1)
@@ -273,7 +287,9 @@ void CreateGameStage(void)
     someTask = NULL;
 #endif
 #endif
+    STAGE_STARTUP_STAGE("before_game_stage_task");
     gGameStageTask = TaskCreate(Task_GameStage, 0, 0xff00, 0, TaskDestructor_GameStage);
+    STAGE_STARTUP_STAGE("after_game_stage_task");
     gActiveCollectRingEffectCount = 0;
 #if (GAME == GAME_SA2)
     gSpecialRingCount = 0;
@@ -289,7 +305,9 @@ void CreateGameStage(void)
     gBoostEffectTasksCreated = 0;
 #endif
 
+    STAGE_STARTUP_STAGE("before_stage_core_reset");
     SA2_LABEL(sub_801F044)();
+    STAGE_STARTUP_STAGE("after_stage_core_reset");
 
 #if (GAME == GAME_SA1)
     CreateStageMusicManager();
@@ -358,7 +376,9 @@ void CreateGameStage(void)
     gSpikesUnknownTimer = 0;
 
     if (!IS_EXTRA_STAGE(gCurrentLevel)) {
+        STAGE_STARTUP_STAGE("before_create_player");
         CreatePlayer(gSelectedCharacter, gCurrentLevel, &gPlayer);
+        STAGE_STARTUP_STAGE("after_create_player");
     }
 
 #ifndef COLLECT_RINGS_ROM
@@ -380,10 +400,21 @@ void CreateGameStage(void)
 
 #ifndef COLLECT_RINGS_ROM
     if (gGameMode != GAME_MODE_MULTI_PLAYER_COLLECT_RINGS) {
+        STAGE_STARTUP_STAGE("before_music_manager");
         CreateStageMusicManager();
+        STAGE_STARTUP_STAGE("after_music_manager");
+
+        STAGE_STARTUP_STAGE("before_stage_intro");
         SetupStageIntro();
+        STAGE_STARTUP_STAGE("after_stage_intro");
+
+        STAGE_STARTUP_STAGE("before_camera_init");
         InitCamera(gCurrentLevel);
+        STAGE_STARTUP_STAGE("after_camera_init");
+
+        STAGE_STARTUP_STAGE("before_stage_init_proc");
         sStageInitProcs[gCurrentLevel]();
+        STAGE_STARTUP_STAGE("after_stage_init_proc");
     } else
 #endif
     {
@@ -407,10 +438,16 @@ void CreateGameStage(void)
         gStageFlags |= STAGE_FLAG__TIMER_REVERSED;
     }
 
+    STAGE_STARTUP_STAGE("before_rings_manager");
     CreateStageRingsManager();
+    STAGE_STARTUP_STAGE("after_rings_manager");
+
+    STAGE_STARTUP_STAGE("before_entities_manager");
     CreateStageEntitiesManager();
+    STAGE_STARTUP_STAGE("after_entities_manager");
 #endif
 
+    STAGE_STARTUP_STAGE("create_game_stage_complete");
     gSpriteTransformRotation = 0;
     gSpriteTransformScaleX = 0x100;
     gSpriteTransformScaleY = 0x100;
