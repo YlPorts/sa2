@@ -36,23 +36,34 @@ trap cleanup EXIT
 if [[ "$GAME" == "sa1" ]]; then
     EXPECTED_SA1_SHA1="eb00f101af23d728075ac2117e27ecd8a4b4c3e9"
 
-    if [[ ! -f "$ROOT/baserom_sa1.gba" ]]; then
-        if [[ -z "$SA1_ROM_ARG" || ! -f "$SA1_ROM_ARG" ]]; then
-            echo "SA1 still depends on data extracted from the original European ROM." >&2
-            echo "Usage: $0 sa1 /path/to/SonicAdvance-Europe.gba" >&2
-            exit 1
+    if [[ "${SA1_COMPILE_CHECK:-0}" == "1" ]]; then
+        # CI-only portability check. A sparse zero-filled file satisfies the
+        # remaining upstream incbins so C/asm/linker issues can be found without
+        # possessing or distributing copyrighted ROM bytes. No APK is packaged.
+        rm -f "$ROOT/baserom_sa1.gba"
+        truncate -s 8388608 "$ROOT/baserom_sa1.gba"
+        TEMP_SA1_BASEROM=1
+        COMPILE_CHECK_ONLY=1
+        echo "[android] SA1 compile-check mode: using temporary zero-filled placeholder"
+    else
+        if [[ ! -f "$ROOT/baserom_sa1.gba" ]]; then
+            if [[ -z "$SA1_ROM_ARG" || ! -f "$SA1_ROM_ARG" ]]; then
+                echo "SA1 still depends on data extracted from the original European ROM." >&2
+                echo "Usage: $0 sa1 /path/to/SonicAdvance-Europe.gba" >&2
+                exit 1
+            fi
+
+            cp "$SA1_ROM_ARG" "$ROOT/baserom_sa1.gba"
+            TEMP_SA1_BASEROM=1
         fi
 
-        cp "$SA1_ROM_ARG" "$ROOT/baserom_sa1.gba"
-        TEMP_SA1_BASEROM=1
-    fi
-
-    SA1_SHA1="$(sha1sum "$ROOT/baserom_sa1.gba" | awk '{print $1}')"
-    if [[ "$SA1_SHA1" != "$EXPECTED_SA1_SHA1" ]]; then
-        echo "Wrong Sonic Advance 1 ROM revision." >&2
-        echo "Expected SHA-1: $EXPECTED_SA1_SHA1" >&2
-        echo "Actual SHA-1:   $SA1_SHA1" >&2
-        exit 1
+        SA1_SHA1="$(sha1sum "$ROOT/baserom_sa1.gba" | awk '{print $1}')"
+        if [[ "$SA1_SHA1" != "$EXPECTED_SA1_SHA1" ]]; then
+            echo "Wrong Sonic Advance 1 ROM revision." >&2
+            echo "Expected SHA-1: $EXPECTED_SA1_SHA1" >&2
+            echo "Actual SHA-1:   $SA1_SHA1" >&2
+            exit 1
+        fi
     fi
 fi
 
@@ -195,6 +206,11 @@ for ABI in "${ABIS[@]}"; do
         "$TOOLBIN/llvm-strip" --strip-unneeded "$SDL_LIB"
     fi
 done
+
+if [[ "${COMPILE_CHECK_ONLY:-0}" == "1" ]]; then
+    echo "[android] Native compile/link check completed successfully; no APK will be packaged."
+    exit 0
+fi
 
 echo "[android] Preparing Gradle package"
 cp -R "$SDL_SRC/android-project" "$PROJECT_DIR"
