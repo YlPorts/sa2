@@ -61,6 +61,35 @@ bool headless = false;
 static SDL_AudioDeviceID sAndroidAudioDevice = 0;
 static bool sAndroidSuspended = false;
 static SDL_GameController *sAndroidController = NULL;
+static char sAndroidStagePath[1024];
+
+static void AndroidSetStartupStage(const char *stage)
+{
+    FILE *stageFile;
+
+    if (sAndroidStagePath[0] == '\0')
+        return;
+
+    stageFile = fopen(sAndroidStagePath, "wb");
+    if (stageFile == NULL)
+        return;
+
+    fwrite(stage, 1, strlen(stage), stageFile);
+    fflush(stageFile);
+    fclose(stageFile);
+}
+
+static void AndroidSetStartupError(const char *where)
+{
+    char message[768];
+    const char *error = SDL_GetError();
+
+    if (error == NULL || error[0] == '\0')
+        error = "unknown SDL error";
+
+    snprintf(message, sizeof(message), "%s: %s", where, error);
+    AndroidSetStartupStage(message);
+}
 #endif
 
 #ifdef __PSP__
@@ -143,6 +172,13 @@ int setupPspCallbacks(void)
 
 int main(int argc, char **argv)
 {
+#ifdef __ANDROID__
+    if (argc > 1 && argv[1] != NULL && argv[1][0] != '\0') {
+        snprintf(sAndroidStagePath, sizeof(sAndroidStagePath), "%s/sa_startup_stage.txt", argv[1]);
+        AndroidSetStartupStage("native_enter");
+    }
+#endif
+
 #ifdef __PSP__
     setupPspCallbacks();
 #endif
@@ -187,9 +223,15 @@ int main(int argc, char **argv)
     }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
+#ifdef __ANDROID__
+        AndroidSetStartupError("sdl_init_failed");
+#endif
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+#ifdef __ANDROID__
+    AndroidSetStartupStage("sdl_init_ok");
+#endif
 
 #ifdef __ANDROID__
     // Android's working directory is not a stable place for save data.
@@ -241,9 +283,15 @@ int main(int argc, char **argv)
                                  DISPLAY_HEIGHT * videoScale, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 #endif
     if (sdlWindow == NULL) {
+#ifdef __ANDROID__
+        AndroidSetStartupError("window_failed");
+#endif
         fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+#ifdef __ANDROID__
+    AndroidSetStartupStage("window_ok");
+#endif
 
 #if ENABLE_VRAM_VIEW
     int mainWindowX;
@@ -281,9 +329,15 @@ int main(int argc, char **argv)
     sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC);
 #endif
     if (sdlRenderer == NULL) {
+#ifdef __ANDROID__
+        AndroidSetStartupError("renderer_failed");
+#endif
         fprintf(stderr, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+#ifdef __ANDROID__
+    AndroidSetStartupStage("renderer_ok");
+#endif
 
 #ifdef __ANDROID__
     {
@@ -329,9 +383,15 @@ int main(int argc, char **argv)
 
     sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR1555, SDL_TEXTUREACCESS_STREAMING, DISPLAY_WIDTH, DISPLAY_HEIGHT);
     if (sdlTexture == NULL) {
+#ifdef __ANDROID__
+        AndroidSetStartupError("texture_failed");
+#endif
         fprintf(stderr, "Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+#ifdef __ANDROID__
+    AndroidSetStartupStage("texture_ok");
+#endif
 
 #if ENABLE_VRAM_VIEW
     vramTexture = SDL_CreateTexture(vramRenderer, SDL_PIXELFORMAT_ABGR1555, SDL_TEXTUREACCESS_STREAMING, vramWindowWidth, vramWindowHeight);
@@ -369,11 +429,23 @@ int main(int argc, char **argv)
 #endif
 #endif
 
+#ifdef __ANDROID__
+    AndroidSetStartupStage("before_first_frame");
+#endif
     VDraw(sdlTexture);
+#ifdef __ANDROID__
+    AndroidSetStartupStage("first_frame_ok");
+#endif
 #if ENABLE_VRAM_VIEW
     VramDraw(vramTexture);
 #endif
+#ifdef __ANDROID__
+    AndroidSetStartupStage("game_enter");
+#endif
     AgbMain();
+#ifdef __ANDROID__
+    AndroidSetStartupStage("game_returned");
+#endif
 
     return 0;
 }
@@ -517,6 +589,14 @@ static void ReadSaveFile(char *path)
     sSaveFile = fopen(path, "r+b");
     if (sSaveFile == NULL) {
         sSaveFile = fopen(path, "w+b");
+    }
+
+    if (sSaveFile == NULL) {
+        memset(FLASH_BASE, 0xFF, sizeof(FLASH_BASE));
+#ifdef __ANDROID__
+        AndroidSetStartupStage("save_open_failed_using_blank_save");
+#endif
+        return;
     }
 
     fseek(sSaveFile, 0, SEEK_END);
