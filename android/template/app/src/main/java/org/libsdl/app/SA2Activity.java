@@ -3,6 +3,7 @@ package org.libsdl.app;
 import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
+import android.view.Display;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -20,6 +21,7 @@ public class SA2Activity extends SDLActivity {
         writeStage("java_activity_onCreate");
         super.onCreate(savedInstanceState);
         applyImmersiveMode();
+        request60Hz();
     }
 
     @Override
@@ -27,6 +29,7 @@ public class SA2Activity extends SDLActivity {
         writeStage("java_activity_onResume");
         super.onResume();
         applyImmersiveMode();
+        request60Hz();
     }
 
     @Override
@@ -34,6 +37,7 @@ public class SA2Activity extends SDLActivity {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             applyImmersiveMode();
+            request60Hz();
         }
     }
 
@@ -66,6 +70,38 @@ public class SA2Activity extends SDLActivity {
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
+    }
+
+    private void request60Hz() {
+        Window window = getWindow();
+        WindowManager.LayoutParams attrs = window.getAttributes();
+        attrs.preferredRefreshRate = 60.0f;
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            Display display = getWindowManager().getDefaultDisplay();
+            Display.Mode current = display.getMode();
+            Display.Mode best = current;
+            float bestDiff = Math.abs(current.getRefreshRate() - 60.0f);
+
+            for (Display.Mode mode : display.getSupportedModes()) {
+                if (mode.getPhysicalWidth() != current.getPhysicalWidth()
+                        || mode.getPhysicalHeight() != current.getPhysicalHeight()) {
+                    continue;
+                }
+
+                float diff = Math.abs(mode.getRefreshRate() - 60.0f);
+                if (diff < bestDiff) {
+                    best = mode;
+                    bestDiff = diff;
+                }
+            }
+
+            if (bestDiff < 1.0f) {
+                attrs.preferredDisplayModeId = best.getModeId();
+            }
+        }
+
+        window.setAttributes(attrs);
     }
 
     @Override
