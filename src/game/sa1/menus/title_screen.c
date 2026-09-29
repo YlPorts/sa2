@@ -505,8 +505,14 @@ void sub_800D878(void)
     DisplaySprite(&title->s2);
 
     if (title->unkE2 > 900) {
+#ifdef __ANDROID__
+        // Demo recordings are GBA ROM data and are not needed by the native
+        // mobile port. Keep the title screen alive instead of entering demo mode.
+        title->unkE2 = 60;
+#else
         gCurTask->main = Task_SwitchToDemoInit;
         return;
+#endif
     }
 }
 
