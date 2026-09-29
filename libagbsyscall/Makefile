@@ -3,7 +3,11 @@ PLATFORM ?= gba
 CPU_ARCH ?= arm
 
 SHELL    := /bin/bash -o pipefail
+ifeq ($(PLATFORM),android)
+OBJ_DIR  := build/android/$(ANDROID_ABI)
+else
 OBJ_DIR  := build/$(PLATFORM)
+endif
 
 # a special command which ensures that stdout and stderr
 # get printed instead of output into the makefile
@@ -48,7 +52,9 @@ else ifeq ($(PLATFORM),sdl_psp)
 else ifeq ($(PLATFORM),ps2)
   PREFIX := mips64r5900el-ps2-elf-
 else ifneq ($(PLATFORM),sdl)
-   $(error Unknown CPU architecture $(CPU_ARCH))
+  ifneq ($(PLATFORM),android)
+    $(error Unknown CPU architecture $(CPU_ARCH))
+  endif
 endif # (PLATFORM == gba)
 
 ifeq ($(OS),Windows_NT)
@@ -101,6 +107,9 @@ ifneq ($(PLATFORM),gba)
         # -E: Pre-process only (needed for MacOS?)
         CPP := $(CC1) -E
     endif
+    else ifeq ($(PLATFORM), android)
+        CPP := $(CC1) -E
+        CC1FLAGS += -fPIC
     endif
 endif # PLATFORM != gba
 
