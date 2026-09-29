@@ -231,3 +231,21 @@ fi
 
 cp "$APK" "$OUT_DIR/$APK_NAME"
 echo "[android] APK: $OUT_DIR/$APK_NAME"
+
+# Also package a 32-bit-only diagnostic APK. Android prefers arm64 when both
+# ABIs are present, so this lets us distinguish 64-bit portability bugs from
+# game-engine bugs on devices that still support armeabi-v7a.
+if [[ "$GAME" == "sa2" ]]; then
+    rm -rf "$PROJECT_DIR/app/src/main/jniLibs/arm64-v8a"
+    (
+        cd "$PROJECT_DIR"
+        ./gradlew --no-daemon assembleDebug -PSA_GAME="$GAME"
+    )
+    APK32="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+    if [[ ! -f "$APK32" ]]; then
+        echo "Gradle completed without producing the 32-bit APK" >&2
+        exit 1
+    fi
+    cp "$APK32" "$OUT_DIR/SonicAdvance2-android-debug-armeabi-v7a.apk"
+    echo "[android] 32-bit APK: $OUT_DIR/SonicAdvance2-android-debug-armeabi-v7a.apk"
+fi
