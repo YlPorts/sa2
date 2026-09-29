@@ -1,4 +1,7 @@
 #include "global.h"
+#ifdef __ANDROID__
+extern void Platform_SetNativeUiCrop(bool8 enabled);
+#endif
 #include "core.h"
 #include "sprite.h"
 #include "task.h"
@@ -1175,6 +1178,9 @@ const struct UNK_080D95E8 sZoneBossTitles[NUM_LANGUAGES][7] = {
 
 void CreateOptionsScreen(u16 p1)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     Task *t;
     struct OptionsScreen *optionsScreen;
     s16 i;
@@ -5609,6 +5615,9 @@ static void Task_OptionsScreenFadeOutAndExit(void)
 
     StoreProfileData(optionsScreen);
     WriteSaveGame();
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(FALSE);
+#endif
     TasksDestroyAll();
     PAUSE_BACKGROUNDS_QUEUE();
     gBgSpritesCount = 0;
