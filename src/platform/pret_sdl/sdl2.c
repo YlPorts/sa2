@@ -73,6 +73,9 @@ static Uint32 sAndroidColorLut[0x8000];
 static bool sAndroidColorLutReady = false;
 static int sAndroidOutputW = 0;
 static int sAndroidOutputH = 0;
+static SDL_Texture *sAndroidControlsTexture = NULL;
+static int sAndroidControlsTextureW = 0;
+static int sAndroidControlsTextureH = 0;
 
 void Platform_SetStartupStage(const char *stage);
 
@@ -1074,12 +1077,131 @@ static void AndroidDrawMiniButton(SDL_Renderer *renderer, int cx, int cy, int wi
     }
 }
 
+static void AndroidDrawStaticControlsGeometry(SDL_Renderer *renderer, int outputW, int outputH)
+{
+    const int base = (outputW < outputH) ? outputW : outputH;
+    const int radius = (int)(base * 0.065f);
+
+    AndroidDrawDpad(renderer, base, outputH);
+    AndroidDrawFaceButton(renderer, outputW - (int)(base * 0.18f), outputH - (int)(base * 0.28f), radius, false, 'A');
+    AndroidDrawFaceButton(renderer, outputW - (int)(base * 0.32f), outputH - (int)(base * 0.16f), radius, false, 'B');
+
+    AndroidDrawShoulderButton(renderer, (int)(base * 0.19f), (int)(base * 0.085f),
+                              (int)(base * 0.23f), (int)(base * 0.060f), false, 'L');
+    AndroidDrawShoulderButton(renderer, outputW - (int)(base * 0.19f), (int)(base * 0.085f),
+                              (int)(base * 0.23f), (int)(base * 0.060f), false, 'R');
+
+    AndroidDrawMiniButton(renderer, (int)(outputW * 0.5f - base * 0.10f), outputH - (int)(base * 0.070f),
+                          (int)(base * 0.105f), (int)(base * 0.036f), false, false);
+    AndroidDrawMiniButton(renderer, (int)(outputW * 0.5f + base * 0.10f), outputH - (int)(base * 0.070f),
+                          (int)(base * 0.105f), (int)(base * 0.036f), false, true);
+}
+
+static void AndroidDestroyControlsTexture(void)
+{
+    if (sAndroidControlsTexture != NULL) {
+        SDL_DestroyTexture(sAndroidControlsTexture);
+        sAndroidControlsTexture = NULL;
+    }
+
+    sAndroidControlsTextureW = 0;
+    sAndroidControlsTextureH = 0;
+}
+
+static bool AndroidEnsureControlsTexture(SDL_Renderer *renderer, int outputW, int outputH)
+{
+    SDL_Texture *previousTarget;
+    u16 savedKeys;
+
+    if (sAndroidControlsTexture != NULL
+        && sAndroidControlsTextureW == outputW
+        && sAndroidControlsTextureH == outputH)
+        return true;
+
+    AndroidDestroyControlsTexture();
+
+    sAndroidControlsTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                                                SDL_TEXTUREACCESS_TARGET, outputW, outputH);
+    if (sAndroidControlsTexture == NULL)
+        return false;
+
+    SDL_SetTextureBlendMode(sAndroidControlsTexture, SDL_BLENDMODE_BLEND);
+    previousTarget = SDL_GetRenderTarget(renderer);
+
+    if (SDL_SetRenderTarget(renderer, sAndroidControlsTexture) != 0) {
+        AndroidDestroyControlsTexture();
+        return false;
+    }
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    savedKeys = sAndroidTouchKeys;
+    sAndroidTouchKeys = 0;
+    AndroidDrawStaticControlsGeometry(renderer, outputW, outputH);
+    sAndroidTouchKeys = savedKeys;
+
+    SDL_SetRenderTarget(renderer, previousTarget);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+    sAndroidControlsTextureW = outputW;
+    sAndroidControlsTextureH = outputH;
+    return true;
+}
+
+static void AndroidDrawPressedHighlights(SDL_Renderer *renderer, int outputW, int outputH)
+{
+    const int base = (outputW < outputH) ? outputW : outputH;
+    const int radius = (int)(base * 0.055f);
+    const int unit = (int)(base * 0.095f);
+    const int cx = (int)(base * 0.22f);
+    const int cy = outputH - (int)(base * 0.22f);
+
+    SDL_SetRenderDrawColor(renderer, 235, 238, 242, 42);
+
+    if (sAndroidTouchKeys & A_BUTTON)
+        AndroidFillCircle(renderer, outputW - (int)(base * 0.18f), outputH - (int)(base * 0.28f), radius);
+    if (sAndroidTouchKeys & B_BUTTON)
+        AndroidFillCircle(renderer, outputW - (int)(base * 0.32f), outputH - (int)(base * 0.16f), radius);
+
+    if (sAndroidTouchKeys & DPAD_LEFT) {
+        SDL_Rect r = { cx - (unit * 3) / 2, cy - unit / 2, unit, unit };
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_RIGHT) {
+        SDL_Rect r = { cx + unit / 2, cy - unit / 2, unit, unit };
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_UP) {
+        SDL_Rect r = { cx - unit / 2, cy - (unit * 3) / 2, unit, unit };
+        SDL_RenderFillRect(renderer, &r);
+    }
+    if (sAndroidTouchKeys & DPAD_DOWN) {
+        SDL_Rect r = { cx - unit / 2, cy + unit / 2, unit, unit };
+        SDL_RenderFillRect(renderer, &r);
+    }
+
+    if (sAndroidTouchKeys & L_BUTTON)
+        AndroidFillCapsule(renderer, (int)(base * 0.19f), (int)(base * 0.085f),
+                           (int)(base * 0.20f), (int)(base * 0.044f));
+    if (sAndroidTouchKeys & R_BUTTON)
+        AndroidFillCapsule(renderer, outputW - (int)(base * 0.19f), (int)(base * 0.085f),
+                           (int)(base * 0.20f), (int)(base * 0.044f));
+    if (sAndroidTouchKeys & SELECT_BUTTON)
+        AndroidFillCapsule(renderer, (int)(outputW * 0.5f - base * 0.10f), outputH - (int)(base * 0.070f),
+                           (int)(base * 0.085f), (int)(base * 0.026f));
+    if (sAndroidTouchKeys & START_BUTTON)
+        AndroidFillCapsule(renderer, (int)(outputW * 0.5f + base * 0.10f), outputH - (int)(base * 0.070f),
+                           (int)(base * 0.085f), (int)(base * 0.026f));
+}
+
 static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 {
     int outputW = 0;
     int outputH = 0;
-    int base;
-    int radius;
 
     if (sAndroidController != NULL && SDL_GameControllerGetAttached(sAndroidController))
         return;
@@ -1089,58 +1211,15 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 
     sAndroidOutputW = outputW;
     sAndroidOutputH = outputH;
-    base = (outputW < outputH) ? outputW : outputH;
-    radius = (int)(base * 0.065f);
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    AndroidDrawDpad(renderer, base, outputH);
+    if (AndroidEnsureControlsTexture(renderer, outputW, outputH))
+        SDL_RenderCopy(renderer, sAndroidControlsTexture, NULL, NULL);
+    else
+        AndroidDrawStaticControlsGeometry(renderer, outputW, outputH);
 
-    AndroidDrawFaceButton(renderer,
-                          outputW - (int)(base * 0.18f),
-                          outputH - (int)(base * 0.28f),
-                          radius,
-                          (sAndroidTouchKeys & A_BUTTON) != 0,
-                          'A');
-
-    AndroidDrawFaceButton(renderer,
-                          outputW - (int)(base * 0.32f),
-                          outputH - (int)(base * 0.16f),
-                          radius,
-                          (sAndroidTouchKeys & B_BUTTON) != 0,
-                          'B');
-
-    AndroidDrawShoulderButton(renderer,
-                              (int)(base * 0.19f),
-                              (int)(base * 0.085f),
-                              (int)(base * 0.23f),
-                              (int)(base * 0.060f),
-                              (sAndroidTouchKeys & L_BUTTON) != 0,
-                              'L');
-
-    AndroidDrawShoulderButton(renderer,
-                              outputW - (int)(base * 0.19f),
-                              (int)(base * 0.085f),
-                              (int)(base * 0.23f),
-                              (int)(base * 0.060f),
-                              (sAndroidTouchKeys & R_BUTTON) != 0,
-                              'R');
-
-    AndroidDrawMiniButton(renderer,
-                          (int)(outputW * 0.5f - base * 0.10f),
-                          outputH - (int)(base * 0.070f),
-                          (int)(base * 0.105f),
-                          (int)(base * 0.036f),
-                          (sAndroidTouchKeys & SELECT_BUTTON) != 0,
-                          false);
-
-    AndroidDrawMiniButton(renderer,
-                          (int)(outputW * 0.5f + base * 0.10f),
-                          outputH - (int)(base * 0.070f),
-                          (int)(base * 0.105f),
-                          (int)(base * 0.036f),
-                          (sAndroidTouchKeys & START_BUTTON) != 0,
-                          true);
+    AndroidDrawPressedHighlights(renderer, outputW, outputH);
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -1437,6 +1516,7 @@ void ProcessSDLEvents(void)
                     // uncovered strips and desynchronizes touch coordinates.
                     sAndroidOutputW = event.window.data1;
                     sAndroidOutputH = event.window.data2;
+                    AndroidDestroyControlsTexture();
                     videoScaleChanged = false;
 #else
                     unsigned int w = event.window.data1;
