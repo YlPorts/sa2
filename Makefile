@@ -234,6 +234,19 @@ endif
 DATA_ASM_SRCS := $(wildcard $(DATA_ASM_SUBDIR)/*.s)
 DATA_ASM_OBJS := $(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o,$(DATA_ASM_SRCS))
 
+# Import SA1's remaining data from the user's ROM at native startup. This
+# filter runs after CPP so disabled GBA demos/multiboot are never registered.
+DATA_ASM_FILTER := cat
+ifeq ($(PLATFORM),android)
+ifeq ($(GAME_NAME),sa1)
+ifeq ($(SA1_RUNTIME_IMPORT),1)
+SA1_IMPORT_CPPFLAGS := -DSA1_RUNTIME_IMPORT=1
+SA1_POINTER_SIZE := $(if $(filter arm64-v8a,$(ANDROID_ABI)),8,4)
+DATA_ASM_FILTER := python3 android/rom-data-asm.py --pointer-size $(SA1_POINTER_SIZE)
+endif
+endif
+endif
+
 SONG_SRCS := $(wildcard $(SONG_SUBDIR)/*.s)
 SONG_OBJS := $(patsubst $(SONG_SUBDIR)/%.s,$(SONG_BUILDDIR)/%.o,$(SONG_SRCS))
 
@@ -255,6 +268,7 @@ FORMAT_H_PATHS   := $(shell find . -name "*.h" ! -path '*/build/*' ! -path '*/ex
 # -I sets an include path
 # -D defines a symbol
 CPPFLAGS ?= $(INCLUDE_CPP_ARGS) -D $(GAME_REGION) -D GAME=$(GAME)
+CPPFLAGS += $(SA1_IMPORT_CPPFLAGS)
 CC1FLAGS ?= -Wimplicit -Wparentheses -Werror
 
 ifneq ($(GAME_VARIANT), DEFAULT)
@@ -636,11 +650,14 @@ $(ASM_BUILDDIR)/%.o: $(ASM_SUBDIR)/%.s
 
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
 	@echo "$(AS) <flags> -o $@ $<"
-	@$(PREPROC) $< $(PLATFORM) "" | $(CPP) $(CPPFLAGS) - | $(AS) $(ASFLAGS) -o $@ -
+	@$(PREPROC) $< $(PLATFORM) "" | $(CPP) $(CPPFLAGS) - | $(DATA_ASM_FILTER) | $(AS) $(ASFLAGS) -o $@ -
 
 # Scan the ASM data dependencies to determine if any .inc files have changed
 $(DATA_ASM_BUILDDIR)/%.d: $(DATA_ASM_SUBDIR)/%.s
 	$(SCANINC) -M $@ $(INCLUDE_SCANINC_ARGS) $<
+ifneq ($(SA1_IMPORT_CPPFLAGS),)
+	@sed -i '/^baserom_sa1\.gba:$$/d; s/ baserom_sa1\.gba//g' $@
+endif
     
 ifneq ($(NODEP),1)
 -include $(addprefix $(OBJ_DIR)/,$(C_SRCS:.c=.d))

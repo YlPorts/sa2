@@ -16,6 +16,7 @@ on:
       - "tools/preproc/**"
       - "Makefile"
       - "config.mk"
+      - "asm/macros/**"
       - ".github/workflows/android.yml"
 
 jobs:
@@ -25,10 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # SA1 still needs a user-supplied baserom for upstream data blobs.
-        # Keep CI reproducible/public by building SA2 only; SA1 is built locally
-        # with android/build-apk.sh sa1 /path/to/baserom.gba.
-        game: [sa2]
+        # SA1 reserves its remaining ROM ranges and imports them on-device.
+        # Neither build requires a baserom in CI.
+        game: [sa1, sa2]
 
     steps:
       - name: Checkout
@@ -39,6 +39,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Import and save regression checks
+        run: python3 -m unittest discover -s android/tests -v
 
       - name: Host build dependencies
         run: |

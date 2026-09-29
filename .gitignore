@@ -95,3 +95,13 @@ sa2_debug.log
 
 # third party deps
 /ext
+
+# Local Android dependencies, generated projects, APKs and private signing keys
+/android/.deps/
+/android/.work/
+/android/out/
+*.keystore
+*.jks
+*.apk
+__pycache__/
+*.pyc

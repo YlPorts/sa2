@@ -3,6 +3,9 @@
 #include "malloc_ewram.h"
 #include "lib/agb_flash/agb_flash.h"
 #include "game/sa1/save.h"
+#ifdef __ANDROID__
+extern void Platform_StoreSaveFile(void);
+#endif
 
 struct SaveSectorHeader {
     u32 security, version;
@@ -132,6 +135,11 @@ u16 WriteSaveGame(void)
         gUsedSaveSectorID = sectorID;
         result = ProgramFlashSectorAndVerifyNBytes(gUsedSaveSectorID, LOADED_SAVE, sizeof(*LOADED_SAVE));
     }
+
+#ifdef __ANDROID__
+    if (result == 0)
+        Platform_StoreSaveFile();
+#endif
 
     return result;
 }

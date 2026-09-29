@@ -1,0 +1,123 @@
+import importlib.util
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+spec = importlib.util.spec_from_file_location("rom_data", ROOT / "android/rom-data-asm.py")
+rom_data = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rom_data)
+
+
+class RuntimeDataTests(unittest.TestCase):
+    def test_importer_preserves_existing_data_on_invalid_or_interrupted_import(self):
+        with tempfile.TemporaryDirectory() as work:
+            subprocess.run([
+                "javac", "-d", work,
+                str(ROOT / "android/template/app/src/main/java/org/libsdl/app/Sa1RomImporter.java"),
+                str(ROOT / "android/tests/Sa1RomImporterTest.java"),
+            ], check=True)
+            subprocess.run(["java", "-cp", work, "org.libsdl.app.Sa1RomImporterTest", work], check=True)
+
+    def test_runtime_data_matches_source_ranges_and_is_writable(self):
+        # Link the actual generated asset registry to the actual native loader,
+        # then import synthetic bytes. This catches relocation/alignment errors
+        # as well as accidental writes into linker-protected RELRO sections.
+        source = '''.text
+.global test_unrelated
+test_unrelated:
+    ret
+mSectionRodata
+.global first_asset
+first_asset:
+    .incbin "baserom_sa1.gba", 0x487134, 12
+.global second_asset
+second_asset:
+    .incbin "baserom_sa1.gba", 0x6ACB34, 0x29C0
+.section .note.GNU-stack,"",%progbits
+'''
+        harness = r'''
+#include "platform/shared/rom_assets.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+extern unsigned char first_asset[], second_asset[];
+int main(int argc, char **argv) {
+    char error[200];
+    FILE *file = fopen(argv[1], "wb");
+    assert(file);
+    for (unsigned i = 0; i < 8 * 1024 * 1024; ++i) fputc((i * 17 + 3) & 255, file);
+    fclose(file);
+    assert(Sa1_LoadRomAssets(argv[1], error, sizeof(error)));
+    for (unsigned i = 0; i < 12; ++i) assert(first_asset[i] == (((0x487134 + i) * 17 + 3) & 255));
+    for (unsigned i = 0; i < 0x29C0; ++i) assert(second_asset[i] == (((0x6ACB34 + i) * 17 + 3) & 255));
+    file = fopen(argv[1], "wb"); fputc(0, file); fclose(file);
+    assert(!Sa1_LoadRomAssets(argv[1], error, sizeof(error)));
+    remove(argv[1]);
+    assert(!Sa1_LoadRomAssets(argv[1], error, sizeof(error)));
+    return 0;
+}
+'''
+        with tempfile.TemporaryDirectory() as work:
+            directory = Path(work)
+            (directory / "assets.s").write_text(rom_data.transform(source, 8))
+            (directory / "test.c").write_text(harness)
+            subprocess.run([
+                "cc", "-DSA1_RUNTIME_IMPORT=1", "-I", str(ROOT / "include"),
+                str(ROOT / "src/platform/shared/rom_assets.c"), str(directory / "test.c"),
+                str(directory / "assets.s"), "-o", str(directory / "test"),
+            ], check=True)
+            subprocess.run([str(directory / "test"), str(directory / "synthetic.gba")], check=True)
+
+    def test_unsupported_and_out_of_range_directives_are_rejected(self):
+        for directive in (
+            '.incbin "baserom_sa1.gba", 0x7FFFFF, 2',
+            '.incbin "baserom_sa1.gba", 0, 0',
+            '.incbin "baserom_sa1.gba", 0, unknown_size',
+        ):
+            with self.assertRaises(ValueError):
+                rom_data.transform(directive, 4)
+        self.assertEqual(rom_data.transform('.space 10, 0\n', 4), '.space 10, 0\n')
+
+    def test_failed_save_cannot_clobber_previous_complete_file(self):
+        harness = r'''
+#include "platform/shared/save_file.h"
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+int main(int argc, char **argv) {
+    unsigned char data[131072], restored[131072];
+    char temp[1024];
+    memset(data, 0x19, sizeof(data));
+    assert(Platform_WriteSaveAtomically(argv[1], data, sizeof(data)));
+    snprintf(temp, sizeof(temp), "%s.tmp", argv[1]);
+    assert(mkdir(temp, 0700) == 0);
+    memset(data, 0x52, sizeof(data));
+    assert(!Platform_WriteSaveAtomically(argv[1], data, sizeof(data)));
+    FILE *file = fopen(argv[1], "rb"); assert(file);
+    assert(fread(restored, 1, sizeof(restored), file) == sizeof(restored));
+    assert(fgetc(file) == EOF); fclose(file);
+    for (unsigned i = 0; i < sizeof(restored); ++i) assert(restored[i] == 0x19);
+    remove(temp);
+    assert(Platform_WriteSaveAtomically(argv[1], data, sizeof(data)));
+    file = fopen(argv[1], "rb"); assert(file);
+    assert(fread(restored, 1, sizeof(restored), file) == sizeof(restored));
+    fclose(file); assert(memcmp(restored, data, sizeof(data)) == 0);
+    return 0;
+}
+'''
+        with tempfile.TemporaryDirectory() as work:
+            directory = Path(work)
+            (directory / "test.c").write_text(harness)
+            subprocess.run([
+                "cc", "-DSAVE_FILE_TEST=1", "-I", str(ROOT / "include"),
+                str(ROOT / "src/platform/shared/save_file.c"), str(directory / "test.c"),
+                "-o", str(directory / "test"),
+            ], check=True)
+            subprocess.run([str(directory / "test"), str(directory / "sa.sav")], check=True)
+
+
+if __name__ == "__main__":
+    unittest.main()

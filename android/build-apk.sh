@@ -9,6 +9,7 @@ SDL_VERSION="2.30.3"
 ANDROID_API="${ANDROID_API:-23}"
 read -r -a ABIS <<< "${ANDROID_ABIS:-armeabi-v7a}"
 BUILD_TYPE="${BUILD_TYPE:-release}"
+SA1_RUNTIME_IMPORT="${SA1_RUNTIME_IMPORT:-1}"
 
 case "$GAME" in
     sa1)
@@ -37,14 +38,11 @@ if [[ "$GAME" == "sa1" ]]; then
     EXPECTED_SA1_SHA1="eb00f101af23d728075ac2117e27ecd8a4b4c3e9"
 
     if [[ "${SA1_COMPILE_CHECK:-0}" == "1" ]]; then
-        # CI-only portability check. A sparse zero-filled file satisfies the
-        # remaining upstream incbins so C/asm/linker issues can be found without
-        # possessing or distributing copyrighted ROM bytes. No APK is packaged.
-        rm -f "$ROOT/baserom_sa1.gba"
-        truncate -s 8388608 "$ROOT/baserom_sa1.gba"
-        TEMP_SA1_BASEROM=1
+        SA1_RUNTIME_IMPORT=1
         COMPILE_CHECK_ONLY=1
-        echo "[android] SA1 compile-check mode: using temporary zero-filled placeholder"
+    fi
+    if [[ "$SA1_RUNTIME_IMPORT" == "1" ]]; then
+        echo "[android] SA1 runtime import: no baserom needed to build"
     else
         if [[ ! -f "$ROOT/baserom_sa1.gba" ]]; then
             if [[ -z "$SA1_ROM_ARG" || ! -f "$SA1_ROM_ARG" ]]; then
@@ -175,6 +173,7 @@ for ABI in "${ABIS[@]}"; do
     make -C "$ROOT" -j"$JOBS" \
         PLATFORM=android \
         GAME_NAME="$GAME" \
+        SA1_RUNTIME_IMPORT="$SA1_RUNTIME_IMPORT" \
         CPU_ARCH=arm \
         ANDROID_ABI="$ABI" \
         ANDROID_API="$ANDROID_API" \

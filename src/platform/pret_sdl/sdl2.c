@@ -28,6 +28,12 @@
 #include "platform/shared/dma.h"
 #include "platform/shared/input.h"
 #include "platform/shared/video/gpsp_renderer.h"
+#ifdef __ANDROID__
+#include "platform/shared/save_file.h"
+#ifdef SA1_RUNTIME_IMPORT
+#include "platform/shared/rom_assets.h"
+#endif
+#endif
 
 #if ENABLE_AUDIO
 #include "platform/shared/audio/cgb_audio.h"
@@ -152,6 +158,11 @@ double timeScale = 1.0;
 double accumulator = 0.0;
 
 static FILE *sSaveFile = NULL;
+#ifdef __ANDROID__
+static char sAndroidSavePath[1024];
+static u8 sAndroidSavedFlash[sizeof(FLASH_BASE)];
+static bool sAndroidSavedFlashValid = false;
+#endif
 
 #if (GAME == GAME_SA1)
 #define SAVE_FILENAME "sa1.sav"
@@ -167,6 +178,7 @@ void VDraw(SDL_Texture *texture);
 void VramDraw(SDL_Texture *texture);
 #ifdef __ANDROID__
 static void AndroidDrawTouchControls(SDL_Renderer *renderer);
+static void AndroidClearInput(void);
 #endif
 
 static void ReadSaveFile(char *path);
@@ -220,6 +232,18 @@ int setupPspCallbacks(void)
 
 int main(int argc, char **argv)
 {
+#ifdef SA1_RUNTIME_IMPORT
+    char romPath[1024];
+    char importError[192];
+    int pathSize = argc > 1 && argv[1] != NULL
+        ? snprintf(romPath, sizeof(romPath), "%s/sa1-assets.gba", argv[1]) : -1;
+    if (pathSize < 0 || pathSize >= (int)sizeof(romPath)
+        || !Sa1_LoadRomAssets(romPath, importError, sizeof(importError))) {
+        SDL_Log("SA1 import failed: %s", pathSize < 0 || pathSize >= (int)sizeof(romPath)
+            ? "Missing internal storage path" : importError);
+        return 1;
+    }
+#endif
 #ifdef __ANDROID__
     if (argc > 1 && argv[1] != NULL && argv[1][0] != '\0') {
         snprintf(sAndroidStagePath, sizeof(sAndroidStagePath), "%s/sa_startup_stage.txt", argv[1]);
@@ -676,6 +700,9 @@ void VBlankIntrWait(void)
 
 static void ReadSaveFile(char *path)
 {
+#ifdef __ANDROID__
+    snprintf(sAndroidSavePath, sizeof(sAndroidSavePath), "%s", path);
+#endif
     // Check whether the saveFile exists, and create it if not
     sSaveFile = fopen(path, "r+b");
     if (sSaveFile == NULL) {
@@ -704,15 +731,31 @@ static void ReadSaveFile(char *path)
     for (int i = bytesRead; i < sizeof(FLASH_BASE); i++) {
         FLASH_BASE[i] = 0xFF;
     }
+#ifdef __ANDROID__
+    memcpy(sAndroidSavedFlash, FLASH_BASE, sizeof(FLASH_BASE));
+    sAndroidSavedFlashValid = true;
+#endif
 }
 
 static void StoreSaveFile()
 {
+#ifdef __ANDROID__
+    if (sAndroidSavePath[0] != '\0'
+        && (!sAndroidSavedFlashValid || memcmp(sAndroidSavedFlash, FLASH_BASE, sizeof(FLASH_BASE)) != 0)) {
+        if (Platform_WriteSaveAtomically(sAndroidSavePath, FLASH_BASE, sizeof(FLASH_BASE))) {
+            memcpy(sAndroidSavedFlash, FLASH_BASE, sizeof(FLASH_BASE));
+            sAndroidSavedFlashValid = true;
+        } else {
+            SDL_Log("Unable to persist save: %s", sAndroidSavePath);
+        }
+    }
+#else
     if (sSaveFile != NULL) {
         fseek(sSaveFile, 0, SEEK_SET);
         fwrite(FLASH_BASE, 1, sizeof(FLASH_BASE), sSaveFile);
         fflush(sSaveFile);
     }
+#endif
 }
 
 void Platform_StoreSaveFile(void) { StoreSaveFile(); }
@@ -737,6 +780,14 @@ typedef struct AndroidTouchSlot {
 
 static AndroidTouchSlot sAndroidTouches[ANDROID_MAX_TOUCHES];
 static u16 sAndroidTouchKeys;
+
+static void AndroidClearInput(void)
+{
+    memset(sAndroidTouches, 0, sizeof(sAndroidTouches));
+    sAndroidTouchKeys = 0;
+    keys = 0;
+    REG_KEYINPUT = KEYS_MASK;
+}
 
 static int AndroidControlBaseSize(void)
 {
@@ -1394,6 +1445,7 @@ void ProcessSDLEvents(void)
             case SDL_APP_WILLENTERBACKGROUND:
             case SDL_APP_DIDENTERBACKGROUND:
                 StoreSaveFile();
+                AndroidClearInput();
                 sAndroidSuspended = true;
                 if (sAndroidAudioDevice != 0) {
                     SDL_PauseAudioDevice(sAndroidAudioDevice, 1);
@@ -1407,12 +1459,18 @@ void ProcessSDLEvents(void)
                 accumulator = 0.0;
                 break;
             case SDL_APP_DIDENTERFOREGROUND:
+                AndroidClearInput();
                 sAndroidSuspended = false;
+                newFrameRequested = FALSE;
                 lastGameTime = SDL_GetPerformanceCounter();
                 accumulator = 0.0;
                 if (sAndroidAudioDevice != 0) {
                     SDL_PauseAudioDevice(sAndroidAudioDevice, 0);
                 }
+                break;
+            case SDL_RENDER_TARGETS_RESET:
+            case SDL_RENDER_DEVICE_RESET:
+                AndroidDestroyControlsTexture();
                 break;
 #endif
             case SDL_KEYUP:

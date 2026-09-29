@@ -7,6 +7,9 @@
 #include "game/math.h"
 #include "constants/sa2/text.h"
 #include "constants/zones.h"
+#ifdef __ANDROID__
+extern void Platform_StoreSaveFile(void);
+#endif
 
 struct SaveSectorHeader {
     u32 security, version;
@@ -311,6 +314,9 @@ static s16 TryWriteSaveGame(void)
         flashError = WriteToSaveSector(save, sectorToWrite);
 
         if (!flashError) {
+#ifdef __ANDROID__
+            Platform_StoreSaveFile();
+#endif
             return TRUE;
         }
     }
