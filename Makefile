@@ -61,9 +61,11 @@ else ifeq ($(PLATFORM),sdl_psp)
 else ifeq ($(PLATFORM),ps2)
   PREFIX := mips64r5900el-ps2-elf-
 else
-# Native
+# Native / Android. Android toolchain executables are supplied by android/build-apk.sh.
   ifneq ($(PLATFORM),sdl)
-    $(error Unsupported CPU arch for platform '$(CPU_ARCH)', '$(PLATFORM)')
+    ifneq ($(PLATFORM),android)
+      $(error Unsupported CPU arch for platform '$(CPU_ARCH)', '$(PLATFORM)')
+    endif
   endif
 endif # (PLATFORM == gba)
 
@@ -116,11 +118,19 @@ SDL_MINGW_LIB     := $(SDL_MINGW_PKG)/lib
 SDL_MINGW_FLAGS   := -I$(SDL_MINGW_INCLUDE) -D_THREAD_SAFE
 SDL_MINGW_LIBS    := -L$(SDL_MINGW_LIB) -lSDL2main -lSDL2.dll
 
+ifeq ($(PLATFORM),android)
+LIBABGSYSCALL_LIBS := -L$(ROOT_DIR)/libagbsyscall/build/android/$(ANDROID_ABI) -lagbsyscall
+else
 LIBABGSYSCALL_LIBS := -L$(ROOT_DIR)/libagbsyscall/build/$(PLATFORM) -lagbsyscall
+endif
 
 ### FILES ###
 
+ifeq ($(PLATFORM),android)
+OBJ_DIR  := build/android/$(ANDROID_ABI)/$(BUILD_NAME)
+else
 OBJ_DIR  := build/$(PLATFORM)/$(BUILD_NAME)
+endif
 ifeq ($(PLATFORM),gba)
 ROM      := $(BUILD_NAME).gba
 ELF      := $(ROM:.gba=.elf)
@@ -137,6 +147,10 @@ else ifeq ($(PLATFORM),ps2)
 ROM      := $(BUILD_NAME).$(PLATFORM).iso
 ELF      := $(ROM:.iso=.elf)
 MAP      := $(ROM:.iso=.map)
+else ifeq ($(PLATFORM),android)
+ROM      := $(OBJ_DIR)/libmain.so
+ELF      := $(OBJ_DIR)/$(BUILD_NAME).android.elf
+MAP      := $(OBJ_DIR)/$(BUILD_NAME).android.map
 else
 ROM      := $(BUILD_NAME).$(PLATFORM).exe
 ELF      := $(ROM:.exe=.elf)
@@ -180,6 +194,8 @@ endif
 ifeq ($(PLATFORM),gba)
 C_SRCS_IN := $(shell find $(C_SUBDIR) -name "*.c" $(C_SRC_IGNORE_PATHS) -not -path "*/platform/*")
 else ifeq ($(PLATFORM),sdl)
+C_SRCS_IN := $(shell find $(C_SUBDIR) -name "*.c" $(C_SRC_IGNORE_PATHS) -not -path "*/platform/win32/*" -not -path "*/platform/ps2/*")
+else ifeq ($(PLATFORM),android)
 C_SRCS_IN := $(shell find $(C_SUBDIR) -name "*.c" $(C_SRC_IGNORE_PATHS) -not -path "*/platform/win32/*" -not -path "*/platform/ps2/*")
 else ifeq ($(PLATFORM),sdl_psp)
 C_SRCS_IN := $(shell find $(C_SUBDIR) -name "*.c" $(C_SRC_IGNORE_PATHS) -not -path "*/platform/win32/*" -not -path "*/platform/ps2/*")
@@ -263,6 +279,9 @@ else
 	ifeq ($(PLATFORM),sdl)
 		CC1FLAGS += -Wno-parentheses-equality -Wno-unused-value
 		CPPFLAGS += -D TITLE_BAR=$(BUILD_NAME).$(PLATFORM) -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 $(shell sdl2-config --cflags)
+	else ifeq ($(PLATFORM),android)
+		CC1FLAGS += -fPIC -Wno-parentheses-equality -Wno-unused-value
+		CPPFLAGS += -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 -I$(SDL_ANDROID_ROOT)/include
 	else ifeq ($(PLATFORM),sdl_psp)
 		CC1FLAGS += -G0
 		CPPFLAGS += -D PLATFORM_GBA=0 -D PLATFORM_SDL=1 -D PLATFORM_WIN32=0 -D SDL_MAIN_HANDLED -I$(PSPDEV)/psp/include/SDL2 -I$(PSPDEV)/psp/include -I$(PSPSDK)/include -D_PSP_FW_VERSION=600
@@ -333,6 +352,8 @@ else
     # for modern we are using a modern compiler
     # so instead of CPP we can use gcc -E to "preprocess only"
     CPP := $(CC1) -E
+  else ifeq ($(PLATFORM), android)
+    CPP := $(CC1) -E
   else ifeq ($(PLATFORM), sdl_psp)
     CPP := $(CC1) -E
   else ifeq ($(PLATFORM), ps2)
@@ -365,6 +386,8 @@ ifeq ($(PLATFORM),gba)
     LIBS := $(ROOT_DIR)/tools/agbcc/lib/libgcc.a $(ROOT_DIR)/tools/agbcc/lib/libc.a $(LIBABGSYSCALL_LIBS)
 else ifeq ($(PLATFORM),sdl)
     LIBS := $(shell sdl2-config --cflags --libs) $(LIBABGSYSCALL_LIBS) -lm
+else ifeq ($(PLATFORM),android)
+    LIBS := -shared -Wl,--no-undefined -L$(SDL_ANDROID_LIB) -lSDL2 $(LIBABGSYSCALL_LIBS) -lm -ldl -llog -landroid
 else ifeq ($(PLATFORM),sdl_psp)
     LIBS := -L$(PSPDEV)/psp/lib $(LIBABGSYSCALL_LIBS) -L$(PSPSDK)/lib -lSDL2 -lm -lGL -lpspvram -lpspaudio -lpspvfpu -lpspdisplay -lpspgu -lpspge -lpsphprm -lpspctrl -lpsppower -lpspdebug -lpspnet -lpspnet_apctl -Wl,-zmax-page-size=128
 else ifeq ($(PLATFORM),ps2)
@@ -476,6 +499,8 @@ europe: ; @$(MAKE) GAME_REGION=EUROPE
 
 sdl: ; @$(MAKE) PLATFORM=sdl
 
+android: ; @$(MAKE) PLATFORM=android
+
 sdl_psp: ; @$(MAKE) PLATFORM=sdl_psp
 
 ps2: ; @$(MAKE) PLATFORM=ps2
@@ -549,6 +574,8 @@ ifeq ($(PLATFORM),gba)
 else ifeq ($(PLATFORM),win32)
 	$(OBJCOPY) -O pei-x86-64 $< $@
 else ifeq ($(PLATFORM),sdl)
+	cp $< $@
+else ifeq ($(PLATFORM),android)
 	cp $< $@
 else ifeq ($(PLATFORM),sdl_psp)
 	@echo Creating $(ROM) from $(ELF)
