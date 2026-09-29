@@ -45,10 +45,11 @@
 #define DISPLAY_WIDTH  240
 #define DISPLAY_HEIGHT 160
 #elif defined(__ANDROID__)
-// Android gameplay uses the portable widescreen framebuffer. Menus authored
-// strictly for the GBA viewport are cropped to 240x160 at presentation time.
-#define DISPLAY_WIDTH  426
-#define DISPLAY_HEIGHT 240
+// Android keeps the original 160-line GBA height and extends only horizontally.
+// 376x160 is tile-aligned and approximately 21:9, while doing ~41% less
+// pixel work than the desktop port's 426x240 framebuffer.
+#define DISPLAY_WIDTH  376
+#define DISPLAY_HEIGHT 160
 #elif defined(__PS2__)
 // Runs at 60fps with the "fast draw"
 #define DISPLAY_WIDTH  320
