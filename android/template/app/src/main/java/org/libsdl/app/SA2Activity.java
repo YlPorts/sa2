@@ -18,7 +18,6 @@ public class SA2Activity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         writeStage("java_activity_onCreate");
-        applyImmersiveMode();
         super.onCreate(savedInstanceState);
         applyImmersiveMode();
     }
@@ -42,6 +41,13 @@ public class SA2Activity extends SDLActivity {
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (Build.VERSION.SDK_INT >= 28) {
+            WindowManager.LayoutParams attrs = window.getAttributes();
+            attrs.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            window.setAttributes(attrs);
+        }
 
         if (Build.VERSION.SDK_INT >= 30) {
             window.setDecorFitsSystemWindows(false);
