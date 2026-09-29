@@ -860,6 +860,14 @@ void Task_SwitchTo_Task_MainMenu_Select(void)
 
 void LoadTinyChaoGarden(void)
 {
+#ifdef __ANDROID__
+    // Tiny Chao Garden is a separate GBA multiboot program, not part of the
+    // native Android executable. Return to the main menu instead of trying to
+    // soft-reset into the (intentionally omitted) payload.
+    CreateMainMenu(1);
+    return;
+#endif
+
     gFlags |= FLAGS_8000;
 
 #ifdef BUG_FIX
