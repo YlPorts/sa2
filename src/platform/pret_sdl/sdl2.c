@@ -790,6 +790,11 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
 
     AndroidDrawTouchRect(renderer, outputW, outputH, 0.39f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & SELECT_BUTTON) != 0);
     AndroidDrawTouchRect(renderer, outputW, outputH, 0.53f, 0.87f, 0.10f, 0.07f, (sAndroidTouchKeys & START_BUTTON) != 0);
+
+    // Do not leak the translucent white control color into the next frame's
+    // SDL_RenderClear(), otherwise letterbox/unused areas flash white.
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
 
 static u16 AndroidPollControllerButtons(void)
