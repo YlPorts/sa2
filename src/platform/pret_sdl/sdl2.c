@@ -569,10 +569,12 @@ void VBlankIntrWait(void)
         SDL_RenderClear(vramRenderer);
         SDL_RenderCopy(vramRenderer, vramTexture, NULL, NULL);
 #endif
+#ifndef __ANDROID__
         if (videoScaleChanged) {
             SDL_SetWindowSize(sdlWindow, DISPLAY_WIDTH * videoScale, DISPLAY_HEIGHT * videoScale);
             videoScaleChanged = false;
         }
+#endif
 
         SDL_RenderPresent(sdlRenderer);
 #if ENABLE_VRAM_VIEW
@@ -1082,6 +1084,12 @@ void ProcessSDLEvents(void)
 #endif
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+#ifdef __ANDROID__
+                    // Android owns the native surface size. Never resize it back
+                    // to an integer multiple of the GBA viewport; doing so leaves
+                    // uncovered strips and desynchronizes touch coordinates.
+                    videoScaleChanged = false;
+#else
                     unsigned int w = event.window.data1;
                     unsigned int h = event.window.data2;
 
@@ -1094,6 +1102,7 @@ void ProcessSDLEvents(void)
                         videoScale = 1;
 
                     videoScaleChanged = true;
+#endif
                 }
                 break;
         }
