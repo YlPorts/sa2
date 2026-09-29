@@ -14,7 +14,7 @@
 #ifdef __ANDROID__
 extern void Platform_SetStartupStage(const char *stage);
 #define CORE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
-static bool sAndroidFirstMainLoop = true;
+static bool8 sAndroidFirstMainLoop = TRUE;
 #else
 #define CORE_STARTUP_STAGE(name) ((void)0)
 #endif
@@ -661,7 +661,7 @@ void EngineMainLoop(void)
 #ifdef __ANDROID__
         if (sAndroidFirstMainLoop) {
             CORE_STARTUP_STAGE("first_loop_complete");
-            sAndroidFirstMainLoop = false;
+            sAndroidFirstMainLoop = FALSE;
         }
 #endif
 
