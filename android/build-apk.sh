@@ -6,7 +6,7 @@ ANDROID_DIR="$ROOT/android"
 GAME="${1:-sa2}"
 SA1_ROM_ARG="${2:-}"
 SDL_VERSION="2.30.3"
-ANDROID_API="${ANDROID_API:-21}"
+ANDROID_API="${ANDROID_API:-23}"
 ABIS=(arm64-v8a armeabi-v7a)
 
 case "$GAME" in
@@ -178,6 +178,14 @@ for ABI in "${ABIS[@]}"; do
 
     if [[ ! -f "$GAME_LIB" || ! -f "$SDL_LIB" ]]; then
         echo "Native build did not produce the expected libraries for $ABI." >&2
+        exit 1
+    fi
+
+    # __sF is the pre-API-23 stdio backing symbol. Modern Android no longer
+    # exports it, so allowing it into libmain.so causes an immediate dlopen
+    # failure before SDL can create a window.
+    if "$TOOLBIN/llvm-readelf" -Ws "$GAME_LIB" | grep -qE ' UND .*__sF(@|$)'; then
+        echo "Fatal: $ABI libmain.so still depends on removed Android symbol __sF." >&2
         exit 1
     fi
 done
