@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ANDROID_DIR="$ROOT/android"
 GAME="${1:-sa2}"
+SA1_ROM_ARG="${2:-}"
 SDL_VERSION="2.30.3"
 ANDROID_API="${ANDROID_API:-21}"
 ABIS=(arm64-v8a armeabi-v7a)
@@ -22,6 +23,37 @@ case "$GAME" in
         exit 2
         ;;
 esac
+
+TEMP_SA1_BASEROM=0
+cleanup() {
+    if [[ "$TEMP_SA1_BASEROM" == "1" ]]; then
+        rm -f "$ROOT/baserom_sa1.gba"
+    fi
+}
+trap cleanup EXIT
+
+if [[ "$GAME" == "sa1" ]]; then
+    EXPECTED_SA1_SHA1="eb00f101af23d728075ac2117e27ecd8a4b4c3e9"
+
+    if [[ ! -f "$ROOT/baserom_sa1.gba" ]]; then
+        if [[ -z "$SA1_ROM_ARG" || ! -f "$SA1_ROM_ARG" ]]; then
+            echo "SA1 still depends on data extracted from the original European ROM." >&2
+            echo "Usage: $0 sa1 /path/to/SonicAdvance-Europe.gba" >&2
+            exit 1
+        fi
+
+        cp "$SA1_ROM_ARG" "$ROOT/baserom_sa1.gba"
+        TEMP_SA1_BASEROM=1
+    fi
+
+    SA1_SHA1="$(sha1sum "$ROOT/baserom_sa1.gba" | awk '{print $1}')"
+    if [[ "$SA1_SHA1" != "$EXPECTED_SA1_SHA1" ]]; then
+        echo "Wrong Sonic Advance 1 ROM revision." >&2
+        echo "Expected SHA-1: $EXPECTED_SA1_SHA1" >&2
+        echo "Actual SHA-1:   $SA1_SHA1" >&2
+        exit 1
+    fi
+fi
 
 NDK_HOME="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-${ANDROID_NDK_LATEST_HOME:-}}}"
 if [[ -z "$NDK_HOME" || ! -x "$NDK_HOME/ndk-build" ]]; then
