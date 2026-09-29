@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ANDROID_DIR="$ROOT/android"
+GAME="${1:-sa2}"
+SDL_VERSION="2.30.3"
+ANDROID_API="${ANDROID_API:-21}"
+ABIS=(arm64-v8a armeabi-v7a)
+
+case "$GAME" in
+    sa1)
+        APP_NAME="Sonic Advance"
+        APK_NAME="SonicAdvance1-android-debug.apk"
+        ;;
+    sa2)
+        APP_NAME="Sonic Advance 2"
+        APK_NAME="SonicAdvance2-android-debug.apk"
+        ;;
+    *)
+        echo "Usage: $0 [sa1|sa2]" >&2
+        exit 2
+        ;;
+esac
+
+NDK_HOME="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-${ANDROID_NDK_LATEST_HOME:-}}}"
+if [[ -z "$NDK_HOME" || ! -x "$NDK_HOME/ndk-build" ]]; then
+    echo "Android NDK not found. Set ANDROID_NDK_HOME, ANDROID_NDK_ROOT, or ANDROID_NDK_LATEST_HOME." >&2
+    exit 1
+fi
+
+if [[ -z "${ANDROID_SDK_ROOT:-}" ]]; then
+    echo "ANDROID_SDK_ROOT must point to the Android SDK." >&2
+    exit 1
+fi
+
+HOST_TOOLCHAIN="$(find "$NDK_HOME/toolchains/llvm/prebuilt" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+if [[ -z "$HOST_TOOLCHAIN" ]]; then
+    echo "Could not locate the NDK LLVM prebuilt toolchain." >&2
+    exit 1
+fi
+TOOLBIN="$HOST_TOOLCHAIN/bin"
+LLVM_AR="$TOOLBIN/llvm-ar"
+
+JOBS="${JOBS:-}"
+if [[ -z "$JOBS" ]]; then
+    JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+fi
+
+DEPS_DIR="$ANDROID_DIR/.deps"
+WORK_DIR="$ANDROID_DIR/.work/$GAME"
+OUT_DIR="$ANDROID_DIR/out"
+SDL_ARCHIVE="$DEPS_DIR/SDL2-$SDL_VERSION.tar.gz"
+SDL_SRC="$DEPS_DIR/SDL-release-$SDL_VERSION"
+SDL_LIBS="$WORK_DIR/sdl-libs"
+PROJECT_DIR="$WORK_DIR/project"
+
+mkdir -p "$DEPS_DIR" "$OUT_DIR"
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
+
+if [[ ! -d "$SDL_SRC" ]]; then
+    echo "[android] Downloading SDL $SDL_VERSION"
+    if [[ ! -f "$SDL_ARCHIVE" ]]; then
+        curl -L --fail --retry 3 \
+            "https://github.com/libsdl-org/SDL/archive/refs/tags/release-$SDL_VERSION.tar.gz" \
+            -o "$SDL_ARCHIVE"
+    fi
+    tar -xzf "$SDL_ARCHIVE" -C "$DEPS_DIR"
+fi
+
+echo "[android] Building host preprocessing tools"
+make -C "$ROOT" -j"$JOBS" tools
+
+compiler_for_abi() {
+    case "$1" in
+        arm64-v8a)
+            echo "$TOOLBIN/aarch64-linux-android${ANDROID_API}-clang"
+            ;;
+        armeabi-v7a)
+            echo "$TOOLBIN/armv7a-linux-androideabi${ANDROID_API}-clang"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+cxx_for_abi() {
+    case "$1" in
+        arm64-v8a)
+            echo "$TOOLBIN/aarch64-linux-android${ANDROID_API}-clang++"
+            ;;
+        armeabi-v7a)
+            echo "$TOOLBIN/armv7a-linux-androideabi${ANDROID_API}-clang++"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+for ABI in "${ABIS[@]}"; do
+    echo "[android] Building SDL2 for $ABI"
+    "$NDK_HOME/ndk-build" \
+        NDK_PROJECT_PATH=null \
+        APP_BUILD_SCRIPT="$SDL_SRC/Android.mk" \
+        APP_PLATFORM="android-$ANDROID_API" \
+        APP_ABI="$ABI" \
+        NDK_OUT="$WORK_DIR/sdl-obj/$ABI" \
+        NDK_LIBS_OUT="$SDL_LIBS"
+
+    CC="$(compiler_for_abi "$ABI")"
+    CXX="$(cxx_for_abi "$ABI")"
+
+    if [[ ! -x "$CC" || ! -x "$CXX" ]]; then
+        echo "Missing NDK compiler for $ABI" >&2
+        exit 1
+    fi
+
+    echo "[android] Building $GAME native game library for $ABI"
+    rm -rf "$ROOT/build/android/$ABI/$GAME" "$ROOT/libagbsyscall/build/android/$ABI"
+
+    make -C "$ROOT" -j"$JOBS" \
+        PLATFORM=android \
+        GAME_NAME="$GAME" \
+        CPU_ARCH=arm \
+        ANDROID_ABI="$ABI" \
+        ANDROID_API="$ANDROID_API" \
+        SDL_ANDROID_ROOT="$SDL_SRC" \
+        SDL_ANDROID_LIB="$SDL_LIBS/$ABI" \
+        CC1="$CC" \
+        CXX="$CXX" \
+        AS="$CC -c" \
+        AR="$LLVM_AR"
+
+    GAME_LIB="$ROOT/build/android/$ABI/$GAME/libmain.so"
+    SDL_LIB="$SDL_LIBS/$ABI/libSDL2.so"
+
+    if [[ ! -f "$GAME_LIB" || ! -f "$SDL_LIB" ]]; then
+        echo "Native build did not produce the expected libraries for $ABI." >&2
+        exit 1
+    fi
+done
+
+echo "[android] Preparing Gradle package"
+cp -R "$SDL_SRC/android-project" "$PROJECT_DIR"
+cp "$ANDROID_DIR/template/app/build.gradle" "$PROJECT_DIR/app/build.gradle"
+cp "$ANDROID_DIR/template/app/src/main/AndroidManifest.xml" "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
+mkdir -p "$PROJECT_DIR/app/src/main/res/values"
+cat > "$PROJECT_DIR/app/src/main/res/values/strings.xml" <<EOF
+<resources>
+    <string name="app_name">$APP_NAME</string>
+</resources>
+EOF
+
+rm -rf "$PROJECT_DIR/app/src/main/jniLibs"
+for ABI in "${ABIS[@]}"; do
+    mkdir -p "$PROJECT_DIR/app/src/main/jniLibs/$ABI"
+    cp "$SDL_LIBS/$ABI/libSDL2.so" "$PROJECT_DIR/app/src/main/jniLibs/$ABI/"
+    cp "$ROOT/build/android/$ABI/$GAME/libmain.so" "$PROJECT_DIR/app/src/main/jniLibs/$ABI/"
+done
+
+cat > "$PROJECT_DIR/local.properties" <<EOF
+sdk.dir=$ANDROID_SDK_ROOT
+EOF
+
+echo "[android] Packaging $APP_NAME"
+(
+    cd "$PROJECT_DIR"
+    chmod +x ./gradlew
+    ./gradlew --no-daemon assembleDebug -PSA_GAME="$GAME"
+)
+
+APK="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+if [[ ! -f "$APK" ]]; then
+    echo "Gradle completed without producing $APK" >&2
+    exit 1
+fi
+
+cp "$APK" "$OUT_DIR/$APK_NAME"
+echo "[android] APK: $OUT_DIR/$APK_NAME"
