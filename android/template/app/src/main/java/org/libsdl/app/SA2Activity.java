@@ -1,5 +1,6 @@
 package org.libsdl.app;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
@@ -19,6 +20,7 @@ public class SA2Activity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         writeStage("java_activity_onCreate");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onCreate(savedInstanceState);
         applyImmersiveMode();
         request60Hz();
@@ -27,6 +29,7 @@ public class SA2Activity extends SDLActivity {
     @Override
     protected void onResume() {
         writeStage("java_activity_onResume");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onResume();
         applyImmersiveMode();
         request60Hz();
