@@ -82,6 +82,9 @@ void DoSoftReset(void) {};
 void ProcessSDLEvents(void);
 void VDraw(SDL_Texture *texture);
 void VramDraw(SDL_Texture *texture);
+#ifdef __ANDROID__
+static void AndroidDrawTouchControls(SDL_Renderer *renderer);
+#endif
 
 static void ReadSaveFile(char *path);
 static void StoreSaveFile(void);
