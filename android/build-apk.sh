@@ -7,16 +7,17 @@ GAME="${1:-sa2}"
 SA1_ROM_ARG="${2:-}"
 SDL_VERSION="2.30.3"
 ANDROID_API="${ANDROID_API:-23}"
-ABIS=(arm64-v8a armeabi-v7a)
+read -r -a ABIS <<< "${ANDROID_ABIS:-armeabi-v7a}"
+BUILD_TYPE="${BUILD_TYPE:-release}"
 
 case "$GAME" in
     sa1)
         APP_NAME="Sonic Advance"
-        APK_NAME="SonicAdvance1-android-debug.apk"
+        APK_NAME="SonicAdvance1-android-release.apk"
         ;;
     sa2)
         APP_NAME="Sonic Advance 2"
-        APK_NAME="SonicAdvance2-android-debug.apk"
+        APK_NAME="SonicAdvance2-android-release.apk"
         ;;
     *)
         echo "Usage: $0 [sa1|sa2]" >&2
@@ -188,6 +189,11 @@ for ABI in "${ABIS[@]}"; do
         echo "Fatal: $ABI libmain.so still depends on removed Android symbol __sF." >&2
         exit 1
     fi
+
+    if [[ "$BUILD_TYPE" == "release" ]]; then
+        "$TOOLBIN/llvm-strip" --strip-unneeded "$GAME_LIB"
+        "$TOOLBIN/llvm-strip" --strip-unneeded "$SDL_LIB"
+    fi
 done
 
 echo "[android] Preparing Gradle package"
@@ -216,14 +222,28 @@ cat > "$PROJECT_DIR/local.properties" <<EOF
 sdk.dir=$ANDROID_SDK_ROOT
 EOF
 
-echo "[android] Packaging $APP_NAME"
+echo "[android] Packaging $APP_NAME ($BUILD_TYPE)"
+case "$BUILD_TYPE" in
+    release)
+        GRADLE_TASK="assembleRelease"
+        APK="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
+        ;;
+    debug)
+        GRADLE_TASK="assembleDebug"
+        APK="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+        ;;
+    *)
+        echo "BUILD_TYPE must be release or debug." >&2
+        exit 2
+        ;;
+esac
+
 (
     cd "$PROJECT_DIR"
     chmod +x ./gradlew
-    ./gradlew --no-daemon assembleDebug -PSA_GAME="$GAME"
+    ./gradlew --no-daemon "$GRADLE_TASK" -PSA_GAME="$GAME"
 )
 
-APK="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
 if [[ ! -f "$APK" ]]; then
     echo "Gradle completed without producing $APK" >&2
     exit 1
@@ -231,21 +251,3 @@ fi
 
 cp "$APK" "$OUT_DIR/$APK_NAME"
 echo "[android] APK: $OUT_DIR/$APK_NAME"
-
-# Also package a 32-bit-only diagnostic APK. Android prefers arm64 when both
-# ABIs are present, so this lets us distinguish 64-bit portability bugs from
-# game-engine bugs on devices that still support armeabi-v7a.
-if [[ "$GAME" == "sa2" ]]; then
-    rm -rf "$PROJECT_DIR/app/src/main/jniLibs/arm64-v8a"
-    (
-        cd "$PROJECT_DIR"
-        ./gradlew --no-daemon assembleDebug -PSA_GAME="$GAME"
-    )
-    APK32="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
-    if [[ ! -f "$APK32" ]]; then
-        echo "Gradle completed without producing the 32-bit APK" >&2
-        exit 1
-    fi
-    cp "$APK32" "$OUT_DIR/SonicAdvance2-android-debug-armeabi-v7a.apk"
-    echo "[android] 32-bit APK: $OUT_DIR/SonicAdvance2-android-debug-armeabi-v7a.apk"
-fi
