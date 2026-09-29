@@ -194,6 +194,10 @@ echo "[android] Preparing Gradle package"
 cp -R "$SDL_SRC/android-project" "$PROJECT_DIR"
 cp "$ANDROID_DIR/template/app/build.gradle" "$PROJECT_DIR/app/build.gradle"
 cp "$ANDROID_DIR/template/app/src/main/AndroidManifest.xml" "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
+if [[ -d "$ANDROID_DIR/template/app/src/main/java" ]]; then
+    mkdir -p "$PROJECT_DIR/app/src/main/java"
+    cp -R "$ANDROID_DIR/template/app/src/main/java/." "$PROJECT_DIR/app/src/main/java/"
+fi
 mkdir -p "$PROJECT_DIR/app/src/main/res/values"
 cat > "$PROJECT_DIR/app/src/main/res/values/strings.xml" <<EOF
 <resources>
