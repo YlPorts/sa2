@@ -32,20 +32,36 @@ C_DECL(gUnknown_087BF8DC):
     @ src/data/sa1/recordings.c:static const u8 demo1[]
     .global demo1
 demo1:
+#ifdef __ANDROID__
+    .space 0x1F8, 0
+#else
     .incbin "baserom_sa1.gba", 0x007BF918, 0x1F8
+#endif
 
     @ src/data/sa1/recordings.c:static const u8 demo2[]
     .global demo2
 demo2:
+#ifdef __ANDROID__
+    .space 0x200, 0
+#else
     .incbin "baserom_sa1.gba", 0x007BFB10, 0x200
+#endif
 
     @ src/data/sa1/recordings.c:static const u8 demo4[]
     @ NOTE: Ice Mountain data comes before Casino Paradise!
     .global demo4
 demo4:
+#ifdef __ANDROID__
+    .space 0x208, 0
+#else
     .incbin "baserom_sa1.gba", 0x007BFD10, 0x208
+#endif
 
     @ src/data/sa1/recordings.c:static const u8 demo3[]
     .global demo3
 demo3:
+#ifdef __ANDROID__
+    .space 0x200, 0
+#else
     .incbin "baserom_sa1.gba", 0x007BFF18, 0x200
+#endif
