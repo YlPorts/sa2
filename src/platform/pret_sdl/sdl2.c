@@ -63,6 +63,8 @@ static bool sAndroidSuspended = false;
 static SDL_GameController *sAndroidController = NULL;
 static char sAndroidStagePath[1024];
 
+void Platform_SetStartupStage(const char *stage);
+
 static void AndroidSetStartupStage(const char *stage)
 {
     FILE *stageFile;
@@ -89,6 +91,11 @@ static void AndroidSetStartupError(const char *where)
 
     snprintf(message, sizeof(message), "%s: %s", where, error);
     AndroidSetStartupStage(message);
+}
+
+void Platform_SetStartupStage(const char *stage)
+{
+    AndroidSetStartupStage(stage);
 }
 #endif
 
