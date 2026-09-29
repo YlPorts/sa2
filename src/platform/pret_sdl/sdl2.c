@@ -66,6 +66,9 @@ static SDL_AudioDeviceID sAndroidAudioDevice = 0;
 static bool sAndroidSuspended = false;
 static SDL_GameController *sAndroidController = NULL;
 static char sAndroidStagePath[1024];
+static bool sAndroidNativeUiCrop = false;
+static Uint32 sAndroidColorLut[0x8000];
+static bool sAndroidColorLutReady = false;
 
 void Platform_SetStartupStage(const char *stage);
 
@@ -100,6 +103,33 @@ static void AndroidSetStartupError(const char *where)
 void Platform_SetStartupStage(const char *stage)
 {
     AndroidSetStartupStage(stage);
+}
+
+void Platform_SetNativeUiCrop(bool8 enabled)
+{
+    sAndroidNativeUiCrop = enabled != FALSE;
+}
+
+static void AndroidInitColorLut(void)
+{
+    Uint32 i;
+
+    if (sAndroidColorLutReady)
+        return;
+
+    for (i = 0; i < ARRAY_COUNT(sAndroidColorLut); i++) {
+        const Uint8 r5 = i & 0x1F;
+        const Uint8 g5 = (i >> 5) & 0x1F;
+        const Uint8 b5 = (i >> 10) & 0x1F;
+        const Uint8 r8 = (r5 << 3) | (r5 >> 2);
+        const Uint8 g8 = (g5 << 3) | (g5 >> 2);
+        const Uint8 b8 = (b5 << 3) | (b5 >> 2);
+
+        sAndroidColorLut[i] = ((Uint32)0xFF << 24) | ((Uint32)b8 << 16)
+                            | ((Uint32)g8 << 8) | (Uint32)r8;
+    }
+
+    sAndroidColorLutReady = true;
 }
 #endif
 
@@ -558,10 +588,17 @@ void VBlankIntrWait(void)
         SDL_RenderPresent(sdlRenderer);
 #else
         SDL_RenderClear(sdlRenderer);
-        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-
 #ifdef __ANDROID__
+        if (sAndroidNativeUiCrop) {
+            SDL_Rect nativeUiRect = { 0, 0, 240, 160 };
+            SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, NULL);
+        } else {
+            SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+        }
+
         AndroidDrawTouchControls(sdlRenderer);
+#else
+        SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 #endif
 
 #if ENABLE_VRAM_VIEW
@@ -1154,19 +1191,10 @@ void VDraw(SDL_Texture *texture)
 #ifdef __ANDROID__
     {
         size_t i;
-        for (i = 0; i < ARRAY_COUNT(gameImage); i++) {
-            const Uint16 pixel = gameImage[i];
-            const Uint8 r5 = pixel & 0x1F;
-            const Uint8 g5 = (pixel >> 5) & 0x1F;
-            const Uint8 b5 = (pixel >> 10) & 0x1F;
-            const Uint8 r8 = (r5 << 3) | (r5 >> 2);
-            const Uint8 g8 = (g5 << 3) | (g5 >> 2);
-            const Uint8 b8 = (b5 << 3) | (b5 >> 2);
+        AndroidInitColorLut();
 
-            // SDL_PIXELFORMAT_RGBA32 is byte-order RGBA. On Android/ARM this
-            // value lays out bytes as R, G, B, A in memory.
-            sAndroidFrameRGBA[i] = ((Uint32)0xFF << 24) | ((Uint32)b8 << 16)
-                                 | ((Uint32)g8 << 8) | (Uint32)r8;
+        for (i = 0; i < ARRAY_COUNT(gameImage); i++) {
+            sAndroidFrameRGBA[i] = sAndroidColorLut[gameImage[i] & 0x7FFF];
         }
 
         SDL_UpdateTexture(texture, NULL, sAndroidFrameRGBA, DISPLAY_WIDTH * sizeof(Uint32));
