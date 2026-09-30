@@ -51,9 +51,34 @@ make -j"${JOBS:-4}" PLATFORM=sdl CPU_ARCH="$ARCH" GAME_NAME=sa2 OBJ_DIR="$OBJ" \
 cd "$WORK"
 export HEADLESS=true ASAN_OPTIONS=detect_leaks=0
 export SA_OC_CAPTURE_DIR="$CAPTURES"
+if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
+    export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
+fi
 if [[ "${SA_OC_BUILD_ONLY:-0}" == 1 ]]; then exit 0; fi
 if [[ -n "${SA_OC_ONLY_MODE:-}" ]]; then
     SA_OC_MODE="$SA_OC_ONLY_MODE" "${RUNNER[@]}" ./sa2.oc-runtime
+    exit 0
+fi
+if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
+    # Recheck the changed animation/ability paths, with actual VBlank traces.
+    # Menu, pause and real-goal fixtures are already covered by the OCS2 suite.
+    for ENTRY in 0 1 2 3; do
+        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    SA_OC_MODE=native-amy SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
+    for ENTRY in 5 6 7 8 9; do
+        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    for ENTRY in 6 7 8; do
+        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    SA_OC_MODE=double-a SA_OC_ENTRY=6 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-enemy SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-water SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-ceiling SA_OC_ENTRY=9 SA_OC_LEVEL=1 "${RUNNER[@]}" ./sa2.oc-runtime
+    printf 'OC revised animation/ability checks passed. Framebuffer captures: %s\n' "$CAPTURES"
     exit 0
 fi
 for ENTRY in ${SA_OC_TEST_ENTRIES:-0 1 2 3 4 5 6 7 8 9}; do
@@ -70,8 +95,13 @@ SA_OC_MODE=native-amy SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=special SA_OC_ENTRY=0 "${RUNNER[@]}" ./sa2.oc-runtime
 for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9}; do
     SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    if [[ "$ENTRY" == 9 ]]; then
+        SA_OC_MODE=flap SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=flap-enemy SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    else
+        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    fi
     SA_OC_MODE=pause SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
     SA_OC_MODE=special SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
     SA_OC_MODE=victory SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime

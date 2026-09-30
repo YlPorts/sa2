@@ -1,0 +1,346 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="768" viewBox="0 0 1536 768">
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:DejaVu Sans,Arial,sans-serif}.bone{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:6}.under{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10}</style>
+<g transform="translate(0,0)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 186.23,292.84"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 186.23,292.84"/>
+<polyline class="under" points="186.23,292.84 146.00,313.00"/>
+<polyline class="bone" stroke="#173d82" points="186.23,292.84 146.00,313.00"/>
+<polyline class="under" points="146.00,313.00 132.00,317.00 148.00,328.00"/>
+<polyline class="bone" stroke="#173d82" points="146.00,313.00 132.00,317.00 148.00,328.00"/>
+<circle cx="186.23" cy="292.84" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="146.00" cy="313.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 231.29,206.61"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 231.29,206.61"/>
+<polyline class="under" points="231.29,206.61 244.00,174.00"/>
+<polyline class="bone" stroke="#173d82" points="231.29,206.61 244.00,174.00"/>
+<circle cx="231.29" cy="206.61" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="244.00" cy="174.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 223.83,277.68"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 223.83,277.68"/>
+<polyline class="under" points="223.83,277.68 236.00,321.00"/>
+<polyline class="bone" stroke="#f27676" points="223.83,277.68 236.00,321.00"/>
+<polyline class="under" points="236.00,321.00 235.00,328.00 258.00,322.00"/>
+<polyline class="bone" stroke="#f27676" points="236.00,321.00 235.00,328.00 258.00,322.00"/>
+<circle cx="223.83" cy="277.68" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="236.00" cy="321.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 189.39,218.79"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 189.39,218.79"/>
+<polyline class="under" points="189.39,218.79 162.00,197.00"/>
+<polyline class="bone" stroke="#f27676" points="189.39,218.79 162.00,197.00"/>
+<circle cx="189.39" cy="218.79" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="162.00" cy="197.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="235" cy="328" r="5" fill="#f27676"/>
+
+</g>
+<g transform="translate(384,0)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 189.60,293.00"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 189.60,293.00"/>
+<polyline class="under" points="189.60,293.00 145.00,299.00"/>
+<polyline class="bone" stroke="#173d82" points="189.60,293.00 145.00,299.00"/>
+<polyline class="under" points="145.00,299.00 133.00,305.00 154.00,310.00"/>
+<polyline class="bone" stroke="#173d82" points="145.00,299.00 133.00,305.00 154.00,310.00"/>
+<circle cx="189.60" cy="293.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="145.00" cy="299.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 200.98,220.99"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 200.98,220.99"/>
+<polyline class="under" points="200.98,220.99 222.00,193.00"/>
+<polyline class="bone" stroke="#173d82" points="200.98,220.99 222.00,193.00"/>
+<circle cx="200.98" cy="220.99" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="222.00" cy="193.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 216.32,284.50"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 216.32,284.50"/>
+<polyline class="under" points="216.32,284.50 190.00,321.00"/>
+<polyline class="bone" stroke="#f27676" points="216.32,284.50 190.00,321.00"/>
+<polyline class="under" points="190.00,321.00 178.00,328.00 203.00,328.00"/>
+<polyline class="bone" stroke="#f27676" points="190.00,321.00 178.00,328.00 203.00,328.00"/>
+<circle cx="216.32" cy="284.50" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="190.00" cy="321.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 216.53,218.03"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 216.53,218.03"/>
+<polyline class="under" points="216.53,218.03 183.00,208.00"/>
+<polyline class="bone" stroke="#f27676" points="216.53,218.03 183.00,208.00"/>
+<circle cx="216.53" cy="218.03" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="183.00" cy="208.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="190" cy="328" r="5" fill="#f27676"/>
+
+</g>
+<g transform="translate(768,0)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 234.39,255.36"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 234.39,255.36"/>
+<polyline class="under" points="234.39,255.36 220.00,298.00"/>
+<polyline class="bone" stroke="#173d82" points="234.39,255.36 220.00,298.00"/>
+<polyline class="under" points="220.00,298.00 208.00,306.00 235.00,308.00"/>
+<polyline class="bone" stroke="#173d82" points="220.00,298.00 208.00,306.00 235.00,308.00"/>
+<circle cx="234.39" cy="255.36" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="220.00" cy="298.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 202.73,220.99"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 202.73,220.99"/>
+<polyline class="under" points="202.73,220.99 174.00,201.00"/>
+<polyline class="bone" stroke="#173d82" points="202.73,220.99 174.00,201.00"/>
+<circle cx="202.73" cy="220.99" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="174.00" cy="201.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 192.63,292.92"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 192.63,292.92"/>
+<polyline class="under" points="192.63,292.92 154.00,316.00"/>
+<polyline class="bone" stroke="#f27676" points="192.63,292.92 154.00,316.00"/>
+<polyline class="under" points="154.00,316.00 138.00,317.00 157.00,328.00"/>
+<polyline class="bone" stroke="#f27676" points="154.00,316.00 138.00,317.00 157.00,328.00"/>
+<circle cx="192.63" cy="292.92" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="154.00" cy="316.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 222.86,214.56"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 222.86,214.56"/>
+<polyline class="under" points="222.86,214.56 238.00,183.00"/>
+<polyline class="bone" stroke="#f27676" points="222.86,214.56 238.00,183.00"/>
+<circle cx="222.86" cy="214.56" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="238.00" cy="183.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="157" cy="328" r="5" fill="#f27676"/>
+
+</g>
+<g transform="translate(1152,0)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 230.23,268.16"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 230.23,268.16"/>
+<polyline class="under" points="230.23,268.16 234.00,313.00"/>
+<polyline class="bone" stroke="#173d82" points="230.23,268.16 234.00,313.00"/>
+<polyline class="under" points="234.00,313.00 231.00,322.00 255.00,317.00"/>
+<polyline class="bone" stroke="#173d82" points="234.00,313.00 231.00,322.00 255.00,317.00"/>
+<circle cx="230.23" cy="268.16" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="234.00" cy="313.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 189.39,218.79"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 189.39,218.79"/>
+<polyline class="under" points="189.39,218.79 162.00,197.00"/>
+<polyline class="bone" stroke="#173d82" points="189.39,218.79 162.00,197.00"/>
+<circle cx="189.39" cy="218.79" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="162.00" cy="197.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 184.50,292.66"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 184.50,292.66"/>
+<polyline class="under" points="184.50,292.66 140.00,286.00"/>
+<polyline class="bone" stroke="#f27676" points="184.50,292.66 140.00,286.00"/>
+<polyline class="under" points="140.00,286.00 127.00,290.00 149.00,295.00"/>
+<polyline class="bone" stroke="#f27676" points="140.00,286.00 127.00,290.00 149.00,295.00"/>
+<circle cx="184.50" cy="292.66" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="140.00" cy="286.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 231.29,206.61"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 231.29,206.61"/>
+<polyline class="under" points="231.29,206.61 244.00,174.00"/>
+<polyline class="bone" stroke="#f27676" points="231.29,206.61 244.00,174.00"/>
+<circle cx="231.29" cy="206.61" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="244.00" cy="174.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+
+</g>
+<g transform="translate(0,384)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 223.83,277.68"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 223.83,277.68"/>
+<polyline class="under" points="223.83,277.68 236.00,321.00"/>
+<polyline class="bone" stroke="#173d82" points="223.83,277.68 236.00,321.00"/>
+<polyline class="under" points="236.00,321.00 235.00,328.00 258.00,322.00"/>
+<polyline class="bone" stroke="#173d82" points="236.00,321.00 235.00,328.00 258.00,322.00"/>
+<circle cx="223.83" cy="277.68" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="236.00" cy="321.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 189.39,218.79"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 189.39,218.79"/>
+<polyline class="under" points="189.39,218.79 162.00,197.00"/>
+<polyline class="bone" stroke="#173d82" points="189.39,218.79 162.00,197.00"/>
+<circle cx="189.39" cy="218.79" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="162.00" cy="197.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 186.23,292.84"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 186.23,292.84"/>
+<polyline class="under" points="186.23,292.84 146.00,313.00"/>
+<polyline class="bone" stroke="#f27676" points="186.23,292.84 146.00,313.00"/>
+<polyline class="under" points="146.00,313.00 132.00,317.00 148.00,328.00"/>
+<polyline class="bone" stroke="#f27676" points="146.00,313.00 132.00,317.00 148.00,328.00"/>
+<circle cx="186.23" cy="292.84" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="146.00" cy="313.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 231.29,206.61"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 231.29,206.61"/>
+<polyline class="under" points="231.29,206.61 244.00,174.00"/>
+<polyline class="bone" stroke="#f27676" points="231.29,206.61 244.00,174.00"/>
+<circle cx="231.29" cy="206.61" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="244.00" cy="174.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="235" cy="328" r="5" fill="#173d82"/>
+
+</g>
+<g transform="translate(384,384)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 216.32,284.50"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 216.32,284.50"/>
+<polyline class="under" points="216.32,284.50 190.00,321.00"/>
+<polyline class="bone" stroke="#173d82" points="216.32,284.50 190.00,321.00"/>
+<polyline class="under" points="190.00,321.00 178.00,328.00 203.00,328.00"/>
+<polyline class="bone" stroke="#173d82" points="190.00,321.00 178.00,328.00 203.00,328.00"/>
+<circle cx="216.32" cy="284.50" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="190.00" cy="321.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 216.53,218.03"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 216.53,218.03"/>
+<polyline class="under" points="216.53,218.03 183.00,208.00"/>
+<polyline class="bone" stroke="#173d82" points="216.53,218.03 183.00,208.00"/>
+<circle cx="216.53" cy="218.03" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="183.00" cy="208.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 189.60,293.00"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 189.60,293.00"/>
+<polyline class="under" points="189.60,293.00 145.00,299.00"/>
+<polyline class="bone" stroke="#f27676" points="189.60,293.00 145.00,299.00"/>
+<polyline class="under" points="145.00,299.00 133.00,305.00 154.00,310.00"/>
+<polyline class="bone" stroke="#f27676" points="145.00,299.00 133.00,305.00 154.00,310.00"/>
+<circle cx="189.60" cy="293.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="145.00" cy="299.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 200.98,220.99"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 200.98,220.99"/>
+<polyline class="under" points="200.98,220.99 222.00,193.00"/>
+<polyline class="bone" stroke="#f27676" points="200.98,220.99 222.00,193.00"/>
+<circle cx="200.98" cy="220.99" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="222.00" cy="193.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="190" cy="328" r="5" fill="#173d82"/>
+
+</g>
+<g transform="translate(768,384)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 192.63,292.92"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 192.63,292.92"/>
+<polyline class="under" points="192.63,292.92 154.00,316.00"/>
+<polyline class="bone" stroke="#173d82" points="192.63,292.92 154.00,316.00"/>
+<polyline class="under" points="154.00,316.00 138.00,317.00 157.00,328.00"/>
+<polyline class="bone" stroke="#173d82" points="154.00,316.00 138.00,317.00 157.00,328.00"/>
+<circle cx="192.63" cy="292.92" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="154.00" cy="316.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 222.86,214.56"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 222.86,214.56"/>
+<polyline class="under" points="222.86,214.56 238.00,183.00"/>
+<polyline class="bone" stroke="#173d82" points="222.86,214.56 238.00,183.00"/>
+<circle cx="222.86" cy="214.56" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="238.00" cy="183.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 234.39,255.36"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 234.39,255.36"/>
+<polyline class="under" points="234.39,255.36 220.00,298.00"/>
+<polyline class="bone" stroke="#f27676" points="234.39,255.36 220.00,298.00"/>
+<polyline class="under" points="220.00,298.00 208.00,306.00 235.00,308.00"/>
+<polyline class="bone" stroke="#f27676" points="220.00,298.00 208.00,306.00 235.00,308.00"/>
+<circle cx="234.39" cy="255.36" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="220.00" cy="298.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 202.73,220.99"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 202.73,220.99"/>
+<polyline class="under" points="202.73,220.99 174.00,201.00"/>
+<polyline class="bone" stroke="#f27676" points="202.73,220.99 174.00,201.00"/>
+<circle cx="202.73" cy="220.99" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="174.00" cy="201.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="157" cy="328" r="5" fill="#173d82"/>
+
+</g>
+<g transform="translate(1152,384)">
+<rect x="1" y="1" width="382" height="382" fill="#fff" stroke="#d9dee3"/>
+
+
+<line x1="30" y1="328" x2="354" y2="328" stroke="#888" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 184.50,292.66"/>
+<polyline class="bone" stroke="#173d82" points="190.00,248.00 184.50,292.66"/>
+<polyline class="under" points="184.50,292.66 140.00,286.00"/>
+<polyline class="bone" stroke="#173d82" points="184.50,292.66 140.00,286.00"/>
+<polyline class="under" points="140.00,286.00 127.00,290.00 149.00,295.00"/>
+<polyline class="bone" stroke="#173d82" points="140.00,286.00 127.00,290.00 149.00,295.00"/>
+<circle cx="184.50" cy="292.66" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="140.00" cy="286.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 231.29,206.61"/>
+<polyline class="bone" stroke="#173d82" points="202.00,184.00 231.29,206.61"/>
+<polyline class="under" points="231.29,206.61 244.00,174.00"/>
+<polyline class="bone" stroke="#173d82" points="231.29,206.61 244.00,174.00"/>
+<circle cx="231.29" cy="206.61" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<circle cx="244.00" cy="174.00" r="4" fill="#fff" stroke="#173d82" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 230.23,268.16"/>
+<polyline class="bone" stroke="#f27676" points="190.00,248.00 230.23,268.16"/>
+<polyline class="under" points="230.23,268.16 234.00,313.00"/>
+<polyline class="bone" stroke="#f27676" points="230.23,268.16 234.00,313.00"/>
+<polyline class="under" points="234.00,313.00 231.00,322.00 255.00,317.00"/>
+<polyline class="bone" stroke="#f27676" points="234.00,313.00 231.00,322.00 255.00,317.00"/>
+<circle cx="230.23" cy="268.16" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="234.00" cy="313.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="202.00,184.00 189.39,218.79"/>
+<polyline class="bone" stroke="#f27676" points="202.00,184.00 189.39,218.79"/>
+<polyline class="under" points="189.39,218.79 162.00,197.00"/>
+<polyline class="bone" stroke="#f27676" points="189.39,218.79 162.00,197.00"/>
+<circle cx="189.39" cy="218.79" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<circle cx="162.00" cy="197.00" r="4" fill="#fff" stroke="#f27676" stroke-width="2"/>
+<polyline class="under" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<polyline class="bone" stroke="#555d66" points="190.00,248.00 202.00,184.00 210.00,160.00"/>
+<ellipse cx="216" cy="122" rx="25" ry="30" fill="#fff" stroke="#555d66" stroke-width="4"/>
+<path d="M 237 115 L 250 125 L 238 131" fill="#fff" stroke="#555d66" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="228" cy="116" r="2.5" fill="#555d66"/>
+<circle cx="190.00" cy="248.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+<circle cx="202.00" cy="184.00" r="5" fill="#fff" stroke="#555d66" stroke-width="2"/>
+
+</g>
+</svg>

@@ -1,0 +1,121 @@
+{
+  "jude": {
+    "scale": 0.09314359637774904,
+    "frames": [
+      {
+        "bodyAnchorX": 210,
+        "groundY": 435
+      },
+      {
+        "bodyAnchorX": 641,
+        "groundY": 435
+      },
+      {
+        "bodyAnchorX": 1085.263888888889,
+        "groundY": 435
+      },
+      {
+        "bodyAnchorX": 1535,
+        "groundY": 435
+      },
+      {
+        "bodyAnchorX": 218.73611111111111,
+        "groundY": 842
+      },
+      {
+        "bodyAnchorX": 661,
+        "groundY": 842
+      },
+      {
+        "bodyAnchorX": 1085.263888888889,
+        "groundY": 842
+      },
+      {
+        "bodyAnchorX": 1533,
+        "groundY": 842
+      }
+    ],
+    "anchorCriterion": "Manual neck/torso alignment, independent of fists and raised knees; graphical waist may offset slightly from x32."
+  },
+  "kiro": {
+    "scale": 0.08845208845208845,
+    "frames": [
+      {
+        "bodyAnchorX": 178,
+        "groundY": 483
+      },
+      {
+        "bodyAnchorX": 565.3055555555555,
+        "groundY": 483
+      },
+      {
+        "bodyAnchorX": 942.3888888888889,
+        "groundY": 483
+      },
+      {
+        "bodyAnchorX": 1325,
+        "groundY": 483
+      },
+      {
+        "bodyAnchorX": 194.30555555555554,
+        "groundY": 958
+      },
+      {
+        "bodyAnchorX": 576.6111111111111,
+        "groundY": 958,
+        "sourceOverride": "graphics/sa2/ocs/source/kiro_down_source_v3.png",
+        "sourceFrame": 5,
+        "sourceFrameCount": 8,
+        "sourceScale": 0.08845208845208845
+      },
+      {
+        "bodyAnchorX": 935.3888888888889,
+        "groundY": 958
+      },
+      {
+        "bodyAnchorX": 1333.3055555555557,
+        "groundY": 958
+      }
+    ],
+    "anchorCriterion": "Manual neck/torso alignment, independent of fists and raised knees; graphical waist may offset slightly from x32.",
+    "preservedFramesManifest": "graphics/sa2/ocs/kiro_run_preserved_sha256.json"
+  },
+  "yuliana": {
+    "scale": 0.0987012987012987,
+    "frames": [
+      {
+        "bodyAnchorX": 254.1315789473684,
+        "groundY": 424
+      },
+      {
+        "bodyAnchorX": 693,
+        "groundY": 424
+      },
+      {
+        "bodyAnchorX": 1128.8684210526317,
+        "groundY": 424
+      },
+      {
+        "bodyAnchorX": 1569,
+        "groundY": 424
+      },
+      {
+        "bodyAnchorX": 235.8684210526316,
+        "groundY": 855
+      },
+      {
+        "bodyAnchorX": 699,
+        "groundY": 855
+      },
+      {
+        "bodyAnchorX": 1109.6052631578948,
+        "groundY": 855
+      },
+      {
+        "bodyAnchorX": 1563.8684210526317,
+        "groundY": 855
+      }
+    ],
+    "anchorCriterion": "Manual neck/torso alignment, independent of fists and raised knees; graphical waist may offset slightly from x32."
+  }
+}

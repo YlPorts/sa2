@@ -1,0 +1,150 @@
+{
+  "jude": {
+    "scale": 0.1350844277673546,
+    "frames": [
+      {
+        "hipX": 155,
+        "groundY": 917
+      },
+      {
+        "hipX": 478,
+        "groundY": 915
+      },
+      {
+        "hipX": 770,
+        "groundY": 913
+      },
+      {
+        "hipX": 1060,
+        "groundY": 914
+      },
+      {
+        "hipX": 154,
+        "groundY": 1204
+      },
+      {
+        "hipX": 493,
+        "groundY": 1204
+      },
+      {
+        "hipX": 761,
+        "groundY": 1207
+      },
+      {
+        "hipX": 1100,
+        "groundY": 1207
+      }
+    ]
+  },
+  "kiro": {
+    "scale": 0.1301989150090416,
+    "frames": [
+      {
+        "hipX": 137,
+        "groundY": 899
+      },
+      {
+        "hipX": 453,
+        "groundY": 899
+      },
+      {
+        "hipX": 745,
+        "groundY": 898
+      },
+      {
+        "hipX": 1043,
+        "groundY": 897
+      },
+      {
+        "hipX": 142,
+        "groundY": 1180
+      },
+      {
+        "hipX": 486,
+        "groundY": 1180
+      },
+      {
+        "hipX": 782,
+        "groundY": 1180
+      },
+      {
+        "hipX": 1113,
+        "groundY": 1178
+      }
+    ]
+  },
+  "yuliana": {
+    "scale": 0.14728682170542637,
+    "frames": [
+      {
+        "hipX": 173,
+        "groundY": 904
+      },
+      {
+        "hipX": 480,
+        "groundY": 904
+      },
+      {
+        "hipX": 769,
+        "groundY": 904
+      },
+      {
+        "hipX": 1108,
+        "groundY": 904
+      },
+      {
+        "hipX": 165,
+        "groundY": 1208
+      },
+      {
+        "hipX": 484,
+        "groundY": 1208
+      },
+      {
+        "hipX": 782,
+        "groundY": 1208
+      },
+      {
+        "hipX": 1135,
+        "groundY": 1208
+      }
+    ]
+  },
+  "kura": {
+    "scale": 0.10603829160530193,
+    "frames": [
+      {
+        "hipX": 268,
+        "groundY": 405
+      },
+      {
+        "hipX": 696,
+        "groundY": 405
+      },
+      {
+        "hipX": 1131,
+        "groundY": 405
+      },
+      {
+        "hipX": 1600,
+        "groundY": 405
+      },
+      {
+        "hipX": 279,
+        "groundY": 833
+      },
+      {
+        "hipX": 700,
+        "groundY": 833
+      },
+      {
+        "hipX": 1135,
+        "groundY": 833
+      },
+      {
+        "hipX": 1590,
+        "groundY": 833
+      }
+    ]
+  }
+}

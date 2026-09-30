@@ -46,6 +46,17 @@ static unsigned invulnerableFrames, invulnerableVisible, invulnerableHidden;
 static unsigned specialDraws, specialLeft, specialRight, specialJump;
 static unsigned finalPaletteChecks, countdownPaletteChecks, hiddenPaletteChecks;
 static unsigned runMask, jumpMask, attackMask, projectileDraws, realEnemyHits;
+static unsigned runCadenceChecks, maxRunTransitions;
+static unsigned runTransitionWindow[60], runWindowCount, runWindowPosition, runWindowChanges;
+static unsigned previousRunFrame, previousRunPose;
+static bool previousRunValid;
+static s32 bodyFrameX, bodyFrameY;
+static unsigned bodyAffineMode;
+static Player pendingRenderedPlayer, displayedPlayer;
+static OcAbilityStatus pendingRenderedAbility, displayedAbility;
+static unsigned pendingVisualPhase, displayedVisualPhase;
+static bool pendingBodyVisible, displayedBodyVisible;
+static FILE *frameTrace;
 static bool previousPaletteReady;
 static const u8 *bodyTiles;
 static Task *testEnemy;
@@ -123,6 +134,67 @@ static void Capture(const char *label, unsigned number)
     Require(capture != NULL, "create framebuffer surface");
     Require(SDL_SaveBMP(capture, path) == 0, "save framebuffer capture");
     SDL_FreeSurface(capture);
+}
+
+static int RevisedRunRow(void)
+{
+    return oc >= OC_JUDE && oc <= OC_YULIANA ? oc - OC_JUDE : -1;
+}
+
+static int RevisedAttackRow(void)
+{
+    return oc == OC_KURA ? 3 : RevisedRunRow();
+}
+
+static unsigned ExpectedRunMask(void) { return RevisedRunRow() >= 0 ? 0xff : 0xfff; }
+static unsigned ExpectedAttackMask(void) { return RevisedAttackRow() >= 0 ? 0xff : 0xf; }
+
+static void RecordPhysicalFrame(const char *family, int phase)
+{
+    const OcAbilityStatus *status = &displayedAbility;
+    if (!getenv("SA_OC_RECORD_FRAMES") || !captureDir) return;
+    if (!frameTrace) {
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/%s-entry%d-oc%d-frames.csv", captureDir, mode, entry, oc);
+        frameTrace = fopen(path, "w");
+        Require(frameTrace != NULL, "open actual rendered-frame trace");
+        fprintf(frameTrace, "engine_frame,stage_frame,play_frame,oc,rendered_family,rendered_phase,ability_kind,ability_age,visual_phase,attacking,damaging,shots_fired,projectiles,flap_used,world_x_q8,world_y_q8,air_x_q8,air_y_q8,ground_q8,char_state,move_state,offset_y,oam_x,oam_y,affine_mode,crop_x,crop_y\n");
+    }
+    fprintf(frameTrace, "%u,%u,%u,%d,%s,%d,%u,%u,%u,%u,%u,%u,%u,%u,%d,%d,%d,%d,%d,%d,%u,%u,%d,%d,%u,%d,%d\n",
+            frames, stageFrames, playFrames, oc, family, phase, status->kind, status->age,
+            displayedVisualPhase, status->attacking, status->damaging,
+            status->shotsFired, status->projectiles, status->flapUsed,
+            displayedPlayer.qWorldX, displayedPlayer.qWorldY, displayedPlayer.qSpeedAirX, displayedPlayer.qSpeedAirY,
+            displayedPlayer.qSpeedGround, displayedPlayer.charState, displayedPlayer.moveState, displayedPlayer.spriteOffsetY,
+            bodyFrameX, bodyFrameY, bodyAffineMode,
+            bodyFrameX + (bodyAffineMode == ST_OAM_AFFINE_DOUBLE ? 32 : 0),
+            bodyFrameY + (bodyAffineMode == ST_OAM_AFFINE_DOUBLE ? 32 : 0));
+}
+
+static void CheckRunCadence(unsigned phase)
+{
+    if (RevisedRunRow() < 0) return;
+    if (!previousRunValid || previousRunFrame + 1 != stageFrames) {
+        memset(runTransitionWindow, 0, sizeof(runTransitionWindow));
+        runWindowCount = runWindowPosition = runWindowChanges = 0;
+    } else {
+        unsigned change = phase != previousRunPose;
+        Require((phase + 8 - previousRunPose) % 8 <= 1,
+                "revised gait advances through consecutive poses without skipping support phases");
+        runWindowChanges -= runTransitionWindow[runWindowPosition];
+        runTransitionWindow[runWindowPosition] = change;
+        runWindowChanges += change;
+        runWindowPosition = (runWindowPosition + 1) % ARRAY_COUNT(runTransitionWindow);
+        if (runWindowCount < ARRAY_COUNT(runTransitionWindow)) runWindowCount++;
+        if (runWindowChanges > maxRunTransitions) maxRunTransitions = runWindowChanges;
+        if (runWindowCount == ARRAY_COUNT(runTransitionWindow)) {
+            Require(runWindowChanges <= 30, "revised gait has at most thirty pose transitions per sixty real VBlanks");
+            runCadenceChecks++;
+        }
+    }
+    previousRunFrame = stageFrames;
+    previousRunPose = phase;
+    previousRunValid = true;
 }
 
 static bool victoryGoalSeen, victoryStarted, victorySettledCaptured;
@@ -355,8 +427,8 @@ bool32 __wrap_OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
 {
     unsigned before = gOamFreeIndex;
     bool32 result = __real_OcPlayerDraw(player, body);
-    if (OcAbilitiesOwnPlayer(player) && !OcAbilityActive(player))
-        Require(!HITBOX_IS_ACTIVE(body->s.hitboxes[1]), "ordinary human running/jumping has no passive Sonic attack hitbox");
+    if (OcAbilitiesOwnPlayer(player) && (!OcAbilityActive(player) || OcAbilityKind(player) == OC_ABILITY_FLAP))
+        Require(!HITBOX_IS_ACTIVE(body->s.hitboxes[1]), "ordinary human motion and Kura's flap have no passive attack hitbox");
     if (result && gOamFreeIndex != before) {
         OamData *oam = &gOamMallocBuffer[gOamFreeIndex - 1];
         Require(oam->split.paletteNum == 0, "OC player uses its own palette bank");
@@ -372,6 +444,10 @@ bool32 __wrap_OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
         }
         drawCount++;
         bodyTiles = OBJ_VRAM0 + oam->split.tileNum * TILE_SIZE_4BPP;
+        pendingRenderedPlayer = *player;
+        OcAbilityGetStatus(player, &pendingRenderedAbility);
+        pendingVisualPhase = OcAbilityVisualPhase(player);
+        pendingBodyVisible = true;
         if (player->moveState & MOVESTATE_FACING_LEFT) leftDraws++;
         else rightDraws++;
         if (!(player->moveState & MOVESTATE_IN_AIR) && player->rotation != 0) slopeDraws++;
@@ -450,22 +526,56 @@ static void CheckFinalPalette(void)
         Require(previousPaletteReady, "countdown has released intro palette fade ownership");
         Capture("countdown", stageFrames);
     }
-    if (!bodyTiles) return;
+    if (!bodyTiles || !displayedBodyVisible) return;
+    if (RevisedAttackRow() >= 0) {
+        for (unsigned phase = 0; phase < 8; phase++) {
+            if (memcmp(bodyTiles, gOcRevisedAttackTiles[RevisedAttackRow()][phase], OC_FRAME_TILE_BYTES)) continue;
+            if (displayedAbility.attacking) {
+                Require(phase == displayedVisualPhase,
+                        "actual visible attack tiles follow the submitted eight-phase ability clock");
+                if (!(attackMask & (1u << phase))) Capture("ability-phase", phase);
+                attackMask |= 1u << phase;
+            }
+            RecordPhysicalFrame("revised-attack", phase);
+            return;
+        }
+    }
+    if (RevisedRunRow() >= 0) {
+        for (unsigned phase = 0; phase < 8; phase++) {
+            if (memcmp(bodyTiles, gOcRevisedRunTiles[RevisedRunRow()][phase], OC_FRAME_TILE_BYTES)) continue;
+            if (!(displayedPlayer.moveState & MOVESTATE_IN_AIR) && ABS(displayedPlayer.qSpeedGround) > Q(1)
+                && displayedPlayer.charState == CHARSTATE_WALK_A) {
+                if (!(runMask & (1u << phase))) Capture("gait", phase);
+                runMask |= 1u << phase;
+                CheckRunCadence(phase);
+            }
+            RecordPhysicalFrame("revised-run", phase);
+            return;
+        }
+    }
     /* This compares the tiles actually uploaded to OBJ VRAM. The animation
      * source alone would not prove that all twelve phases reached the screen. */
     for (unsigned phase = 0; phase < OC_ACTION_FRAME_COUNT; phase++) {
         if (memcmp(bodyTiles, gOcActionFrameTiles[oc][phase], OC_FRAME_TILE_BYTES)) continue;
-        if (phase < 12 && !(gPlayer.moveState & MOVESTATE_IN_AIR)
-            && ABS(gPlayer.qSpeedGround) > Q(1) && gPlayer.charState == CHARSTATE_WALK_A) {
+        if (phase < 12 && RevisedRunRow() < 0 && !(displayedPlayer.moveState & MOVESTATE_IN_AIR)
+            && ABS(displayedPlayer.qSpeedGround) > Q(1) && displayedPlayer.charState == CHARSTATE_WALK_A) {
             if (!(runMask & (1u << phase))) Capture("gait", phase);
             runMask |= 1u << phase;
-        } else if (phase >= 12 && phase < 16 && (gPlayer.moveState & MOVESTATE_IN_AIR)) {
+        } else if (phase >= 12 && phase < 16 && (displayedPlayer.moveState & MOVESTATE_IN_AIR)) {
             jumpMask |= 1u << (phase - 12);
-        } else if (phase >= 16 && phase < 20 && OcAbilityActive(&gPlayer)) {
+        } else if (phase >= 16 && phase < 20 && RevisedAttackRow() < 0 && displayedAbility.attacking) {
             attackMask |= 1u << (phase - 16);
         }
-        break;
+        RecordPhysicalFrame("legacy-action", phase);
+        return;
     }
+    for (unsigned phase = 0; phase < OC_FRAME_COUNT; phase++) {
+        if (!memcmp(bodyTiles, gOcFrameTiles[oc][phase], OC_FRAME_TILE_BYTES)) {
+            RecordPhysicalFrame("main-body", phase);
+            return;
+        }
+    }
+    RecordPhysicalFrame("pending-upload", -1);
 }
 
 bool32 __wrap_OcSpecialPlayerDraw(Sprite *body, u16 state, u16 input)
@@ -558,7 +668,9 @@ void __wrap_AgbMain(void)
         CreateSpecialStage(ExpectedBase(), 0);
     } else if (!strcmp(mode, "stage") || !strcmp(mode, "abilities") || !strcmp(mode, "stage-lifecycle")
                || !strcmp(mode, "glitch-defense") || !strcmp(mode, "pause") || !strcmp(mode, "air-abilities")
-               || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")) {
+               || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")
+               || !strcmp(mode, "flap") || !strcmp(mode, "flap-enemy") || !strcmp(mode, "native-smoke") || !strcmp(mode, "weapon-visual")
+               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) {
         if (!strcmp(mode, "stage-lifecycle")) {
             memcpy(initialStageHeap, gVramHeapState, sizeof(initialStageHeap));
             initialStageTasks = gNumTasks;
@@ -641,7 +753,8 @@ static void CheckGameplay(void)
         Capture("state", (unsigned)state);
         stateCaptured[state] = true;
     }
-    if (playFrames >= 30 && playFrames <= 600 && stageFrames % 2 == 0)
+    if (playFrames >= 30 && playFrames <= (getenv("SA_OC_VISUAL_CAPTURE") ? 180 : 600)
+        && (getenv("SA_OC_VISUAL_CAPTURE") || stageFrames % 2 == 0))
         Capture("motion", stageFrames);
     /* Use the game's actual damage transition to check recoil and its blink
      * controller, rather than inventing a pose or changing elapsed time. */
@@ -657,24 +770,26 @@ static void CheckGameplay(void)
         Require(statesSeen[CHARSTATE_BRAKE], "skid animation reached through reverse input");
         Require(!(gPlayer.moveState & (MOVESTATE_SPIN_ATTACK | MOVESTATE_SPINDASH)),
                 "human OC does not inherit a Sonic ball attack");
-        Require(runMask == 0xfff, "all twelve distinct running phases reached actual OBJ VRAM");
+        Require(runMask == ExpectedRunMask(), "all authored running phases reached actual OBJ VRAM");
+        if (RevisedRunRow() >= 0)
+            Require(runCadenceChecks && maxRunTransitions <= 30,
+                    "revised running cadence was checked over continuous real sixty-VBlank windows");
         Require(jumpMask == 0xf, "all four upright jump phases reached actual OBJ VRAM");
         Require(countdownPaletteChecks > 100 && hiddenPaletteChecks > 20,
                 "final hardware palette checked during countdown and invisible damage frames");
         Require(invulnerableFrames && invulnerableVisible && invulnerableHidden, "damage invulnerability renders and blinks");
         Capture("end", stageFrames);
-        fprintf(stderr, "PASS: %s OC=%d 1200 playable frames, %u total stage frames; draw=%u palette=%u right=%u left=%u slope=%u invulnerable=%u visible=%u hidden=%u x=%d y=%d physicalPalette=%u countdown=%u blink=%u run=0x%x jump=0x%x\n",
+        fprintf(stderr, "PASS: %s OC=%d 1200 playable frames, %u total stage frames; draw=%u palette=%u right=%u left=%u slope=%u invulnerable=%u visible=%u hidden=%u x=%d y=%d physicalPalette=%u countdown=%u blink=%u run=0x%x jump=0x%x cadenceChecks=%u maxTransitions=%u/60ticks\n",
                 mode, oc, stageFrames, drawCount, paletteChecks, rightDraws, leftDraws, slopeDraws,
                 invulnerableFrames, invulnerableVisible, invulnerableHidden, I(gPlayer.qWorldX), I(gPlayer.qWorldY),
-                finalPaletteChecks, countdownPaletteChecks, hiddenPaletteChecks, runMask, jumpMask);
+                finalPaletteChecks, countdownPaletteChecks, hiddenPaletteChecks, runMask, jumpMask,
+                runCadenceChecks, maxRunTransitions);
         exit(0);
     }
 }
 
-static void SpawnRealEnemy(void)
+static void SpawnRealEnemyAt(s32 x, s32 y)
 {
-    s32 x = I(gPlayer.qWorldX) + (oc == OC_YULIANA ? 120 : 45);
-    s32 y = I(gPlayer.qWorldY) - 8;
     memset(&testEnemyMap, 0, sizeof(testEnemyMap));
     testEnemyMap.x = ((x + 4) & 255) / 8;
     testEnemyMap.y = ((y + 4) & 255) / 8;
@@ -696,14 +811,23 @@ static void SpawnRealEnemy(void)
     enemySpawnTick = abilityTicks;
 }
 
+static void SpawnRealEnemy(void)
+{
+    SpawnRealEnemyAt(I(gPlayer.qWorldX) + (oc == OC_YULIANA ? 120 : 45), I(gPlayer.qWorldY) - 8);
+}
+
 static void CheckAbilities(void)
 {
-    static const u8 kinds[] = { OC_ABILITY_GLITCH, OC_ABILITY_PAN, OC_ABILITY_KATANA, OC_ABILITY_GUN, OC_ABILITY_DASH };
+    static bool visualFixtureReady;
+    static unsigned visualFixtureTick;
+    bool visualOnly = !strcmp(mode, "weapon-visual");
+    static const u8 kinds[] = { OC_ABILITY_GLITCH, OC_ABILITY_PAN, OC_ABILITY_KATANA, OC_ABILITY_GUN, OC_ABILITY_FLAP };
     static const u8 start[] = { 3, 6, 5, 3, 2 };
     static const u8 end[] = { 8, 13, 11, 5, 8 };
     static const u8 duration[] = { 16, 24, 22, 14, 18 };
     static const u8 cooldown[] = { 50, 32, 30, 22, 36 };
     OcAbilityStatus status;
+    Require(oc != OC_KURA, "Kura uses the separate non-damaging flight regression");
     Require(gSelectedOc == oc && gPlayer.character == ExpectedBase(), "ability mode uses intended OC physical base");
     CheckFinalPalette();
     if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT) { SetInput(0); return; }
@@ -711,10 +835,20 @@ static void CheckAbilities(void)
     OcAbilityGetStatus(&gPlayer, &status);
     Require(!(gPlayer.moveState & (MOVESTATE_SPIN_ATTACK | MOVESTATE_SPINDASH)), "OC abilities do not passively inherit ball damage");
     Require(status.projectiles <= 4, "gun projectile pool remains bounded");
-    if (!enemySpawned) {
+    if (status.kind == OC_ABILITY_GUN && status.attacking && status.age >= 3 && status.age <= 5) {
+        Require(OcAbilityVisualPhase(&gPlayer) == 2, "gun's single-shot flash pose lasts the original three-tick damage window");
+        Require(status.shotsFired == abilityStarts, "holding the flash pose does not emit extra projectiles");
+    }
+    if (!enemySpawned && !visualFixtureReady) {
         if (abilityTicks >= 80 && !(gPlayer.moveState & MOVESTATE_IN_AIR) && ABS(gPlayer.qSpeedGround) < Q(0.125)) {
-            SpawnRealEnemy();
-            Capture("enemy-before", abilityTicks);
+            if (visualOnly) {
+                visualFixtureReady = true;
+                visualFixtureTick = abilityTicks;
+                Capture("weapon-before", abilityTicks);
+            } else {
+                SpawnRealEnemy();
+                Capture("enemy-before", abilityTicks);
+            }
         }
         SetInput(0);
         return;
@@ -722,7 +856,7 @@ static void CheckAbilities(void)
     if (status.attacksStarted != abilityStarts) {
         Require(status.attacksStarted == abilityStarts + 1, "one B press starts exactly one ability");
         abilityStarts++;
-        if (abilityStarts == 1) fprintf(stderr, "Ability start #%u tick=%u age=%u kind=%u enemyRect=%d,%d,%d,%d playerRect=%d,%d,%d,%d\n",
+        if (abilityStarts == 1 && !visualOnly) fprintf(stderr, "Ability start #%u tick=%u age=%u kind=%u enemyRect=%d,%d,%d,%d playerRect=%d,%d,%d,%d\n",
                 abilityStarts, abilityTicks, status.age, status.kind,
                 testEnemySprite->hitboxes[0].b.left, testEnemySprite->hitboxes[0].b.top,
                 testEnemySprite->hitboxes[0].b.right, testEnemySprite->hitboxes[0].b.bottom,
@@ -749,26 +883,28 @@ static void CheckAbilities(void)
             else if (elapsed < start[oc]) abilityWindupFrames++;
             else abilityRecoveryFrames++;
         }
-        if (abilityStarts == 1 && elapsed < start[oc])
+        if (!visualOnly && abilityStarts == 1 && elapsed < start[oc])
             Require(!enemyKilled && !realEnemyHits, "real enemy survives non-damaging windup");
-        if (abilityTicks - firstAbilityTick < 70 && (abilityTicks - firstAbilityTick) % 2 == 0)
+        if (abilityTicks - firstAbilityTick < 70
+            && (getenv("SA_OC_VISUAL_CAPTURE") || (abilityTicks - firstAbilityTick) % 2 == 0))
             Capture("ability", abilityTicks - firstAbilityTick);
         if (abilityStarts == 2 && abilityTicks - secondAbilityTick >= 100) {
-            Require(realEnemyHits == 1 && enemyKilled && status.hitsLanded == 1,
-                    "B ability kills a real enemy once through the existing central collision/task path");
+            if (!visualOnly)
+                Require(realEnemyHits == 1 && enemyKilled && status.hitsLanded == 1,
+                        "B ability kills a real enemy once through the existing central collision/task path");
             Require(abilityActiveFrames == 2 * (end[oc] - start[oc] + 1)
                         && abilityWindupFrames == 2 * start[oc]
                         && abilityRecoveryFrames == 2 * (duration[oc] - end[oc] - 1),
                     "both attacks complete their full windup, damage and recovery frames");
             Require(!status.attacking && !status.damaging && !status.cooldown && !status.projectiles,
                     "ability, cooldown and projectiles finish without stale state");
-            Require(attackMask == 0xf, "all four ability phases reached real OBJ VRAM");
+            Require(attackMask == ExpectedAttackMask(), "all authored ability phases reached real OBJ VRAM");
             if (oc == OC_YULIANA)
                 Require(status.shotsFired == 2 && projectileDraws > 10, "gun fires two visible real travelling projectiles and expires them");
             else Require(!status.shotsFired && !projectileDraws, "melee ability does not spawn gun objects");
             Capture("ability-end", abilityTicks);
-            fprintf(stderr, "PASS: abilities OC=%d kind=%u presses=2 windup=%u active=%u recovery=%u realEnemyHits=%u shots=%u projectileDraws=%u atlas=0x%x\n",
-                    oc, status.kind, abilityWindupFrames, abilityActiveFrames, abilityRecoveryFrames, realEnemyHits,
+            fprintf(stderr, "PASS: %s OC=%d kind=%u presses=2 windup=%u active=%u recovery=%u realEnemyHits=%u shots=%u projectileDraws=%u atlas=0x%x\n",
+                    mode, oc, status.kind, abilityWindupFrames, abilityActiveFrames, abilityRecoveryFrames, realEnemyHits,
                     status.shotsFired, projectileDraws, attackMask);
             exit(0);
         }
@@ -776,8 +912,8 @@ static void CheckAbilities(void)
         SetInput((sinceFirst == 2 || sinceFirst == end[oc] + 2 || sinceFirst == cooldown[oc] - 2
                     || (sinceFirst >= cooldown[oc] + 3 && sinceFirst < cooldown[oc] + 60)) ? B_BUTTON : 0);
     } else {
-        Require(!enemyKilled && !realEnemyHits, "real enemy survives idle human OC without passive jump/roll attack");
-        SetInput(abilityTicks - enemySpawnTick == 5 ? B_BUTTON : 0);
+        if (!visualOnly) Require(!enemyKilled && !realEnemyHits, "real enemy survives idle human OC without passive jump/roll attack");
+        SetInput(abilityTicks - (visualOnly ? visualFixtureTick : enemySpawnTick) == 5 ? B_BUTTON : 0);
     }
 }
 
@@ -850,11 +986,15 @@ static void CheckAirAbilities(void)
     static const u8 duration[] = { 16, 24, 22, 14, 18 };
     bool doubleA = !strcmp(mode, "double-a");
     OcAbilityStatus status;
+    Require(oc != OC_KURA, "Kura uses the separate non-damaging flight regression");
     CheckFinalPalette();
     if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT) { SetInput(0); return; }
     abilityTicks++;
     OcAbilityGetStatus(&gPlayer, &status);
     if (doubleA) Require(oc == OC_JUDE && gPlayer.character == CHARACTER_AMY, "second-A pan uses Jude's Amy physics");
+    if (status.kind == OC_ABILITY_GUN && status.attacking && status.age >= 3 && status.age <= 5)
+        Require(OcAbilityVisualPhase(&gPlayer) == 2 && status.shotsFired == 1,
+                "air gun keeps one emission and its three-tick flash while native jump physics advances");
     Require(!(gPlayer.moveState & (MOVESTATE_SPIN_ATTACK | MOVESTATE_SPINDASH)), "air ability preserves upright human collision mode");
     if (status.attacksStarted != abilityStarts) {
         Require(status.attacksStarted == abilityStarts + 1 && (gPlayer.moveState & MOVESTATE_IN_AIR),
@@ -878,8 +1018,8 @@ static void CheckAirAbilities(void)
         Require(abilityStarts == (doubleA ? 2 : 1) && !(gPlayer.moveState & MOVESTATE_IN_AIR)
                     && !status.attacking && !status.projectiles && !status.cooldown,
                 "air ability falls and lands through native physics with no stale attack or projectile");
-        Require(abilityActiveFrames == (doubleA ? 2 : 1) * (end[oc] - start[oc] + 1) && attackMask == 0xf,
-                "complete air damage window and all four real attack poses were rendered");
+        Require(abilityActiveFrames == (doubleA ? 2 : 1) * (end[oc] - start[oc] + 1) && attackMask == ExpectedAttackMask(),
+                "complete air damage window and all authored real attack poses were rendered");
         if (doubleA) Require(!status.aerialPanUsed, "landing resets second-A pan for the next real jump");
         if (oc == OC_YULIANA) Require(status.shotsFired == 1 && projectileDraws > 20, "air gun fires and expires a real travelling projectile");
         fprintf(stderr, "PASS: %s OC=%d real jump/air ability/landing; attacks=%u active=%u atlas=0x%x shots=%u\n",
@@ -895,6 +1035,308 @@ static void CheckAirAbilities(void)
     }
     if (doubleA && (abilityTicks == 118 || abilityTicks == 208)) input = A_BUTTON;
     SetInput(input);
+}
+
+static void CheckFlap(void)
+{
+    static unsigned phase, jumpTick, launches, launchTick, softFallFrames, secondGroundedTicks;
+    static s32 launchY, highestY, requestedAirX, launchAirX;
+    static bool triedAfterCooldown, rejectedAfterCooldown, contactSeen;
+    bool enemyMode = !strcmp(mode, "flap-enemy");
+    OcAbilityStatus status;
+    u16 input = 0;
+    Require(oc == OC_KURA, "non-damaging wingbeat uses Kura");
+    CheckFinalPalette();
+    if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT) { SetInput(0); return; }
+    abilityTicks++;
+    OcAbilityGetStatus(&gPlayer, &status);
+    Require(!status.damaging && !status.projectiles && !status.shotsFired && !status.hitsLanded
+                && !OcAbilityDodging(&gPlayer),
+            "wingbeat has no melee damage, projectile, enemy hit or glitch immunity");
+    Require(!(gPlayer.moveState & (MOVESTATE_SPIN_ATTACK | MOVESTATE_SPINDASH)),
+            "wingbeat does not inherit a passive ball attack");
+    if (status.attacksStarted != launches) {
+        Require(status.attacksStarted == launches + 1 && launches < (enemyMode ? 1 : 2),
+                "holding or repeating B cannot replenish a wingbeat in the same flight");
+        launches++;
+        launchTick = abilityTicks;
+        highestY = gPlayer.qWorldY;
+        launchAirX = gPlayer.qSpeedAirX;
+        Require(ABS(launchAirX - requestedAirX) <= Q(0.125),
+                "wingbeat preserves the pre-B native horizontal velocity instead of pushing sideways");
+        Require(status.kind == OC_ABILITY_FLAP && status.flapUsed
+                    && (gPlayer.moveState & MOVESTATE_IN_AIR) && gPlayer.qSpeedAirY <= -Q(2),
+                "B starts a real upward wingbeat from ground or a native jump");
+        if (launches == 1) phase = 1;
+        else phase = 3;
+    }
+    if (status.attacking) {
+        Require(status.duration == 30 && status.flapUsed, "wingbeat owns its thirty-frame gesture and one-flight use");
+        Require(ABS(gPlayer.qSpeedAirX) <= ABS(launchAirX) + Q(0.25),
+                "uncontrolled wingbeat preserves native lateral momentum without imposing a dash");
+        if (gPlayer.qSpeedAirY > 0) {
+            Require(gPlayer.qSpeedAirY <= Q(1), "active wingbeat softens the real gravity-driven fall to one pixel per frame");
+            softFallFrames++;
+        }
+        if (gPlayer.qWorldY < highestY) highestY = gPlayer.qWorldY;
+    }
+    if (launches && abilityTicks - launchTick < 80) Capture("flap", abilityTicks);
+    if (!phase && abilityTicks >= 80 && !(gPlayer.moveState & MOVESTATE_IN_AIR)
+        && ABS(gPlayer.qSpeedGround) < Q(0.125)) {
+        launchY = gPlayer.qWorldY;
+        requestedAirX = gPlayer.qSpeedAirX;
+        input = B_BUTTON;
+    }
+    if (enemyMode) {
+        if (status.attacking && status.age >= 8 && !enemySpawned) {
+            if (!gRingCount) gRingCount = 10; /* Normal ring-loss defense, rather than a zero-ring death. */
+            SpawnRealEnemyAt(I(gPlayer.qWorldX) + 8, I(gPlayer.qWorldY) + 4);
+        }
+        if (enemySpawned && gPlayer.timerInvulnerability && !contactSeen) {
+            Require(!status.attacking && status.flapUsed && (gPlayer.moveState & MOVESTATE_IN_AIR),
+                    "real enemy damage cancels the wingbeat without refunding its airborne use");
+            Require(!enemyKilled && !realEnemyHits, "real Buzzer survives contact with the non-attacking wingbeat");
+            contactSeen = true;
+            Capture("flap-contact", abilityTicks);
+        }
+        if (enemySpawned && abilityTicks - enemySpawnTick == 20) {
+            Require(contactSeen && !enemyKilled && !realEnemyHits && !status.hitsLanded,
+                    "native enemy defense damages Kura while Kura cannot automatically kill the enemy");
+            fprintf(stderr, "PASS: flap-enemy OC=%d real Buzzer contact, player hurt, enemy alive, no damage/hitbox/dodge; airborne use retained\n", oc);
+            exit(0);
+        }
+        SetInput(input);
+        return;
+    }
+    if (phase == 1) {
+        unsigned elapsed = abilityTicks - launchTick;
+        if (elapsed < 10 || elapsed == 18 || elapsed == 31) input = B_BUTTON;
+        if (!(gPlayer.moveState & MOVESTATE_IN_AIR) && !status.cooldown) {
+            Require(highestY < launchY - Q(8) && !status.flapUsed && !status.attacking,
+                    "ground wingbeat visibly lifts the character and landing restores the next use");
+            Require(gPlayer.spriteOffsetY == 14 && !(gPlayer.moveState & MOVESTATE_100),
+                    "wingbeat landing restores standing bounds and native jump cleanup");
+            phase = 2;
+            jumpTick = abilityTicks;
+            input = A_BUTTON;
+        }
+    } else if (phase == 2) {
+        unsigned elapsed = abilityTicks - jumpTick;
+        if (elapsed < 8) input = A_BUTTON;
+        if (elapsed == 4) {
+            Require((gPlayer.moveState & MOVESTATE_IN_AIR) && gPlayer.qSpeedAirY < 0,
+                    "second wingbeat is requested during a normal input-driven ascending jump");
+            launchY = gPlayer.qWorldY;
+            requestedAirX = gPlayer.qSpeedAirX;
+            input |= B_BUTTON;
+        }
+    } else if (phase == 3) {
+        unsigned elapsed = abilityTicks - launchTick;
+        if (elapsed < 4 || elapsed == 8) input = B_BUTTON;
+        if (!triedAfterCooldown && !status.cooldown && (gPlayer.moveState & MOVESTATE_IN_AIR)) {
+            triedAfterCooldown = true;
+            input = B_BUTTON;
+        } else if (triedAfterCooldown && (gPlayer.moveState & MOVESTATE_IN_AIR)) {
+            Require(launches == 2 && status.flapUsed, "B after the cooldown still cannot start another wingbeat in the same flight");
+            rejectedAfterCooldown = true;
+        }
+        if (!(gPlayer.moveState & MOVESTATE_IN_AIR) && !status.cooldown) {
+            if (!secondGroundedTicks)
+                fprintf(stderr, "Second wingbeat first floor contact: tick=%u used=%u active=%u offsets=%u/%u move=0x%x nativeTouchGroundPending=%u\n",
+                        abilityTicks, status.flapUsed, status.attacking, gPlayer.spriteOffsetX, gPlayer.spriteOffsetY,
+                        gPlayer.moveState, gPlayer.callback == Player_TouchGround);
+            secondGroundedTicks++;
+            if (secondGroundedTicks < 2) { SetInput(input); return; }
+            Require(highestY < launchY - Q(8) && rejectedAfterCooldown && softFallFrames >= 4,
+                    "air wingbeat gives useful lift and a limited soft fall without refilling before landing");
+            Require(!status.flapUsed && !status.attacking && gPlayer.spriteOffsetY == 14
+                        && !(gPlayer.moveState & MOVESTATE_100) && attackMask == 0xff,
+                    "second real landing resets use, standing bounds and all eight uploaded wing poses complete");
+            Capture("flap-end", abilityTicks);
+            fprintf(stderr, "PASS: flap OC=%d ground lift + real A/air B, launches=%u softFallFrames=%u poses=0x%x no horizontal dash/damage/dodge, cooldown reattempt rejected, landing resets after %u native grounded ticks\n",
+                    oc, launches, softFallFrames, attackMask, secondGroundedTicks);
+            exit(0);
+        } else secondGroundedTicks = 0;
+    }
+    SetInput(input);
+}
+
+static s32 TerrainProbe(Player *player, u8 direction)
+{
+    Player copy = *player;
+    return SA2_LABEL(sub_8022F58)(direction, &copy);
+}
+
+static void PlaceLimitFixture(s32 qX, s32 qY)
+{
+    /* Only the episode's initial location changes. Real terrain, callbacks,
+     * velocities, water tasks, collision flags and transitions stay native. */
+    gPlayer.qWorldX = qX;
+    gPlayer.qWorldY = qY;
+    gCamera.x = I(qX) - DISPLAY_CENTER_X;
+    gCamera.y = I(qY) - DISPLAY_CENTER_Y;
+}
+
+static void FindCeilingFixture(s32 *qX, s32 *qY)
+{
+    /* A real low passage in Leaf Forest Act 2. Starting at this location does
+     * not override the native floor angle, collision layer or grounded state. */
+    Player probe = gPlayer;
+    u8 floorRotation;
+    s32 otherFoot;
+    Require(gCurrentLevel == 1, "low ceiling fixture uses the actual Leaf Forest Act 2 terrain");
+    probe.qWorldX = Q(2812);
+    probe.qWorldY = Q(686);
+    probe.spriteOffsetX = 6;
+    probe.spriteOffsetY = 14;
+    s32 floor = SA2_LABEL(sub_8029B0C)(&probe, &floorRotation, &otherFoot);
+    s32 head = TerrainProbe(&probe, Q(0.5));
+    Player center = probe;
+    center.spriteOffsetX = center.spriteOffsetY = 0;
+    Require(floor == 0 && ABS((s8)floorRotation) <= 16 && head >= 0 && head <= 3
+                && TerrainProbe(&center, 0) > 0 && TerrainProbe(&center, Q(0.5)) > 0,
+            "initial ceiling location has a native floor and free body center without terrain overlap");
+    *qX = probe.qWorldX;
+    *qY = probe.qWorldY;
+    fprintf(stderr, "Initial ceiling fixture from actual Act 2 terrain: x=%d y=%d floor=%d head=%d; no callback/physics/flag overrides\n",
+            I(*qX), I(*qY), floor, head);
+}
+
+static void FindWaterFixture(s32 *qX, s32 *qY)
+{
+    Require(gWater.t && gWater.currentWaterLevel >= 0, "level has its real native water task and surface");
+    Player probe = gPlayer;
+    for (s32 x = 7000; x < 10000; x += 32) {
+        for (s32 y = gWater.currentWaterLevel + 32; y < gWater.currentWaterLevel + 256; y += 16) {
+            probe.qWorldX = Q(x);
+            probe.qWorldY = Q(y);
+            if (TerrainProbe(&probe, 0) > 8 && TerrainProbe(&probe, Q(0.5)) > 8
+                && TerrainProbe(&probe, Q(0.25)) > 8 && TerrainProbe(&probe, Q(0.75)) > 8) {
+                *qX = probe.qWorldX;
+                *qY = probe.qWorldY;
+                fprintf(stderr, "Initial water fixture from actual level terrain: x=%d y=%d surface=%d; water task/IN_WATER computed by engine\n",
+                        x, y, gWater.currentWaterLevel);
+                return;
+            }
+        }
+    }
+    Fail("find a real open submerged location in the native water stretch");
+}
+
+static void CheckFlapLimits(void)
+{
+    static unsigned phase, episodeTick;
+    static s32 fixtureX, fixtureY, dryY;
+    bool waterMode = !strcmp(mode, "flap-water");
+    OcAbilityStatus status;
+    u16 input = 0;
+    Require(oc == OC_KURA, "wingbeat terrain limits use Kura");
+    if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT) { SetInput(0); return; }
+    abilityTicks++;
+    OcAbilityGetStatus(&gPlayer, &status);
+    if (!phase) {
+        if (abilityTicks >= 80 && !(gPlayer.moveState & MOVESTATE_IN_AIR) && ABS(gPlayer.qSpeedGround) < Q(0.125)) {
+            if (waterMode) {
+                FindWaterFixture(&fixtureX, &fixtureY);
+                Player dry = gPlayer;
+                dry.qWorldX = fixtureX;
+                for (s32 y = gWater.currentWaterLevel - 24; y > gWater.currentWaterLevel - 256; y -= 16) {
+                    dry.qWorldY = Q(y);
+                    if (TerrainProbe(&dry, 0) > 8 && TerrainProbe(&dry, Q(0.5)) > 8
+                        && TerrainProbe(&dry, Q(0.25)) > 8 && TerrainProbe(&dry, Q(0.75)) > 8) {
+                        dryY = dry.qWorldY;
+                        break;
+                    }
+                }
+                Require(dryY, "real free space above the water surface allows an independent dry wingbeat");
+            } else FindCeilingFixture(&fixtureX, &fixtureY);
+            PlaceLimitFixture(fixtureX, fixtureY);
+            phase = 1;
+            episodeTick = abilityTicks;
+        }
+        SetInput(0);
+        return;
+    }
+    unsigned elapsed = abilityTicks - episodeTick;
+    Require(!(gPlayer.moveState & MOVESTATE_DEAD), "real terrain limit fixture keeps the player alive");
+    if (!waterMode) {
+        if (elapsed == 8) {
+            s32 head = TerrainProbe(&gPlayer, gPlayer.rotation + Q(0.5));
+            fprintf(stderr, "Settled ceiling actor: head=%d rotation=%u flags=0x%x ground=%d offsets=%u/%u\n", head,
+                    gPlayer.rotation, gPlayer.moveState, gPlayer.qSpeedGround, gPlayer.spriteOffsetX, gPlayer.spriteOffsetY);
+            Require(head >= 0 && head <= 3 && !(gPlayer.moveState & (MOVESTATE_IN_AIR | MOVESTATE_IN_WATER
+                        | MOVESTATE_IN_SCRIPTED | MOVESTATE_IA_OVERRIDE | MOVESTATE_GOAL_REACHED)),
+                    "B is attempted in a real grounded low ceiling without another blocking state");
+            input = B_BUTTON;
+        }
+        if (elapsed == 11) {
+            Require(!status.attacksStarted && !status.attacking && !(gPlayer.moveState & MOVESTATE_IN_AIR),
+                    "native low-headroom terrain probe prevents ground wingbeat launch");
+            Capture("ceiling", abilityTicks);
+            fprintf(stderr, "PASS: flap-ceiling OC=%d actual grounded terrain headroom<=3, real B rejected, no lift or use\n", oc);
+            exit(0);
+        }
+    } else if (phase == 1) {
+        if (elapsed == 4 || elapsed == 6 || elapsed == 8) {
+            Require(gWater.isActive && gWater.t && (gPlayer.moveState & MOVESTATE_IN_WATER)
+                        && !status.cooldown && !status.attacksStarted,
+                    "real water task and Player_HandleWater mark submersion before an otherwise unused B attempt");
+            input = B_BUTTON;
+        }
+        if (elapsed == 10) {
+            Require(!status.attacksStarted && !status.attacking && !status.flapUsed,
+                    "B is blocked underwater and does not consume or start a wingbeat");
+            Capture("water-blocked", abilityTicks);
+            PlaceLimitFixture(fixtureX, dryY);
+            phase = 2;
+            episodeTick = abilityTicks;
+        }
+    } else if (phase == 2) {
+        if (!(gPlayer.moveState & MOVESTATE_IN_WATER) && !status.attacking) input = B_BUTTON;
+        if (status.attacking && status.age >= 4) {
+            Require(status.attacksStarted == 1 && status.flapUsed, "wingbeat starts normally after real water exit");
+            PlaceLimitFixture(fixtureX, fixtureY);
+            phase = 3;
+            episodeTick = abilityTicks;
+        }
+    } else if (phase == 3 && elapsed == 4) {
+        Require(gWater.isActive && gWater.t && (gPlayer.moveState & MOVESTATE_IN_WATER)
+                    && status.attacksStarted == 1 && !status.attacking && !status.damaging,
+                "real water entry cancels a running wingbeat without another start");
+        if (gPlayer.moveState & MOVESTATE_IN_AIR)
+            Require(status.flapUsed, "water cancellation does not refund airborne wingbeat use");
+        Capture("water-cancel", abilityTicks);
+        fprintf(stderr, "PASS: flap-water OC=%d native water task/IN_WATER, three B attempts blocked, dry exit permits B, actual water entry cancels; initial location fixtures only\n", oc);
+        exit(0);
+    }
+    SetInput(input);
+}
+
+static void CheckNativeSmoke(void)
+{
+    static s32 startingX;
+    OcAbilityStatus status;
+    Require(oc == -1 && gSelectedOc == -1 && gSelectedCharacter == entry && gPlayer.character == entry,
+            "original character retains its native selected identity");
+    OcAbilityGetStatus(&gPlayer, &status);
+    Require(!OcAbilitiesOwnPlayer(&gPlayer) && !status.attacking && !status.attacksStarted && !status.projectiles
+                && !drawCount && !bodyTiles,
+            "OC rendering and abilities do not own or replace an original character");
+    if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT) { SetInput(0); return; }
+    if (!playFrames) startingX = gPlayer.qWorldX;
+    playFrames++;
+    if (gPlayer.moveState & MOVESTATE_IN_AIR) statesSeen[CHARSTATE_JUMP_1] = true;
+    SetInput((playFrames < 180 ? DPAD_RIGHT : playFrames < 240 ? DPAD_LEFT : 0)
+             | (playFrames >= 80 && playFrames < 88 ? A_BUTTON : 0)
+             | (playFrames == 160 ? B_BUTTON : 0));
+    if (playFrames == 300) {
+        Require(statesSeen[CHARSTATE_JUMP_1] && ABS(gPlayer.qWorldX - startingX) > Q(64)
+                    && !(gPlayer.moveState & MOVESTATE_DEAD),
+                "original character runs and jumps through native controls without regression");
+        Capture("native-end", playFrames);
+        fprintf(stderr, "PASS: native-smoke character=%d 300 playable frames, input run/jump/B, no OC renderer or abilities\n", entry);
+        exit(0);
+    }
 }
 
 static void CheckNativeRoute(void)
@@ -1075,12 +1517,28 @@ static bool CheckPauseQuit(void)
     stageWasStarted = false;
     previousPaletteReady = false;
     bodyTiles = NULL;
+    displayedBodyVisible = pendingBodyVisible = false;
     stageFrames = playFrames = 0;
     return true;
 }
 
 void __wrap_VBlankIntrWait(void)
 {
+    if (displayedBodyVisible && bodyTiles) {
+        const OamData *actual = (const OamData *)OAM;
+        bool found = false;
+        for (unsigned i = 0; i < OAM_ENTRY_COUNT; i++) {
+            if (actual[i].split.affineMode == ST_OAM_AFFINE_ERASE || actual[i].split.paletteNum != 0
+                || actual[i].split.shape != ST_OAM_SQUARE || actual[i].split.size != ST_OAM_SIZE_3
+                || OBJ_VRAM0 + actual[i].split.tileNum * TILE_SIZE_4BPP != bodyTiles) continue;
+            bodyFrameX = actual[i].split.x;
+            bodyFrameY = actual[i].split.y;
+            bodyAffineMode = actual[i].split.affineMode;
+            found = true;
+            break;
+        }
+        Require(found, "frame capture uses the real displayed body OAM rather than the next pending position");
+    }
     if (headless) gpsp_draw_frame(gameImage);
     __real_VBlankIntrWait();
     frames++;
@@ -1101,7 +1559,9 @@ void __wrap_VBlankIntrWait(void)
         }
     } else if (!strcmp(mode, "stage") || !strcmp(mode, "boot") || !strcmp(mode, "abilities")
                || !strcmp(mode, "stage-lifecycle") || !strcmp(mode, "glitch-defense") || !strcmp(mode, "pause") || !strcmp(mode, "air-abilities")
-               || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")) {
+               || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")
+               || !strcmp(mode, "flap") || !strcmp(mode, "flap-enemy") || !strcmp(mode, "native-smoke") || !strcmp(mode, "weapon-visual")
+               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) {
         if (!strcmp(mode, "pause") && !gGameStageTask) CheckPauseQuit();
         if (gGameStageTask != NULL) {
             if (!stageWasStarted) {
@@ -1111,10 +1571,13 @@ void __wrap_VBlankIntrWait(void)
             }
             stageFrames++;
             if (!strcmp(mode, "victory")) CheckVictory();
-            else if (!strcmp(mode, "abilities")) CheckAbilities();
+            else if (!strcmp(mode, "abilities") || !strcmp(mode, "weapon-visual")) CheckAbilities();
             else if (!strcmp(mode, "stage-lifecycle")) CheckStageLifecycle();
             else if (!strcmp(mode, "glitch-defense")) CheckGlitchDefense();
             else if (!strcmp(mode, "air-abilities") || !strcmp(mode, "double-a")) CheckAirAbilities();
+            else if (!strcmp(mode, "flap") || !strcmp(mode, "flap-enemy")) CheckFlap();
+            else if (!strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) CheckFlapLimits();
+            else if (!strcmp(mode, "native-smoke")) CheckNativeSmoke();
             else if (!strcmp(mode, "native-amy")) CheckNativeAmy();
             else if (!strcmp(mode, "route-native")) CheckNativeRoute();
             else if (!strcmp(mode, "pause")) CheckPauseFlow();
@@ -1150,5 +1613,12 @@ void __wrap_VBlankIntrWait(void)
         }
         DriveMenu();
     }
+    /* UpdateScreen runs after this wrapper returns. Its queued graphics/OAM
+     * become the next displayed frame; Player state has already advanced. */
+    displayedPlayer = pendingRenderedPlayer;
+    displayedAbility = pendingRenderedAbility;
+    displayedVisualPhase = pendingVisualPhase;
+    displayedBodyVisible = pendingBodyVisible;
+    pendingBodyVisible = false;
     if (frames >= 7200) Fail("test timeout before requested flow completed");
 }

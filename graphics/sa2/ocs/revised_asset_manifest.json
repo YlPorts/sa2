@@ -1,0 +1,4399 @@
+{
+  "version": 3,
+  "alphaCutoff": 200,
+  "frameSize": [
+    64,
+    64
+  ],
+  "pivot": [
+    32,
+    48
+  ],
+  "palettePolicy": "unchanged OCS2 RGB555 palette",
+  "bodyAnchorCriterion": "Explicit pose anchor calibrated from neck/torso, allowing small graphical waist offsets; not a claim of an exact anatomical pelvis.",
+  "runOrder": [
+    "jude",
+    "kiro",
+    "yuliana"
+  ],
+  "attackOrder": [
+    "jude",
+    "kiro",
+    "yuliana",
+    "kura"
+  ],
+  "runFrames": [
+    "contact_a",
+    "down_a",
+    "passing_a",
+    "flight_a",
+    "contact_b",
+    "down_b",
+    "passing_b",
+    "flight_b"
+  ],
+  "attackFrames": [
+    "anticipation_0",
+    "anticipation_1",
+    "active_0",
+    "active_1",
+    "active_2",
+    "recovery_0",
+    "recovery_1",
+    "recovery_2"
+  ],
+  "characters": {
+    "jude": {
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/jude.gbapal",
+      "paletteSHA256": "a3f551aa5b1b49276219c74bc4a952d66fe2322901a8a7ef4fac2bc0bf5ba215",
+      "sources": {
+        "run": {
+          "source": "graphics/sa2/ocs/source/jude_run_source_v3.png",
+          "sourceSHA256": "557dfba4c3b8aafbfc1892b8d4fa818f4743226628cc79fdfc4861a1d77af6b8",
+          "sourceSize": [
+            1774,
+            887
+          ],
+          "scale": 0.09314359637774904,
+          "selection": "all eight",
+          "unassignedComponents": []
+        },
+        "attack": {
+          "source": "graphics/sa2/ocs/source/jude_motion_v3.png",
+          "sourceSHA256": "64e3743ea652dca5177b2003b69042e93c019be9de377cf3a4ae6ea7d604f8cc",
+          "sourceSize": [
+            1254,
+            1254
+          ],
+          "scale": 0.1350844277673546,
+          "selection": "bottom eight of sixteen",
+          "unassignedComponents": []
+        }
+      },
+      "frames": {
+        "run": [
+          {
+            "index": 0,
+            "name": "contact_a",
+            "sourceBounds": [
+              69,
+              46,
+              379,
+              435
+            ],
+            "bodyBounds": [
+              69,
+              46,
+              379,
+              435
+            ],
+            "secondaryComponents": [],
+            "size": [
+              29,
+              36
+            ],
+            "offset": [
+              19,
+              13
+            ],
+            "bodyAnchorX": 210,
+            "groundY": 435,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              69,
+              46,
+              1394,
+              451
+            ],
+            "nativeBounds": [
+              19,
+              13,
+              47,
+              48
+            ],
+            "faceCentroid": [
+              36.67647058823529,
+              25.999999999999996
+            ],
+            "faceBounds": [
+              31,
+              22,
+              41,
+              28
+            ],
+            "headSkinClusterSizes": [
+              34,
+              10,
+              6,
+              1
+            ],
+            "solePixels": 41,
+            "soleRange": [
+              21,
+              47
+            ],
+            "occupied": 550,
+            "meanColorError": 136.66516363636364,
+            "severeColorErrorFraction": 0,
+            "sha256": "83e6f4810b6bb228aa4efa5fba355182f5118303a202bcdf06f5e9ee08614fb1"
+          },
+          {
+            "index": 1,
+            "name": "down_a",
+            "sourceBounds": [
+              521,
+              46,
+              794,
+              435
+            ],
+            "bodyBounds": [
+              521,
+              46,
+              794,
+              435
+            ],
+            "secondaryComponents": [],
+            "size": [
+              26,
+              36
+            ],
+            "offset": [
+              21,
+              13
+            ],
+            "bodyAnchorX": 641,
+            "groundY": 435,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              521,
+              46,
+              979,
+              451
+            ],
+            "nativeBounds": [
+              21,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.7741935483871,
+              26.064516129032256
+            ],
+            "faceBounds": [
+              30,
+              22,
+              40,
+              28
+            ],
+            "headSkinClusterSizes": [
+              31,
+              10,
+              6,
+              3
+            ],
+            "solePixels": 35,
+            "soleRange": [
+              31,
+              39
+            ],
+            "occupied": 493,
+            "meanColorError": 158.57995943204864,
+            "severeColorErrorFraction": 0,
+            "sha256": "7b2daa49a4e212e4a6a6ec8faeb1b9a22a8e57953711a29ed7009dc7518dee12"
+          },
+          {
+            "index": 2,
+            "name": "passing_a",
+            "sourceBounds": [
+              938,
+              46,
+              1239,
+              435
+            ],
+            "bodyBounds": [
+              938,
+              46,
+              1239,
+              435
+            ],
+            "secondaryComponents": [],
+            "size": [
+              28,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 1085.263888888889,
+            "groundY": 435,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              938,
+              46,
+              534,
+              451
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.36666666666667,
+              26.099999999999994
+            ],
+            "faceBounds": [
+              30,
+              22,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              30,
+              8,
+              7,
+              2,
+              1
+            ],
+            "solePixels": 25,
+            "soleRange": [
+              19,
+              40
+            ],
+            "occupied": 521,
+            "meanColorError": 148.5309021113242,
+            "severeColorErrorFraction": 0,
+            "sha256": "248993b16197d82ffaecf219bb364a6e8f77fcbc3760b4429ab3af190898f796"
+          },
+          {
+            "index": 3,
+            "name": "flight_a",
+            "sourceBounds": [
+              1362,
+              46,
+              1680,
+              435
+            ],
+            "bodyBounds": [
+              1362,
+              46,
+              1680,
+              435
+            ],
+            "secondaryComponents": [],
+            "size": [
+              30,
+              36
+            ],
+            "offset": [
+              16,
+              13
+            ],
+            "bodyAnchorX": 1535,
+            "groundY": 435,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1362,
+              46,
+              93,
+              451
+            ],
+            "nativeBounds": [
+              16,
+              13,
+              44,
+              48
+            ],
+            "faceCentroid": [
+              35.82142857142858,
+              25.964285714285715
+            ],
+            "faceBounds": [
+              32,
+              22,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              28,
+              9,
+              6,
+              3
+            ],
+            "solePixels": 39,
+            "soleRange": [
+              16,
+              44
+            ],
+            "occupied": 553,
+            "meanColorError": 148.52860759493674,
+            "severeColorErrorFraction": 0,
+            "sha256": "10816ca83c11f4c550b31c255455c7df1b822d62f819696c196bd6a05c13ec25"
+          },
+          {
+            "index": 4,
+            "name": "contact_b",
+            "sourceBounds": [
+              69,
+              456,
+              395,
+              837
+            ],
+            "bodyBounds": [
+              69,
+              456,
+              395,
+              837
+            ],
+            "secondaryComponents": [],
+            "size": [
+              30,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 218.73611111111111,
+            "groundY": 842,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              69,
+              456,
+              1378,
+              49
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              47,
+              48
+            ],
+            "faceCentroid": [
+              36.80000000000001,
+              25.83333333333333
+            ],
+            "faceBounds": [
+              33,
+              21,
+              40,
+              28
+            ],
+            "headSkinClusterSizes": [
+              30,
+              8,
+              8,
+              1
+            ],
+            "solePixels": 21,
+            "soleRange": [
+              38,
+              46
+            ],
+            "occupied": 542,
+            "meanColorError": 141.05225092250907,
+            "severeColorErrorFraction": 0,
+            "sha256": "3840c5353b183b04bedba1a84bfcc9c76b04bf89cfac45277218d76065728bfb"
+          },
+          {
+            "index": 5,
+            "name": "down_b",
+            "sourceBounds": [
+              525,
+              456,
+              819,
+              842
+            ],
+            "bodyBounds": [
+              525,
+              456,
+              819,
+              842
+            ],
+            "secondaryComponents": [],
+            "size": [
+              27,
+              36
+            ],
+            "offset": [
+              19,
+              13
+            ],
+            "bodyAnchorX": 661,
+            "groundY": 842,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              525,
+              456,
+              954,
+              44
+            ],
+            "nativeBounds": [
+              19,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.49999999999999,
+              26.178571428571427
+            ],
+            "faceBounds": [
+              30,
+              23,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              28,
+              8,
+              6,
+              1,
+              1
+            ],
+            "solePixels": 39,
+            "soleRange": [
+              20,
+              41
+            ],
+            "occupied": 527,
+            "meanColorError": 157.33692599620497,
+            "severeColorErrorFraction": 0,
+            "sha256": "58fa78a28610d4cfceaca1b96b38857df88e5db58d7fc8e6627b11263762fa0a"
+          },
+          {
+            "index": 6,
+            "name": "passing_b",
+            "sourceBounds": [
+              945,
+              456,
+              1239,
+              837
+            ],
+            "bodyBounds": [
+              945,
+              456,
+              1239,
+              837
+            ],
+            "secondaryComponents": [],
+            "size": [
+              27,
+              36
+            ],
+            "offset": [
+              19,
+              13
+            ],
+            "bodyAnchorX": 1085.263888888889,
+            "groundY": 842,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              945,
+              456,
+              534,
+              49
+            ],
+            "nativeBounds": [
+              19,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.8,
+              26.39999999999999
+            ],
+            "faceBounds": [
+              32,
+              23,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              25,
+              8,
+              7,
+              1
+            ],
+            "solePixels": 22,
+            "soleRange": [
+              20,
+              26
+            ],
+            "occupied": 517,
+            "meanColorError": 155.84765957446805,
+            "severeColorErrorFraction": 0,
+            "sha256": "3ab7f0f5949918cfc02fbdb7a0e71dce2e6de75f299998fc7b614ac803b1649a"
+          },
+          {
+            "index": 7,
+            "name": "flight_b",
+            "sourceBounds": [
+              1378,
+              456,
+              1707,
+              842
+            ],
+            "bodyBounds": [
+              1378,
+              456,
+              1707,
+              842
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 1533,
+            "groundY": 842,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1378,
+              456,
+              66,
+              44
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              48,
+              48
+            ],
+            "faceCentroid": [
+              35.6875,
+              26.25
+            ],
+            "faceBounds": [
+              30,
+              23,
+              40,
+              28
+            ],
+            "headSkinClusterSizes": [
+              32,
+              9,
+              4,
+              1
+            ],
+            "solePixels": 32,
+            "soleRange": [
+              19,
+              47
+            ],
+            "occupied": 567,
+            "meanColorError": 139.6462786596119,
+            "severeColorErrorFraction": 0,
+            "sha256": "45ecbd366c4bfc99a855d9b645fa1c42e80f858ee83500422cf02b98eb58d76d"
+          }
+        ],
+        "attack": [
+          {
+            "index": 0,
+            "name": "anticipation_0",
+            "sourceBounds": [
+              33,
+              663,
+              276,
+              918
+            ],
+            "bodyBounds": [
+              33,
+              663,
+              276,
+              918
+            ],
+            "secondaryComponents": [],
+            "size": [
+              33,
+              35
+            ],
+            "offset": [
+              16,
+              15
+            ],
+            "bodyAnchorX": 155,
+            "groundY": 917,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              33,
+              663,
+              977,
+              335
+            ],
+            "nativeBounds": [
+              16,
+              15,
+              48,
+              49
+            ],
+            "faceCentroid": [
+              38.53846153846154,
+              28.269230769230774
+            ],
+            "faceBounds": [
+              34,
+              25,
+              42,
+              30
+            ],
+            "headSkinClusterSizes": [
+              26,
+              2,
+              1,
+              1
+            ],
+            "solePixels": 113,
+            "soleRange": [
+              16,
+              47
+            ],
+            "occupied": 658,
+            "meanColorError": 136.41306990881455,
+            "severeColorErrorFraction": 0,
+            "sha256": "c4cf716c121624f224b1a2d2be0fac89bc85d035e87de8a5a0125aa354b8e107"
+          },
+          {
+            "index": 1,
+            "name": "anticipation_1",
+            "sourceBounds": [
+              369,
+              646,
+              580,
+              916
+            ],
+            "bodyBounds": [
+              369,
+              646,
+              580,
+              916
+            ],
+            "secondaryComponents": [],
+            "size": [
+              29,
+              37
+            ],
+            "offset": [
+              17,
+              13
+            ],
+            "bodyAnchorX": 478,
+            "groundY": 915,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              369,
+              646,
+              673,
+              337
+            ],
+            "nativeBounds": [
+              17,
+              13,
+              44,
+              49
+            ],
+            "faceCentroid": [
+              35.63999999999999,
+              28.840000000000003
+            ],
+            "faceBounds": [
+              32,
+              25,
+              39,
+              31
+            ],
+            "headSkinClusterSizes": [
+              25,
+              15,
+              2,
+              2,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 83,
+            "soleRange": [
+              17,
+              42
+            ],
+            "occupied": 699,
+            "meanColorError": 149.83284692417752,
+            "severeColorErrorFraction": 0,
+            "sha256": "5c28d70d92d2c9b50cce02c97f9d879b86e1e1c62980b0ae5cb037b670ffade9"
+          },
+          {
+            "index": 2,
+            "name": "active_0",
+            "sourceBounds": [
+              655,
+              663,
+              933,
+              915
+            ],
+            "bodyBounds": [
+              655,
+              663,
+              933,
+              915
+            ],
+            "secondaryComponents": [],
+            "size": [
+              38,
+              34
+            ],
+            "offset": [
+              16,
+              15
+            ],
+            "bodyAnchorX": 770,
+            "groundY": 913,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              655,
+              663,
+              320,
+              338
+            ],
+            "nativeBounds": [
+              16,
+              15,
+              53,
+              48
+            ],
+            "faceCentroid": [
+              33.12,
+              28.400000000000006
+            ],
+            "faceBounds": [
+              28,
+              25,
+              36,
+              30
+            ],
+            "headSkinClusterSizes": [
+              25,
+              8
+            ],
+            "solePixels": 74,
+            "soleRange": [
+              16,
+              41
+            ],
+            "occupied": 624,
+            "meanColorError": 132.29224358974383,
+            "severeColorErrorFraction": 0,
+            "sha256": "9881fbef7b8d707bec9377514161447653056e0a0b92fad08a26aceab3b34e13"
+          },
+          {
+            "index": 3,
+            "name": "active_1",
+            "sourceBounds": [
+              945,
+              662,
+              1237,
+              915
+            ],
+            "bodyBounds": [
+              945,
+              662,
+              1237,
+              915
+            ],
+            "secondaryComponents": [],
+            "size": [
+              40,
+              34
+            ],
+            "offset": [
+              16,
+              15
+            ],
+            "bodyAnchorX": 1060,
+            "groundY": 914,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              945,
+              662,
+              16,
+              338
+            ],
+            "nativeBounds": [
+              16,
+              15,
+              55,
+              48
+            ],
+            "faceCentroid": [
+              33.63999999999999,
+              29.04
+            ],
+            "faceBounds": [
+              29,
+              26,
+              37,
+              31
+            ],
+            "headSkinClusterSizes": [
+              25,
+              10,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 78,
+            "soleRange": [
+              16,
+              41
+            ],
+            "occupied": 702,
+            "meanColorError": 195.87555555555565,
+            "severeColorErrorFraction": 0,
+            "sha256": "272a12b3acb81e0a133dfda86d7d618ba5ced91cb4aa50bd9f7b7a00e41a7214"
+          },
+          {
+            "index": 4,
+            "name": "active_2",
+            "sourceBounds": [
+              39,
+              956,
+              346,
+              1206
+            ],
+            "bodyBounds": [
+              39,
+              956,
+              346,
+              1206
+            ],
+            "secondaryComponents": [],
+            "size": [
+              42,
+              34
+            ],
+            "offset": [
+              16,
+              15
+            ],
+            "bodyAnchorX": 154,
+            "groundY": 1204,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              39,
+              956,
+              907,
+              47
+            ],
+            "nativeBounds": [
+              16,
+              15,
+              57,
+              48
+            ],
+            "faceCentroid": [
+              35.43478260869565,
+              27.652173913043487
+            ],
+            "faceBounds": [
+              32,
+              25,
+              39,
+              29
+            ],
+            "headSkinClusterSizes": [
+              23,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 101,
+            "soleRange": [
+              16,
+              54
+            ],
+            "occupied": 733,
+            "meanColorError": 182.2126603001366,
+            "severeColorErrorFraction": 0,
+            "sha256": "a2e23536acd2e1d57e402137929f4a6eb2120c5c5d035d2b94d05efd3e8d7806"
+          },
+          {
+            "index": 5,
+            "name": "recovery_0",
+            "sourceBounds": [
+              387,
+              948,
+              608,
+              1206
+            ],
+            "bodyBounds": [
+              387,
+              948,
+              608,
+              1206
+            ],
+            "secondaryComponents": [],
+            "size": [
+              30,
+              35
+            ],
+            "offset": [
+              18,
+              14
+            ],
+            "bodyAnchorX": 493,
+            "groundY": 1204,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              387,
+              948,
+              645,
+              47
+            ],
+            "nativeBounds": [
+              18,
+              14,
+              47,
+              48
+            ],
+            "faceCentroid": [
+              33.916666666666664,
+              27.375000000000004
+            ],
+            "faceBounds": [
+              30,
+              24,
+              37,
+              29
+            ],
+            "headSkinClusterSizes": [
+              24,
+              3,
+              2,
+              1,
+              1
+            ],
+            "solePixels": 75,
+            "soleRange": [
+              18,
+              42
+            ],
+            "occupied": 607,
+            "meanColorError": 151.05640856672176,
+            "severeColorErrorFraction": 0,
+            "sha256": "f7b8c9748dff0caaf0da725a6da817d03f89b0b34615016dbec425613061f7ac"
+          },
+          {
+            "index": 6,
+            "name": "recovery_1",
+            "sourceBounds": [
+              655,
+              948,
+              870,
+              1209
+            ],
+            "bodyBounds": [
+              655,
+              948,
+              870,
+              1209
+            ],
+            "secondaryComponents": [],
+            "size": [
+              29,
+              35
+            ],
+            "offset": [
+              18,
+              14
+            ],
+            "bodyAnchorX": 761,
+            "groundY": 1207,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              655,
+              948,
+              383,
+              44
+            ],
+            "nativeBounds": [
+              18,
+              14,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              36.91666666666667,
+              27.375000000000007
+            ],
+            "faceBounds": [
+              33,
+              24,
+              40,
+              29
+            ],
+            "headSkinClusterSizes": [
+              24,
+              1
+            ],
+            "solePixels": 85,
+            "soleRange": [
+              18,
+              46
+            ],
+            "occupied": 614,
+            "meanColorError": 155.16214983713368,
+            "severeColorErrorFraction": 0,
+            "sha256": "62b2fcbda69f06d43b92b4d5c58cf3a88d093ad09a5fd6003255330364fb6f4b"
+          },
+          {
+            "index": 7,
+            "name": "recovery_2",
+            "sourceBounds": [
+              998,
+              946,
+              1229,
+              1209
+            ],
+            "bodyBounds": [
+              998,
+              946,
+              1229,
+              1209
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              36
+            ],
+            "offset": [
+              18,
+              14
+            ],
+            "bodyAnchorX": 1100,
+            "groundY": 1207,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              998,
+              946,
+              24,
+              44
+            ],
+            "nativeBounds": [
+              18,
+              14,
+              48,
+              49
+            ],
+            "faceCentroid": [
+              31.8,
+              27.52000000000001
+            ],
+            "faceBounds": [
+              28,
+              24,
+              35,
+              29
+            ],
+            "headSkinClusterSizes": [
+              25
+            ],
+            "solePixels": 94,
+            "soleRange": [
+              18,
+              40
+            ],
+            "occupied": 657,
+            "meanColorError": 159.3319939117202,
+            "severeColorErrorFraction": 0,
+            "sha256": "12de645ea2d0838913462e75650c99bdbd9db63e1f3d5094f96fee650b96a9b9"
+          }
+        ]
+      },
+      "gait": [
+        {
+          "index": 0,
+          "phase": "contact_a",
+          "nativeBounds": [
+            19,
+            13,
+            47,
+            48
+          ],
+          "faceCentroid": [
+            36.67647058823529,
+            25.999999999999996
+          ],
+          "soleRange": [
+            21,
+            47
+          ],
+          "changedPixels": 330,
+          "changedSilhouette": 119,
+          "sha256": "83e6f4810b6bb228aa4efa5fba355182f5118303a202bcdf06f5e9ee08614fb1"
+        },
+        {
+          "index": 1,
+          "phase": "down_a",
+          "nativeBounds": [
+            21,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.7741935483871,
+            26.064516129032256
+          ],
+          "soleRange": [
+            31,
+            39
+          ],
+          "changedPixels": 443,
+          "changedSilhouette": 221,
+          "sha256": "7b2daa49a4e212e4a6a6ec8faeb1b9a22a8e57953711a29ed7009dc7518dee12"
+        },
+        {
+          "index": 2,
+          "phase": "passing_a",
+          "nativeBounds": [
+            18,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.36666666666667,
+            26.099999999999994
+          ],
+          "soleRange": [
+            19,
+            40
+          ],
+          "changedPixels": 376,
+          "changedSilhouette": 162,
+          "sha256": "248993b16197d82ffaecf219bb364a6e8f77fcbc3760b4429ab3af190898f796"
+        },
+        {
+          "index": 3,
+          "phase": "flight_a",
+          "nativeBounds": [
+            16,
+            13,
+            44,
+            48
+          ],
+          "faceCentroid": [
+            35.82142857142858,
+            25.964285714285715
+          ],
+          "soleRange": [
+            16,
+            44
+          ],
+          "changedPixels": 301,
+          "changedSilhouette": 142,
+          "sha256": "10816ca83c11f4c550b31c255455c7df1b822d62f819696c196bd6a05c13ec25"
+        },
+        {
+          "index": 4,
+          "phase": "contact_b",
+          "nativeBounds": [
+            18,
+            13,
+            47,
+            48
+          ],
+          "faceCentroid": [
+            36.80000000000001,
+            25.83333333333333
+          ],
+          "soleRange": [
+            38,
+            46
+          ],
+          "changedPixels": 376,
+          "changedSilhouette": 159,
+          "sha256": "3840c5353b183b04bedba1a84bfcc9c76b04bf89cfac45277218d76065728bfb"
+        },
+        {
+          "index": 5,
+          "phase": "down_b",
+          "nativeBounds": [
+            19,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.49999999999999,
+            26.178571428571427
+          ],
+          "soleRange": [
+            20,
+            41
+          ],
+          "changedPixels": 348,
+          "changedSilhouette": 179,
+          "sha256": "58fa78a28610d4cfceaca1b96b38857df88e5db58d7fc8e6627b11263762fa0a"
+        },
+        {
+          "index": 6,
+          "phase": "passing_b",
+          "nativeBounds": [
+            19,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.8,
+            26.39999999999999
+          ],
+          "soleRange": [
+            20,
+            26
+          ],
+          "changedPixels": 305,
+          "changedSilhouette": 150,
+          "sha256": "3ab7f0f5949918cfc02fbdb7a0e71dce2e6de75f299998fc7b614ac803b1649a"
+        },
+        {
+          "index": 7,
+          "phase": "flight_b",
+          "nativeBounds": [
+            18,
+            13,
+            48,
+            48
+          ],
+          "faceCentroid": [
+            35.6875,
+            26.25
+          ],
+          "soleRange": [
+            19,
+            47
+          ],
+          "changedPixels": 326,
+          "changedSilhouette": 158,
+          "sha256": "45ecbd366c4bfc99a855d9b645fa1c42e80f858ee83500422cf02b98eb58d76d"
+        }
+      ],
+      "distinctRunFrames": 8,
+      "faceMotionSpan": [
+        1.4333333333333442,
+        0.5666666666666629
+      ]
+    },
+    "kiro": {
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kiro.gbapal",
+      "paletteSHA256": "be4dcedce32b7e981a5ce78d37020c7f155fdd151485df1fb3f70eef4045cad8",
+      "sources": {
+        "run": {
+          "source": "graphics/sa2/ocs/source/kiro_run_source_v3.png",
+          "sourceSHA256": "fab6257db41a875abf5a6091bee1063f1252f211ee6ee01256e44d9e4c0c0acb",
+          "sourceSize": [
+            1536,
+            1024
+          ],
+          "scale": 0.08845208845208845,
+          "selection": "all eight",
+          "unassignedComponents": [],
+          "frameOverrides": [
+            {
+              "index": 5,
+              "source": "graphics/sa2/ocs/source/kiro_down_source_v3.png",
+              "sourceSHA256": "c9be4940fabb437e262b311861f216de73b64299f0f9b030ded8a43dab362eef",
+              "sourceSize": [
+                1536,
+                1024
+              ],
+              "sourceFrame": 5,
+              "sourceFrameCount": 8,
+              "scale": 0.08845208845208845,
+              "bodyAnchorX": 576.6111111111111,
+              "groundY": 958
+            }
+          ]
+        },
+        "attack": {
+          "source": "graphics/sa2/ocs/source/kiro_motion_v3.png",
+          "sourceSHA256": "fe14027adb7adb4bc43f93cfe4d91737b262150e523d7cb4baeda60f3d09ea71",
+          "sourceSize": [
+            1287,
+            1222
+          ],
+          "scale": 0.1301989150090416,
+          "selection": "bottom eight of sixteen",
+          "unassignedComponents": []
+        }
+      },
+      "frames": {
+        "run": [
+          {
+            "index": 0,
+            "name": "contact_a",
+            "sourceBounds": [
+              40,
+              77,
+              348,
+              483
+            ],
+            "bodyBounds": [
+              40,
+              77,
+              348,
+              483
+            ],
+            "secondaryComponents": [],
+            "size": [
+              27,
+              36
+            ],
+            "offset": [
+              20,
+              13
+            ],
+            "bodyAnchorX": 178,
+            "groundY": 483,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              40,
+              77,
+              1187,
+              540
+            ],
+            "nativeBounds": [
+              20,
+              13,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              36.39999999999999,
+              26.466666666666672
+            ],
+            "faceBounds": [
+              32,
+              24,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              15,
+              6,
+              5
+            ],
+            "solePixels": 33,
+            "soleRange": [
+              21,
+              46
+            ],
+            "occupied": 562,
+            "meanColorError": 130.770818505338,
+            "severeColorErrorFraction": 0,
+            "sha256": "5cc558a8f24183a7d97285ff6e266a75872feb92d3fd54475d0971d7b523232b"
+          },
+          {
+            "index": 1,
+            "name": "down_a",
+            "sourceBounds": [
+              461,
+              77,
+              721,
+              483
+            ],
+            "bodyBounds": [
+              461,
+              77,
+              721,
+              483
+            ],
+            "secondaryComponents": [],
+            "size": [
+              23,
+              36
+            ],
+            "offset": [
+              23,
+              13
+            ],
+            "bodyAnchorX": 565.3055555555555,
+            "groundY": 483,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              461,
+              77,
+              814,
+              540
+            ],
+            "nativeBounds": [
+              23,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              36.83333333333333,
+              26.500000000000004
+            ],
+            "faceBounds": [
+              34,
+              24,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              12,
+              6,
+              2,
+              1,
+              1
+            ],
+            "solePixels": 37,
+            "soleRange": [
+              25,
+              35
+            ],
+            "occupied": 492,
+            "meanColorError": 144.2589430894308,
+            "severeColorErrorFraction": 0,
+            "sha256": "91a9799b91114ad5ef87d755f33252678ed36bae0394981aacad63b655386047"
+          },
+          {
+            "index": 2,
+            "name": "passing_a",
+            "sourceBounds": [
+              783,
+              77,
+              1097,
+              483
+            ],
+            "bodyBounds": [
+              783,
+              77,
+              1097,
+              483
+            ],
+            "secondaryComponents": [],
+            "size": [
+              28,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 942.3888888888889,
+            "groundY": 483,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              783,
+              77,
+              438,
+              540
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.599999999999994,
+              26.266666666666673
+            ],
+            "faceBounds": [
+              31,
+              24,
+              38,
+              28
+            ],
+            "headSkinClusterSizes": [
+              15,
+              6,
+              5
+            ],
+            "solePixels": 27,
+            "soleRange": [
+              19,
+              40
+            ],
+            "occupied": 555,
+            "meanColorError": 125.13347747747751,
+            "severeColorErrorFraction": 0,
+            "sha256": "4ba6734c4f7abd6ea01a8e2ea249916e4f4e2c1a75c739191f04c462f0bcbadb"
+          },
+          {
+            "index": 3,
+            "name": "flight_a",
+            "sourceBounds": [
+              1161,
+              77,
+              1502,
+              483
+            ],
+            "bodyBounds": [
+              1161,
+              77,
+              1502,
+              483
+            ],
+            "secondaryComponents": [],
+            "size": [
+              30,
+              36
+            ],
+            "offset": [
+              17,
+              13
+            ],
+            "bodyAnchorX": 1325,
+            "groundY": 483,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1161,
+              77,
+              33,
+              540
+            ],
+            "nativeBounds": [
+              17,
+              13,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              36.23076923076923,
+              26.384615384615383
+            ],
+            "faceBounds": [
+              34,
+              23,
+              38,
+              28
+            ],
+            "headSkinClusterSizes": [
+              13,
+              7,
+              4,
+              2
+            ],
+            "solePixels": 35,
+            "soleRange": [
+              17,
+              46
+            ],
+            "occupied": 576,
+            "meanColorError": 126.17145833333335,
+            "severeColorErrorFraction": 0,
+            "sha256": "2b193430643589e0ea51071603a9f46957e8f5e2ece66edfdce4bd005bda4084"
+          },
+          {
+            "index": 4,
+            "name": "contact_b",
+            "sourceBounds": [
+              36,
+              549,
+              354,
+              952
+            ],
+            "bodyBounds": [
+              36,
+              549,
+              354,
+              952
+            ],
+            "secondaryComponents": [],
+            "size": [
+              28,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 194.30555555555554,
+            "groundY": 958,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              36,
+              549,
+              1181,
+              71
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              35.909090909090914,
+              26.18181818181818
+            ],
+            "faceBounds": [
+              33,
+              24,
+              38,
+              27
+            ],
+            "headSkinClusterSizes": [
+              11,
+              7,
+              4,
+              2,
+              1
+            ],
+            "solePixels": 26,
+            "soleRange": [
+              36,
+              45
+            ],
+            "occupied": 546,
+            "meanColorError": 143.88805860805851,
+            "severeColorErrorFraction": 0,
+            "sha256": "cedb0d95f87e68f6599f30b13fe1b5c8d668be51db3770afbf441fdd3f6ab1da"
+          },
+          {
+            "index": 5,
+            "name": "down_b",
+            "sourceBounds": [
+              462,
+              549,
+              721,
+              957
+            ],
+            "bodyBounds": [
+              462,
+              549,
+              721,
+              957
+            ],
+            "secondaryComponents": [],
+            "size": [
+              23,
+              36
+            ],
+            "offset": [
+              22,
+              13
+            ],
+            "bodyAnchorX": 576.6111111111111,
+            "groundY": 958,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              462,
+              549,
+              814,
+              66
+            ],
+            "nativeBounds": [
+              22,
+              13,
+              44,
+              48
+            ],
+            "faceCentroid": [
+              35.833333333333336,
+              25.916666666666668
+            ],
+            "faceBounds": [
+              33,
+              23,
+              38,
+              27
+            ],
+            "headSkinClusterSizes": [
+              12,
+              5,
+              3,
+              3,
+              1
+            ],
+            "solePixels": 37,
+            "soleRange": [
+              24,
+              38
+            ],
+            "occupied": 518,
+            "meanColorError": 167.4299613899613,
+            "severeColorErrorFraction": 0,
+            "sourceOverride": {
+              "index": 5,
+              "source": "graphics/sa2/ocs/source/kiro_down_source_v3.png",
+              "sourceSHA256": "c9be4940fabb437e262b311861f216de73b64299f0f9b030ded8a43dab362eef",
+              "sourceSize": [
+                1536,
+                1024
+              ],
+              "sourceFrame": 5,
+              "sourceFrameCount": 8,
+              "scale": 0.08845208845208845,
+              "bodyAnchorX": 576.6111111111111,
+              "groundY": 958
+            },
+            "sha256": "cd815bb6f0c5714bfd05ca2d85907fd28c7b844dd95d2dc2356727b1e6886509"
+          },
+          {
+            "index": 6,
+            "name": "passing_b",
+            "sourceBounds": [
+              787,
+              547,
+              1101,
+              957
+            ],
+            "bodyBounds": [
+              787,
+              547,
+              1101,
+              957
+            ],
+            "secondaryComponents": [],
+            "size": [
+              28,
+              36
+            ],
+            "offset": [
+              19,
+              13
+            ],
+            "bodyAnchorX": 935.3888888888889,
+            "groundY": 958,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              787,
+              547,
+              434,
+              66
+            ],
+            "nativeBounds": [
+              19,
+              13,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              36.30769230769231,
+              26.538461538461537
+            ],
+            "faceBounds": [
+              32,
+              24,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              13,
+              7,
+              3
+            ],
+            "solePixels": 23,
+            "soleRange": [
+              20,
+              40
+            ],
+            "occupied": 561,
+            "meanColorError": 141.84071301247786,
+            "severeColorErrorFraction": 0,
+            "sha256": "e1ae78005a2455dbee953daaaeeef1174ce1bccd5245a9f3a2de13c8869fe4a1"
+          },
+          {
+            "index": 7,
+            "name": "flight_b",
+            "sourceBounds": [
+              1179,
+              547,
+              1501,
+              957
+            ],
+            "bodyBounds": [
+              1179,
+              547,
+              1501,
+              957
+            ],
+            "secondaryComponents": [],
+            "size": [
+              29,
+              36
+            ],
+            "offset": [
+              18,
+              13
+            ],
+            "bodyAnchorX": 1333.3055555555557,
+            "groundY": 958,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1179,
+              547,
+              34,
+              66
+            ],
+            "nativeBounds": [
+              18,
+              13,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              35.54545454545454,
+              26.999999999999993
+            ],
+            "faceBounds": [
+              33,
+              25,
+              38,
+              28
+            ],
+            "headSkinClusterSizes": [
+              11,
+              7,
+              2,
+              2,
+              1
+            ],
+            "solePixels": 36,
+            "soleRange": [
+              18,
+              45
+            ],
+            "occupied": 569,
+            "meanColorError": 140.73082601054477,
+            "severeColorErrorFraction": 0,
+            "sha256": "f61414982943ad3b56689fc8881ccd5386c0896375aa15a10bc029097933c876"
+          }
+        ],
+        "attack": [
+          {
+            "index": 0,
+            "name": "anticipation_0",
+            "sourceBounds": [
+              44,
+              631,
+              272,
+              899
+            ],
+            "bodyBounds": [
+              44,
+              631,
+              272,
+              899
+            ],
+            "secondaryComponents": [],
+            "size": [
+              30,
+              35
+            ],
+            "offset": [
+              20,
+              14
+            ],
+            "bodyAnchorX": 137,
+            "groundY": 899,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              44,
+              631,
+              1014,
+              322
+            ],
+            "nativeBounds": [
+              20,
+              14,
+              49,
+              48
+            ],
+            "faceCentroid": [
+              39.733333333333334,
+              28.6
+            ],
+            "faceBounds": [
+              37,
+              26,
+              42,
+              30
+            ],
+            "headSkinClusterSizes": [
+              15,
+              2
+            ],
+            "solePixels": 72,
+            "soleRange": [
+              20,
+              45
+            ],
+            "occupied": 620,
+            "meanColorError": 128.2655483870969,
+            "severeColorErrorFraction": 0,
+            "sha256": "76bba151b64e9e0c07d02ee990db8324e6a52ad2e6b4970f732a457d02c253f2"
+          },
+          {
+            "index": 1,
+            "name": "anticipation_1",
+            "sourceBounds": [
+              362,
+              631,
+              616,
+              899
+            ],
+            "bodyBounds": [
+              362,
+              631,
+              616,
+              899
+            ],
+            "secondaryComponents": [],
+            "size": [
+              33,
+              35
+            ],
+            "offset": [
+              20,
+              14
+            ],
+            "bodyAnchorX": 453,
+            "groundY": 899,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              362,
+              631,
+              670,
+              322
+            ],
+            "nativeBounds": [
+              20,
+              14,
+              52,
+              48
+            ],
+            "faceCentroid": [
+              36.21052631578947,
+              28.42105263157895
+            ],
+            "faceBounds": [
+              31,
+              25,
+              39,
+              30
+            ],
+            "headSkinClusterSizes": [
+              19
+            ],
+            "solePixels": 72,
+            "soleRange": [
+              20,
+              45
+            ],
+            "occupied": 639,
+            "meanColorError": 119.05251956181554,
+            "severeColorErrorFraction": 0,
+            "sha256": "812f221371f9847787c6724099f69495ecec9b9f602d1e06c8a16a2939c64c22"
+          },
+          {
+            "index": 2,
+            "name": "active_0",
+            "sourceBounds": [
+              643,
+              635,
+              953,
+              898
+            ],
+            "bodyBounds": [
+              643,
+              635,
+              953,
+              898
+            ],
+            "secondaryComponents": [],
+            "size": [
+              40,
+              34
+            ],
+            "offset": [
+              19,
+              15
+            ],
+            "bodyAnchorX": 745,
+            "groundY": 898,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              643,
+              635,
+              333,
+              323
+            ],
+            "nativeBounds": [
+              19,
+              15,
+              58,
+              48
+            ],
+            "faceCentroid": [
+              36.53846153846155,
+              29.153846153846146
+            ],
+            "faceBounds": [
+              34,
+              27,
+              39,
+              30
+            ],
+            "headSkinClusterSizes": [
+              13,
+              8,
+              2
+            ],
+            "solePixels": 72,
+            "soleRange": [
+              19,
+              45
+            ],
+            "occupied": 634,
+            "meanColorError": 132.1720504731861,
+            "severeColorErrorFraction": 0,
+            "sha256": "9e652ef71b77c52b0b069dc93c296798c5598987c833e5e55122b83ca4215aea"
+          },
+          {
+            "index": 3,
+            "name": "active_1",
+            "sourceBounds": [
+              945,
+              635,
+              1255,
+              898
+            ],
+            "bodyBounds": [
+              945,
+              635,
+              1255,
+              898
+            ],
+            "secondaryComponents": [],
+            "size": [
+              40,
+              34
+            ],
+            "offset": [
+              19,
+              15
+            ],
+            "bodyAnchorX": 1043,
+            "groundY": 897,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              945,
+              635,
+              31,
+              323
+            ],
+            "nativeBounds": [
+              19,
+              15,
+              58,
+              48
+            ],
+            "faceCentroid": [
+              36.86666666666666,
+              29.000000000000004
+            ],
+            "faceBounds": [
+              34,
+              26,
+              39,
+              30
+            ],
+            "headSkinClusterSizes": [
+              15,
+              6,
+              2
+            ],
+            "solePixels": 70,
+            "soleRange": [
+              19,
+              44
+            ],
+            "occupied": 663,
+            "meanColorError": 161.8368627450979,
+            "severeColorErrorFraction": 0.0015082956259426848,
+            "sha256": "0b6d5491f8d1f67906e749aaac81232188e4692c8b9b5618498963e52335bd11"
+          },
+          {
+            "index": 4,
+            "name": "active_2",
+            "sourceBounds": [
+              34,
+              916,
+              310,
+              1180
+            ],
+            "bodyBounds": [
+              34,
+              916,
+              310,
+              1180
+            ],
+            "secondaryComponents": [],
+            "size": [
+              36,
+              35
+            ],
+            "offset": [
+              18,
+              14
+            ],
+            "bodyAnchorX": 142,
+            "groundY": 1180,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              34,
+              916,
+              976,
+              41
+            ],
+            "nativeBounds": [
+              18,
+              14,
+              53,
+              48
+            ],
+            "faceCentroid": [
+              33.75,
+              28.083333333333325
+            ],
+            "faceBounds": [
+              31,
+              26,
+              36,
+              29
+            ],
+            "headSkinClusterSizes": [
+              12,
+              2,
+              1
+            ],
+            "solePixels": 65,
+            "soleRange": [
+              18,
+              45
+            ],
+            "occupied": 629,
+            "meanColorError": 168.92616852146267,
+            "severeColorErrorFraction": 0.006359300476947536,
+            "sha256": "de2cdb323a0bf6f45cc0159acd184e8dbd83329764a62dd12b11229878c66202"
+          },
+          {
+            "index": 5,
+            "name": "recovery_0",
+            "sourceBounds": [
+              389,
+              911,
+              668,
+              1180
+            ],
+            "bodyBounds": [
+              389,
+              911,
+              668,
+              1180
+            ],
+            "secondaryComponents": [],
+            "size": [
+              36,
+              35
+            ],
+            "offset": [
+              19,
+              14
+            ],
+            "bodyAnchorX": 486,
+            "groundY": 1180,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              389,
+              911,
+              618,
+              41
+            ],
+            "nativeBounds": [
+              19,
+              14,
+              54,
+              48
+            ],
+            "faceCentroid": [
+              36.0625,
+              27.8125
+            ],
+            "faceBounds": [
+              31,
+              26,
+              39,
+              29
+            ],
+            "headSkinClusterSizes": [
+              16
+            ],
+            "solePixels": 71,
+            "soleRange": [
+              19,
+              45
+            ],
+            "occupied": 630,
+            "meanColorError": 127.72679365079361,
+            "severeColorErrorFraction": 0,
+            "sha256": "ba489b5c1879e63761384123b34b837b0e5b56bad492e4c4173edf357cef8700"
+          },
+          {
+            "index": 6,
+            "name": "recovery_1",
+            "sourceBounds": [
+              691,
+              908,
+              981,
+              1181
+            ],
+            "bodyBounds": [
+              691,
+              908,
+              981,
+              1181
+            ],
+            "secondaryComponents": [],
+            "size": [
+              38,
+              36
+            ],
+            "offset": [
+              20,
+              13
+            ],
+            "bodyAnchorX": 782,
+            "groundY": 1180,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              691,
+              908,
+              305,
+              40
+            ],
+            "nativeBounds": [
+              20,
+              13,
+              57,
+              48
+            ],
+            "faceCentroid": [
+              35.53846153846154,
+              27.15384615384615
+            ],
+            "faceBounds": [
+              33,
+              25,
+              38,
+              28
+            ],
+            "headSkinClusterSizes": [
+              13,
+              3,
+              2
+            ],
+            "solePixels": 62,
+            "soleRange": [
+              20,
+              45
+            ],
+            "occupied": 625,
+            "meanColorError": 118.62239999999997,
+            "severeColorErrorFraction": 0,
+            "sha256": "087dc2605d37c08b5b22ff9b5c0d0821a5c734645176782e30935187e483dee3"
+          },
+          {
+            "index": 7,
+            "name": "recovery_2",
+            "sourceBounds": [
+              1020,
+              910,
+              1240,
+              1180
+            ],
+            "bodyBounds": [
+              1020,
+              910,
+              1240,
+              1180
+            ],
+            "secondaryComponents": [],
+            "size": [
+              29,
+              35
+            ],
+            "offset": [
+              20,
+              14
+            ],
+            "bodyAnchorX": 1113,
+            "groundY": 1178,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1020,
+              910,
+              46,
+              41
+            ],
+            "nativeBounds": [
+              20,
+              14,
+              48,
+              48
+            ],
+            "faceCentroid": [
+              34.4375,
+              27.9375
+            ],
+            "faceBounds": [
+              30,
+              27,
+              38,
+              29
+            ],
+            "headSkinClusterSizes": [
+              16
+            ],
+            "solePixels": 72,
+            "soleRange": [
+              20,
+              45
+            ],
+            "occupied": 610,
+            "meanColorError": 135.72622950819672,
+            "severeColorErrorFraction": 0,
+            "sha256": "c69ba22591f42027b6ff9d88d4869c2ccb325e51d05a3e2551b929f4b3fb282f"
+          }
+        ]
+      },
+      "gait": [
+        {
+          "index": 0,
+          "phase": "contact_a",
+          "nativeBounds": [
+            20,
+            13,
+            46,
+            48
+          ],
+          "faceCentroid": [
+            36.39999999999999,
+            26.466666666666672
+          ],
+          "soleRange": [
+            21,
+            46
+          ],
+          "changedPixels": 475,
+          "changedSilhouette": 129,
+          "sha256": "5cc558a8f24183a7d97285ff6e266a75872feb92d3fd54475d0971d7b523232b"
+        },
+        {
+          "index": 1,
+          "phase": "down_a",
+          "nativeBounds": [
+            23,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            36.83333333333333,
+            26.500000000000004
+          ],
+          "soleRange": [
+            25,
+            35
+          ],
+          "changedPixels": 476,
+          "changedSilhouette": 222,
+          "sha256": "91a9799b91114ad5ef87d755f33252678ed36bae0394981aacad63b655386047"
+        },
+        {
+          "index": 2,
+          "phase": "passing_a",
+          "nativeBounds": [
+            18,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.599999999999994,
+            26.266666666666673
+          ],
+          "soleRange": [
+            19,
+            40
+          ],
+          "changedPixels": 475,
+          "changedSilhouette": 221,
+          "sha256": "4ba6734c4f7abd6ea01a8e2ea249916e4f4e2c1a75c739191f04c462f0bcbadb"
+        },
+        {
+          "index": 3,
+          "phase": "flight_a",
+          "nativeBounds": [
+            17,
+            13,
+            46,
+            48
+          ],
+          "faceCentroid": [
+            36.23076923076923,
+            26.384615384615383
+          ],
+          "soleRange": [
+            17,
+            46
+          ],
+          "changedPixels": 353,
+          "changedSilhouette": 137,
+          "sha256": "2b193430643589e0ea51071603a9f46957e8f5e2ece66edfdce4bd005bda4084"
+        },
+        {
+          "index": 4,
+          "phase": "contact_b",
+          "nativeBounds": [
+            18,
+            13,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            35.909090909090914,
+            26.18181818181818
+          ],
+          "soleRange": [
+            36,
+            45
+          ],
+          "changedPixels": 381,
+          "changedSilhouette": 100,
+          "sha256": "cedb0d95f87e68f6599f30b13fe1b5c8d668be51db3770afbf441fdd3f6ab1da"
+        },
+        {
+          "index": 5,
+          "phase": "down_b",
+          "nativeBounds": [
+            22,
+            13,
+            44,
+            48
+          ],
+          "faceCentroid": [
+            35.833333333333336,
+            25.916666666666668
+          ],
+          "soleRange": [
+            24,
+            38
+          ],
+          "changedPixels": 391,
+          "changedSilhouette": 178,
+          "sha256": "cd815bb6f0c5714bfd05ca2d85907fd28c7b844dd95d2dc2356727b1e6886509"
+        },
+        {
+          "index": 6,
+          "phase": "passing_b",
+          "nativeBounds": [
+            19,
+            13,
+            46,
+            48
+          ],
+          "faceCentroid": [
+            36.30769230769231,
+            26.538461538461537
+          ],
+          "soleRange": [
+            20,
+            40
+          ],
+          "changedPixels": 559,
+          "changedSilhouette": 227,
+          "sha256": "e1ae78005a2455dbee953daaaeeef1174ce1bccd5245a9f3a2de13c8869fe4a1"
+        },
+        {
+          "index": 7,
+          "phase": "flight_b",
+          "nativeBounds": [
+            18,
+            13,
+            46,
+            48
+          ],
+          "faceCentroid": [
+            35.54545454545454,
+            26.999999999999993
+          ],
+          "soleRange": [
+            18,
+            45
+          ],
+          "changedPixels": 555,
+          "changedSilhouette": 194,
+          "sha256": "f61414982943ad3b56689fc8881ccd5386c0896375aa15a10bc029097933c876"
+        }
+      ],
+      "distinctRunFrames": 8,
+      "faceMotionSpan": [
+        1.287878787878789,
+        1.083333333333325
+      ],
+      "preservedFramesManifest": "graphics/sa2/ocs/kiro_run_preserved_sha256.json"
+    },
+    "yuliana": {
+      "referenceHeight": 38,
+      "paletteSource": "graphics/sa2/ocs/yuliana.gbapal",
+      "paletteSHA256": "28235ecc72c120088c0c9ba2ee7b98eda6e70e4880968c593fcae3321936ec58",
+      "sources": {
+        "run": {
+          "source": "graphics/sa2/ocs/source/yuliana_run_source_v3.png",
+          "sourceSHA256": "b29feb754245a78890009a4d3b1131694346de29f04645e4066feb46fc580d29",
+          "sourceSize": [
+            1774,
+            887
+          ],
+          "scale": 0.0987012987012987,
+          "selection": "all eight",
+          "unassignedComponents": []
+        },
+        "attack": {
+          "source": "graphics/sa2/ocs/source/yuliana_motion_v3.png",
+          "sourceSHA256": "aac0b367f636c750b250dcd25a60dde8697226c2c26a45e450f800995a8ea936",
+          "sourceSize": [
+            1254,
+            1254
+          ],
+          "scale": 0.14728682170542637,
+          "selection": "bottom eight of sixteen",
+          "unassignedComponents": []
+        }
+      },
+      "frames": {
+        "run": [
+          {
+            "index": 0,
+            "name": "contact_a",
+            "sourceBounds": [
+              66,
+              43,
+              405,
+              423
+            ],
+            "bodyBounds": [
+              66,
+              43,
+              405,
+              423
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              38
+            ],
+            "offset": [
+              13,
+              11
+            ],
+            "bodyAnchorX": 254.1315789473684,
+            "groundY": 424,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              66,
+              43,
+              1368,
+              463
+            ],
+            "nativeBounds": [
+              13,
+              11,
+              46,
+              48
+            ],
+            "faceCentroid": [
+              38.086956521739125,
+              21.999999999999996
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              26
+            ],
+            "headSkinClusterSizes": [
+              23,
+              9,
+              8,
+              5,
+              1
+            ],
+            "solePixels": 24,
+            "soleRange": [
+              14,
+              44
+            ],
+            "occupied": 719,
+            "meanColorError": 79.86976356050063,
+            "severeColorErrorFraction": 0,
+            "sha256": "794cf1e3bcc9bb46bef23f1fed594e6c42572f731ec4dcd1c58534e941a872f6"
+          },
+          {
+            "index": 1,
+            "name": "down_a",
+            "sourceBounds": [
+              517,
+              41,
+              827,
+              423
+            ],
+            "bodyBounds": [
+              517,
+              41,
+              827,
+              423
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              38
+            ],
+            "offset": [
+              15,
+              11
+            ],
+            "bodyAnchorX": 693,
+            "groundY": 424,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              517,
+              41,
+              946,
+              463
+            ],
+            "nativeBounds": [
+              15,
+              11,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              38.16666666666666,
+              21.625
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              25
+            ],
+            "headSkinClusterSizes": [
+              24,
+              7,
+              7,
+              4,
+              1
+            ],
+            "solePixels": 38,
+            "soleRange": [
+              27,
+              36
+            ],
+            "occupied": 653,
+            "meanColorError": 72.78560490045942,
+            "severeColorErrorFraction": 0,
+            "sha256": "3af13c061ff01a20684bd3cb03502b2472c391578b9c55037d32a534375139ed"
+          },
+          {
+            "index": 2,
+            "name": "passing_a",
+            "sourceBounds": [
+              952,
+              41,
+              1264,
+              424
+            ],
+            "bodyBounds": [
+              952,
+              41,
+              1264,
+              424
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              38
+            ],
+            "offset": [
+              15,
+              11
+            ],
+            "bodyAnchorX": 1128.8684210526317,
+            "groundY": 424,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              952,
+              41,
+              509,
+              462
+            ],
+            "nativeBounds": [
+              15,
+              11,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              38.23076923076923,
+              22.03846153846154
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              26
+            ],
+            "headSkinClusterSizes": [
+              26,
+              11,
+              8,
+              4,
+              1
+            ],
+            "solePixels": 19,
+            "soleRange": [
+              16,
+              21
+            ],
+            "occupied": 690,
+            "meanColorError": 71.22028985507245,
+            "severeColorErrorFraction": 0,
+            "sha256": "f403fd381cf1261ec452141e7af792f69f1b305b992191be29a008ef911e9108"
+          },
+          {
+            "index": 3,
+            "name": "flight_a",
+            "sourceBounds": [
+              1379,
+              41,
+              1733,
+              420
+            ],
+            "bodyBounds": [
+              1379,
+              41,
+              1733,
+              420
+            ],
+            "secondaryComponents": [],
+            "size": [
+              35,
+              38
+            ],
+            "offset": [
+              13,
+              11
+            ],
+            "bodyAnchorX": 1569,
+            "groundY": 424,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1379,
+              41,
+              40,
+              466
+            ],
+            "nativeBounds": [
+              13,
+              11,
+              47,
+              48
+            ],
+            "faceCentroid": [
+              38.24999999999999,
+              22.083333333333332
+            ],
+            "faceBounds": [
+              35,
+              18,
+              41,
+              25
+            ],
+            "headSkinClusterSizes": [
+              24,
+              12,
+              8,
+              4,
+              2
+            ],
+            "solePixels": 24,
+            "soleRange": [
+              37,
+              46
+            ],
+            "occupied": 760,
+            "meanColorError": 65.96310526315791,
+            "severeColorErrorFraction": 0,
+            "sha256": "02f3c61d01d009e31f85e246cbc810f6ef4cb3de0e9e4ce393bfc7847cd745b5"
+          },
+          {
+            "index": 4,
+            "name": "contact_b",
+            "sourceBounds": [
+              65,
+              462,
+              415,
+              850
+            ],
+            "bodyBounds": [
+              65,
+              462,
+              415,
+              850
+            ],
+            "secondaryComponents": [],
+            "size": [
+              35,
+              38
+            ],
+            "offset": [
+              15,
+              10
+            ],
+            "bodyAnchorX": 235.8684210526316,
+            "groundY": 855,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              65,
+              462,
+              1358,
+              36
+            ],
+            "nativeBounds": [
+              15,
+              10,
+              49,
+              47
+            ],
+            "faceCentroid": [
+              38.541666666666664,
+              21.416666666666668
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              25
+            ],
+            "headSkinClusterSizes": [
+              24,
+              10,
+              9,
+              2,
+              1
+            ],
+            "solePixels": 21,
+            "soleRange": [
+              39,
+              47
+            ],
+            "occupied": 724,
+            "meanColorError": 58.38182320441988,
+            "severeColorErrorFraction": 0,
+            "sha256": "b9e1134bf953c551796bece4f9dabd6156c59efc426dddc9d24abb5445180f59"
+          },
+          {
+            "index": 5,
+            "name": "down_b",
+            "sourceBounds": [
+              512,
+              465,
+              826,
+              855
+            ],
+            "bodyBounds": [
+              512,
+              465,
+              826,
+              855
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              39
+            ],
+            "offset": [
+              14,
+              10
+            ],
+            "bodyAnchorX": 699,
+            "groundY": 855,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              512,
+              465,
+              947,
+              31
+            ],
+            "nativeBounds": [
+              14,
+              10,
+              44,
+              48
+            ],
+            "faceCentroid": [
+              37.81818181818183,
+              20.863636363636356
+            ],
+            "faceBounds": [
+              34,
+              16,
+              40,
+              24
+            ],
+            "headSkinClusterSizes": [
+              22,
+              10,
+              7,
+              3,
+              2
+            ],
+            "solePixels": 37,
+            "soleRange": [
+              29,
+              38
+            ],
+            "occupied": 713,
+            "meanColorError": 71.18126227208971,
+            "severeColorErrorFraction": 0,
+            "sha256": "b3f3f45451fa6306970484706979b0db8874160fd8b671510f82cf5b2346d6a3"
+          },
+          {
+            "index": 6,
+            "name": "passing_b",
+            "sourceBounds": [
+              930,
+              462,
+              1255,
+              855
+            ],
+            "bodyBounds": [
+              930,
+              462,
+              1255,
+              855
+            ],
+            "secondaryComponents": [],
+            "size": [
+              32,
+              39
+            ],
+            "offset": [
+              14,
+              10
+            ],
+            "bodyAnchorX": 1109.6052631578948,
+            "groundY": 855,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              930,
+              462,
+              518,
+              31
+            ],
+            "nativeBounds": [
+              14,
+              10,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              37.81818181818182,
+              21.36363636363636
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              25
+            ],
+            "headSkinClusterSizes": [
+              22,
+              11,
+              8,
+              5,
+              1
+            ],
+            "solePixels": 19,
+            "soleRange": [
+              18,
+              23
+            ],
+            "occupied": 742,
+            "meanColorError": 68.66053908355792,
+            "severeColorErrorFraction": 0,
+            "sha256": "693c58c65ad44f21b02f6a504127ac52e78e657f21da7e0892164dc02c6d104d"
+          },
+          {
+            "index": 7,
+            "name": "flight_b",
+            "sourceBounds": [
+              1382,
+              462,
+              1739,
+              846
+            ],
+            "bodyBounds": [
+              1382,
+              462,
+              1739,
+              846
+            ],
+            "secondaryComponents": [],
+            "size": [
+              35,
+              38
+            ],
+            "offset": [
+              14,
+              10
+            ],
+            "bodyAnchorX": 1563.8684210526317,
+            "groundY": 855,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1382,
+              462,
+              34,
+              40
+            ],
+            "nativeBounds": [
+              14,
+              10,
+              48,
+              47
+            ],
+            "faceCentroid": [
+              38.20689655172414,
+              21.41379310344827
+            ],
+            "faceBounds": [
+              35,
+              17,
+              41,
+              25
+            ],
+            "headSkinClusterSizes": [
+              29,
+              10,
+              8,
+              4
+            ],
+            "solePixels": 17,
+            "soleRange": [
+              39,
+              46
+            ],
+            "occupied": 765,
+            "meanColorError": 67.92977777777773,
+            "severeColorErrorFraction": 0,
+            "sha256": "af5af1dc18904fd5e5e6838f508d109fd433a71ecfb972a5549bad783dc7ccee"
+          }
+        ],
+        "attack": [
+          {
+            "index": 0,
+            "name": "anticipation_0",
+            "sourceBounds": [
+              34,
+              643,
+              262,
+              905
+            ],
+            "bodyBounds": [
+              34,
+              643,
+              262,
+              905
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              39
+            ],
+            "offset": [
+              12,
+              10
+            ],
+            "bodyAnchorX": 173,
+            "groundY": 904,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              34,
+              643,
+              991,
+              348
+            ],
+            "nativeBounds": [
+              12,
+              10,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              37.37037037037037,
+              22.185185185185183
+            ],
+            "faceBounds": [
+              34,
+              18,
+              40,
+              25
+            ],
+            "headSkinClusterSizes": [
+              27,
+              2
+            ],
+            "solePixels": 84,
+            "soleRange": [
+              18,
+              45
+            ],
+            "occupied": 858,
+            "meanColorError": 57.077995337995326,
+            "severeColorErrorFraction": 0,
+            "sha256": "e336dc8cae11fc909ae8120236559e944e008372db183754bf2d257b62d72195"
+          },
+          {
+            "index": 1,
+            "name": "anticipation_1",
+            "sourceBounds": [
+              334,
+              642,
+              601,
+              905
+            ],
+            "bodyBounds": [
+              334,
+              642,
+              601,
+              905
+            ],
+            "secondaryComponents": [],
+            "size": [
+              39,
+              39
+            ],
+            "offset": [
+              10,
+              10
+            ],
+            "bodyAnchorX": 480,
+            "groundY": 904,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              334,
+              642,
+              652,
+              348
+            ],
+            "nativeBounds": [
+              10,
+              10,
+              48,
+              48
+            ],
+            "faceCentroid": [
+              34.92307692307693,
+              22.461538461538463
+            ],
+            "faceBounds": [
+              32,
+              17,
+              38,
+              25
+            ],
+            "headSkinClusterSizes": [
+              26,
+              13,
+              3,
+              2
+            ],
+            "solePixels": 83,
+            "soleRange": [
+              17,
+              45
+            ],
+            "occupied": 915,
+            "meanColorError": 57.89591256830594,
+            "severeColorErrorFraction": 0,
+            "sha256": "31999724d9899018b425659c371142403f0817d7cdf06f33834c5067f3a8e962"
+          },
+          {
+            "index": 2,
+            "name": "active_0",
+            "sourceBounds": [
+              633,
+              643,
+              954,
+              905
+            ],
+            "bodyBounds": [
+              633,
+              643,
+              954,
+              905
+            ],
+            "secondaryComponents": [],
+            "size": [
+              47,
+              39
+            ],
+            "offset": [
+              12,
+              10
+            ],
+            "bodyAnchorX": 769,
+            "groundY": 904,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              633,
+              643,
+              299,
+              348
+            ],
+            "nativeBounds": [
+              12,
+              10,
+              57,
+              48
+            ],
+            "faceCentroid": [
+              36.60714285714285,
+              21.78571428571429
+            ],
+            "faceBounds": [
+              33,
+              16,
+              39,
+              25
+            ],
+            "headSkinClusterSizes": [
+              28,
+              15,
+              2
+            ],
+            "solePixels": 73,
+            "soleRange": [
+              19,
+              47
+            ],
+            "occupied": 936,
+            "meanColorError": 106.42888888888902,
+            "severeColorErrorFraction": 0.009615384615384616,
+            "sha256": "85554874aa0e70b7bdcaf9c8d0fce8e6f3be797edca075d50d9b64fe8383a059"
+          },
+          {
+            "index": 3,
+            "name": "active_1",
+            "sourceBounds": [
+              953,
+              642,
+              1221,
+              905
+            ],
+            "bodyBounds": [
+              953,
+              642,
+              1221,
+              905
+            ],
+            "secondaryComponents": [],
+            "size": [
+              40,
+              39
+            ],
+            "offset": [
+              9,
+              10
+            ],
+            "bodyAnchorX": 1108,
+            "groundY": 904,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              953,
+              642,
+              32,
+              348
+            ],
+            "nativeBounds": [
+              9,
+              10,
+              48,
+              48
+            ],
+            "faceCentroid": [
+              32.11538461538461,
+              22.384615384615383
+            ],
+            "faceBounds": [
+              29,
+              18,
+              35,
+              25
+            ],
+            "headSkinClusterSizes": [
+              26,
+              13,
+              2,
+              1
+            ],
+            "solePixels": 80,
+            "soleRange": [
+              17,
+              44
+            ],
+            "occupied": 907,
+            "meanColorError": 53.215214994487376,
+            "severeColorErrorFraction": 0,
+            "sha256": "dc86a9dab6eb330428cb452d664169e0cf4a40d14a0ecd36760f30b7946674b8"
+          },
+          {
+            "index": 4,
+            "name": "active_2",
+            "sourceBounds": [
+              24,
+              943,
+              321,
+              1209
+            ],
+            "bodyBounds": [
+              24,
+              943,
+              287,
+              1209
+            ],
+            "secondaryComponents": [
+              {
+                "bounds": [
+                  262,
+                  949,
+                  321,
+                  1019
+                ],
+                "area": 1605
+              }
+            ],
+            "size": [
+              44,
+              39
+            ],
+            "offset": [
+              11,
+              10
+            ],
+            "bodyAnchorX": 165,
+            "groundY": 1208,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              24,
+              943,
+              932,
+              44
+            ],
+            "nativeBounds": [
+              11,
+              10,
+              54,
+              48
+            ],
+            "faceCentroid": [
+              34.27999999999999,
+              21.720000000000002
+            ],
+            "faceBounds": [
+              31,
+              18,
+              37,
+              24
+            ],
+            "headSkinClusterSizes": [
+              25,
+              17,
+              4,
+              1
+            ],
+            "solePixels": 81,
+            "soleRange": [
+              18,
+              45
+            ],
+            "occupied": 927,
+            "meanColorError": 65.41579288025892,
+            "severeColorErrorFraction": 0.0010787486515641855,
+            "sha256": "232f20f90c5aae854687fa9c5859870c525924acf2d9b8d0bdc62f7005636dd4"
+          },
+          {
+            "index": 5,
+            "name": "recovery_0",
+            "sourceBounds": [
+              346,
+              941,
+              611,
+              1209
+            ],
+            "bodyBounds": [
+              346,
+              941,
+              611,
+              1209
+            ],
+            "secondaryComponents": [],
+            "size": [
+              39,
+              40
+            ],
+            "offset": [
+              12,
+              10
+            ],
+            "bodyAnchorX": 484,
+            "groundY": 1208,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              346,
+              941,
+              642,
+              44
+            ],
+            "nativeBounds": [
+              12,
+              10,
+              50,
+              49
+            ],
+            "faceCentroid": [
+              36.120000000000005,
+              21.840000000000007
+            ],
+            "faceBounds": [
+              32,
+              17,
+              39,
+              25
+            ],
+            "headSkinClusterSizes": [
+              25,
+              15,
+              3,
+              2
+            ],
+            "solePixels": 96,
+            "soleRange": [
+              18,
+              46
+            ],
+            "occupied": 919,
+            "meanColorError": 54.727138193688766,
+            "severeColorErrorFraction": 0,
+            "sha256": "1bbcff62779a31ffc4a99c31cc2bb8d29e50c47296dacd550fd320dcb1d0bbb9"
+          },
+          {
+            "index": 6,
+            "name": "recovery_1",
+            "sourceBounds": [
+              647,
+              941,
+              877,
+              1209
+            ],
+            "bodyBounds": [
+              647,
+              941,
+              877,
+              1209
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              40
+            ],
+            "offset": [
+              12,
+              10
+            ],
+            "bodyAnchorX": 782,
+            "groundY": 1208,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              647,
+              941,
+              376,
+              44
+            ],
+            "nativeBounds": [
+              12,
+              10,
+              45,
+              49
+            ],
+            "faceCentroid": [
+              33.70000000000001,
+              22.366666666666667
+            ],
+            "faceBounds": [
+              30,
+              17,
+              37,
+              27
+            ],
+            "headSkinClusterSizes": [
+              30,
+              3,
+              3,
+              2
+            ],
+            "solePixels": 92,
+            "soleRange": [
+              18,
+              45
+            ],
+            "occupied": 850,
+            "meanColorError": 64.6643764705882,
+            "severeColorErrorFraction": 0,
+            "sha256": "84745e4fdf29d2bc7621ea434d5f26318a0b0462b9ebda4971ce600b582c1c8e"
+          },
+          {
+            "index": 7,
+            "name": "recovery_2",
+            "sourceBounds": [
+              975,
+              941,
+              1202,
+              1209
+            ],
+            "bodyBounds": [
+              975,
+              941,
+              1202,
+              1209
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              40
+            ],
+            "offset": [
+              8,
+              10
+            ],
+            "bodyAnchorX": 1135,
+            "groundY": 1208,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              975,
+              941,
+              51,
+              44
+            ],
+            "nativeBounds": [
+              8,
+              10,
+              41,
+              49
+            ],
+            "faceCentroid": [
+              31.11764705882353,
+              22.558823529411764
+            ],
+            "faceBounds": [
+              28,
+              18,
+              34,
+              27
+            ],
+            "headSkinClusterSizes": [
+              34,
+              2
+            ],
+            "solePixels": 91,
+            "soleRange": [
+              15,
+              41
+            ],
+            "occupied": 842,
+            "meanColorError": 54.55501187648454,
+            "severeColorErrorFraction": 0,
+            "sha256": "b1866bddc3aad64682aceffbfcc4320f7d7da12edf1d1217ef51e1c54512e597"
+          }
+        ]
+      },
+      "gait": [
+        {
+          "index": 0,
+          "phase": "contact_a",
+          "nativeBounds": [
+            13,
+            11,
+            46,
+            48
+          ],
+          "faceCentroid": [
+            38.086956521739125,
+            21.999999999999996
+          ],
+          "soleRange": [
+            14,
+            44
+          ],
+          "changedPixels": 559,
+          "changedSilhouette": 186,
+          "sha256": "794cf1e3bcc9bb46bef23f1fed594e6c42572f731ec4dcd1c58534e941a872f6"
+        },
+        {
+          "index": 1,
+          "phase": "down_a",
+          "nativeBounds": [
+            15,
+            11,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            38.16666666666666,
+            21.625
+          ],
+          "soleRange": [
+            27,
+            36
+          ],
+          "changedPixels": 535,
+          "changedSilhouette": 280,
+          "sha256": "3af13c061ff01a20684bd3cb03502b2472c391578b9c55037d32a534375139ed"
+        },
+        {
+          "index": 2,
+          "phase": "passing_a",
+          "nativeBounds": [
+            15,
+            11,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            38.23076923076923,
+            22.03846153846154
+          ],
+          "soleRange": [
+            16,
+            21
+          ],
+          "changedPixels": 508,
+          "changedSilhouette": 237,
+          "sha256": "f403fd381cf1261ec452141e7af792f69f1b305b992191be29a008ef911e9108"
+        },
+        {
+          "index": 3,
+          "phase": "flight_a",
+          "nativeBounds": [
+            13,
+            11,
+            47,
+            48
+          ],
+          "faceCentroid": [
+            38.24999999999999,
+            22.083333333333332
+          ],
+          "soleRange": [
+            37,
+            46
+          ],
+          "changedPixels": 441,
+          "changedSilhouette": 198,
+          "sha256": "02f3c61d01d009e31f85e246cbc810f6ef4cb3de0e9e4ce393bfc7847cd745b5"
+        },
+        {
+          "index": 4,
+          "phase": "contact_b",
+          "nativeBounds": [
+            15,
+            10,
+            49,
+            47
+          ],
+          "faceCentroid": [
+            38.541666666666664,
+            21.416666666666668
+          ],
+          "soleRange": [
+            39,
+            47
+          ],
+          "changedPixels": 565,
+          "changedSilhouette": 184,
+          "sha256": "b9e1134bf953c551796bece4f9dabd6156c59efc426dddc9d24abb5445180f59"
+        },
+        {
+          "index": 5,
+          "phase": "down_b",
+          "nativeBounds": [
+            14,
+            10,
+            44,
+            48
+          ],
+          "faceCentroid": [
+            37.81818181818183,
+            20.863636363636356
+          ],
+          "soleRange": [
+            29,
+            38
+          ],
+          "changedPixels": 616,
+          "changedSilhouette": 271,
+          "sha256": "b3f3f45451fa6306970484706979b0db8874160fd8b671510f82cf5b2346d6a3"
+        },
+        {
+          "index": 6,
+          "phase": "passing_b",
+          "nativeBounds": [
+            14,
+            10,
+            45,
+            48
+          ],
+          "faceCentroid": [
+            37.81818181818182,
+            21.36363636363636
+          ],
+          "soleRange": [
+            18,
+            23
+          ],
+          "changedPixels": 612,
+          "changedSilhouette": 271,
+          "sha256": "693c58c65ad44f21b02f6a504127ac52e78e657f21da7e0892164dc02c6d104d"
+        },
+        {
+          "index": 7,
+          "phase": "flight_b",
+          "nativeBounds": [
+            14,
+            10,
+            48,
+            47
+          ],
+          "faceCentroid": [
+            38.20689655172414,
+            21.41379310344827
+          ],
+          "soleRange": [
+            39,
+            46
+          ],
+          "changedPixels": 524,
+          "changedSilhouette": 223,
+          "sha256": "af5af1dc18904fd5e5e6838f508d109fd433a71ecfb972a5549bad783dc7ccee"
+        }
+      ],
+      "distinctRunFrames": 8,
+      "faceMotionSpan": [
+        0.7234848484848442,
+        1.219696969696976
+      ]
+    },
+    "kura": {
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kura.gbapal",
+      "paletteSHA256": "d44d445853d81e1b81659dcabf5864c5c50b098cd4e47e323019d3144d1c0be4",
+      "sources": {
+        "attack": {
+          "source": "graphics/sa2/ocs/source/kura_ability_v3.png",
+          "sourceSHA256": "5dc6f2787d94ea4e34ff0313edf48d97902f318b12cb4999c293f330593b5556",
+          "sourceSize": [
+            1774,
+            887
+          ],
+          "scale": 0.10603829160530193,
+          "selection": "all eight",
+          "unassignedComponents": []
+        }
+      },
+      "frames": {
+        "attack": [
+          {
+            "index": 0,
+            "name": "anticipation_0",
+            "sourceBounds": [
+              96,
+              75,
+              401,
+              405
+            ],
+            "bodyBounds": [
+              96,
+              75,
+              401,
+              405
+            ],
+            "secondaryComponents": [],
+            "size": [
+              32,
+              35
+            ],
+            "offset": [
+              14,
+              14
+            ],
+            "bodyAnchorX": 268,
+            "groundY": 405,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              96,
+              75,
+              1372,
+              481
+            ],
+            "nativeBounds": [
+              14,
+              14,
+              45,
+              48
+            ],
+            "faceCentroid": [
+              36.76923076923077,
+              28.192307692307697
+            ],
+            "faceBounds": [
+              33,
+              24,
+              40,
+              30
+            ],
+            "headSkinClusterSizes": [
+              26,
+              2,
+              1,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 48,
+            "soleRange": [
+              22,
+              35
+            ],
+            "occupied": 654,
+            "meanColorError": 192.37131498470953,
+            "severeColorErrorFraction": 0,
+            "sha256": "79e75867f1ea7832862e91bdcb6950598ab0600a7c2b02abfcead916e4fcd8cf"
+          },
+          {
+            "index": 1,
+            "name": "anticipation_1",
+            "sourceBounds": [
+              516,
+              52,
+              812,
+              400
+            ],
+            "bodyBounds": [
+              516,
+              52,
+              812,
+              400
+            ],
+            "secondaryComponents": [],
+            "size": [
+              31,
+              37
+            ],
+            "offset": [
+              13,
+              11
+            ],
+            "bodyAnchorX": 696,
+            "groundY": 405,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              516,
+              52,
+              961,
+              486
+            ],
+            "nativeBounds": [
+              13,
+              11,
+              43,
+              47
+            ],
+            "faceCentroid": [
+              34.392857142857146,
+              26.250000000000007
+            ],
+            "faceBounds": [
+              30,
+              22,
+              38,
+              29
+            ],
+            "headSkinClusterSizes": [
+              28,
+              5,
+              3,
+              2,
+              2,
+              2,
+              1
+            ],
+            "solePixels": 21,
+            "soleRange": [
+              25,
+              33
+            ],
+            "occupied": 653,
+            "meanColorError": 205.16888208269512,
+            "severeColorErrorFraction": 0,
+            "sha256": "95a3e92478763d10277addb309d7159bbc957b52238921aedb81250f48b2b453"
+          },
+          {
+            "index": 2,
+            "name": "active_0",
+            "sourceBounds": [
+              946,
+              72,
+              1264,
+              395
+            ],
+            "bodyBounds": [
+              946,
+              72,
+              1264,
+              395
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              34
+            ],
+            "offset": [
+              12,
+              14
+            ],
+            "bodyAnchorX": 1131,
+            "groundY": 405,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              946,
+              72,
+              509,
+              491
+            ],
+            "nativeBounds": [
+              12,
+              14,
+              45,
+              47
+            ],
+            "faceCentroid": [
+              35.9642857142857,
+              28.24999999999999
+            ],
+            "faceBounds": [
+              32,
+              24,
+              40,
+              30
+            ],
+            "headSkinClusterSizes": [
+              28,
+              7,
+              3,
+              3,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 24,
+            "soleRange": [
+              23,
+              31
+            ],
+            "occupied": 665,
+            "meanColorError": 196.61377443609013,
+            "severeColorErrorFraction": 0.004511278195488722,
+            "sha256": "b714e1c0850d2cfdee71da2e6b2c5fb361a7cfe0f9cf3572fed8377ba1c712ab"
+          },
+          {
+            "index": 3,
+            "name": "active_1",
+            "sourceBounds": [
+              1413,
+              74,
+              1715,
+              404
+            ],
+            "bodyBounds": [
+              1413,
+              74,
+              1715,
+              404
+            ],
+            "secondaryComponents": [],
+            "size": [
+              32,
+              35
+            ],
+            "offset": [
+              12,
+              14
+            ],
+            "bodyAnchorX": 1600,
+            "groundY": 405,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1413,
+              74,
+              58,
+              482
+            ],
+            "nativeBounds": [
+              12,
+              14,
+              43,
+              48
+            ],
+            "faceCentroid": [
+              34.42857142857142,
+              28.10714285714285
+            ],
+            "faceBounds": [
+              30,
+              24,
+              38,
+              30
+            ],
+            "headSkinClusterSizes": [
+              28,
+              3,
+              2,
+              1,
+              1
+            ],
+            "solePixels": 30,
+            "soleRange": [
+              23,
+              31
+            ],
+            "occupied": 630,
+            "meanColorError": 206.77009523809522,
+            "severeColorErrorFraction": 0.0015873015873015873,
+            "sha256": "cff1d4abce3f38c1535e59f1d3dac8923d01f997ffad72953d338bc894703682"
+          },
+          {
+            "index": 4,
+            "name": "active_2",
+            "sourceBounds": [
+              92,
+              494,
+              401,
+              833
+            ],
+            "bodyBounds": [
+              92,
+              494,
+              401,
+              833
+            ],
+            "secondaryComponents": [],
+            "size": [
+              33,
+              36
+            ],
+            "offset": [
+              12,
+              13
+            ],
+            "bodyAnchorX": 279,
+            "groundY": 833,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              92,
+              494,
+              1372,
+              53
+            ],
+            "nativeBounds": [
+              12,
+              13,
+              44,
+              48
+            ],
+            "faceCentroid": [
+              35.06896551724138,
+              27.3103448275862
+            ],
+            "faceBounds": [
+              31,
+              23,
+              39,
+              29
+            ],
+            "headSkinClusterSizes": [
+              29,
+              4,
+              3,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 39,
+            "soleRange": [
+              22,
+              33
+            ],
+            "occupied": 645,
+            "meanColorError": 216.054449612403,
+            "severeColorErrorFraction": 0.0015503875968992248,
+            "sha256": "b76751668f390d56e8a409fa20fee76edea5f5dbf26e0452e5f8f617650fdf73"
+          },
+          {
+            "index": 5,
+            "name": "recovery_0",
+            "sourceBounds": [
+              518,
+              479,
+              821,
+              828
+            ],
+            "bodyBounds": [
+              518,
+              479,
+              821,
+              828
+            ],
+            "secondaryComponents": [],
+            "size": [
+              32,
+              37
+            ],
+            "offset": [
+              13,
+              11
+            ],
+            "bodyAnchorX": 700,
+            "groundY": 833,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              518,
+              479,
+              952,
+              58
+            ],
+            "nativeBounds": [
+              13,
+              11,
+              44,
+              47
+            ],
+            "faceCentroid": [
+              34.96875,
+              25.90625
+            ],
+            "faceBounds": [
+              31,
+              21,
+              39,
+              28
+            ],
+            "headSkinClusterSizes": [
+              32,
+              5,
+              3,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 19,
+            "soleRange": [
+              25,
+              32
+            ],
+            "occupied": 663,
+            "meanColorError": 185.21357466063353,
+            "severeColorErrorFraction": 0,
+            "sha256": "785dd517c933aa15c2508de24bb797ffc40979744695c6f8d0abb8523762fbc4"
+          },
+          {
+            "index": 6,
+            "name": "recovery_1",
+            "sourceBounds": [
+              948,
+              490,
+              1265,
+              818
+            ],
+            "bodyBounds": [
+              948,
+              490,
+              1265,
+              818
+            ],
+            "secondaryComponents": [],
+            "size": [
+              34,
+              35
+            ],
+            "offset": [
+              12,
+              13
+            ],
+            "bodyAnchorX": 1135,
+            "groundY": 833,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              948,
+              490,
+              508,
+              68
+            ],
+            "nativeBounds": [
+              12,
+              13,
+              45,
+              47
+            ],
+            "faceCentroid": [
+              35.89655172413793,
+              26.931034482758616
+            ],
+            "faceBounds": [
+              32,
+              22,
+              40,
+              29
+            ],
+            "headSkinClusterSizes": [
+              29,
+              9,
+              3,
+              2,
+              1,
+              1
+            ],
+            "solePixels": 19,
+            "soleRange": [
+              24,
+              32
+            ],
+            "occupied": 664,
+            "meanColorError": 200.72415662650607,
+            "severeColorErrorFraction": 0.0030120481927710845,
+            "sha256": "f08d3a35b4a351bf828d694da0f01c7bec5da958c5ba7846e4687187fc8dae4f"
+          },
+          {
+            "index": 7,
+            "name": "recovery_2",
+            "sourceBounds": [
+              1411,
+              488,
+              1716,
+              832
+            ],
+            "bodyBounds": [
+              1411,
+              488,
+              1716,
+              832
+            ],
+            "secondaryComponents": [],
+            "size": [
+              32,
+              37
+            ],
+            "offset": [
+              13,
+              12
+            ],
+            "bodyAnchorX": 1590,
+            "groundY": 833,
+            "sourceTouchesEdge": false,
+            "sourceBorderMargin": [
+              1411,
+              488,
+              57,
+              54
+            ],
+            "nativeBounds": [
+              13,
+              12,
+              44,
+              48
+            ],
+            "faceCentroid": [
+              35.70967741935485,
+              26.38709677419354
+            ],
+            "faceBounds": [
+              32,
+              22,
+              39,
+              29
+            ],
+            "headSkinClusterSizes": [
+              31,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "solePixels": 37,
+            "soleRange": [
+              22,
+              33
+            ],
+            "occupied": 666,
+            "meanColorError": 212.7763963963965,
+            "severeColorErrorFraction": 0,
+            "sha256": "417d6b9392c13ff74853b131cb5dbb93c032b7b0af7f042926f020b2cb30f04e"
+          }
+        ]
+      }
+    }
+  }
+}

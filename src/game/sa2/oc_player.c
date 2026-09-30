@@ -41,6 +41,20 @@ static u32 sOcSpecialRunPhase;
 #define OC_ACTION_FRAME(index) (OC_FRAME_COUNT + (index))
 #define OC_RUN_PHASE_COUNT 12
 #define OC_RUN_PHASE_DISTANCE Q(8)
+#define OC_REVISED_RUN_FIRST (OC_FRAME_COUNT + OC_ACTION_FRAME_COUNT)
+#define OC_REVISED_ATTACK_FIRST (OC_REVISED_RUN_FIRST + OC_REVISED_RUN_FRAME_COUNT)
+
+/* These revisions are isolated from Elizabeth and the legacy jump/victory
+ * atlases. Kura shares only the revised ability atlas, keeping her run intact. */
+static bool32 OcPlayerUsesRevisedRun(void)
+{
+    return sOcPlayer.oc == OC_JUDE || sOcPlayer.oc == OC_KIRO || sOcPlayer.oc == OC_YULIANA;
+}
+
+static u8 OcPlayerRevisedIndex(void)
+{
+    return sOcPlayer.oc == OC_JUDE ? 0 : sOcPlayer.oc == OC_KIRO ? 1 : sOcPlayer.oc == OC_YULIANA ? 2 : 3;
+}
 
 static bool32 OcPlayerIsVictoryState(u8 state)
 {
@@ -87,6 +101,9 @@ static u8 OcPlayerRunFrame(Player *player)
 {
     if (ABS(player->qSpeedGround) < Q(0.125)) {
         return 0;
+    }
+    if (OcPlayerUsesRevisedRun()) {
+        return OC_REVISED_RUN_FIRST + ((sOcPlayer.runPhase >> 8) % OC_REVISED_RUN_FRAME_COUNT);
     }
     return OC_ACTION_FRAME((sOcPlayer.runPhase >> 8) % OC_RUN_PHASE_COUNT);
 }
@@ -151,6 +168,9 @@ static u8 OcPlayerFrame(Player *player)
         return 18 + ((age / 8) & 1);
     }
     if (OcAbilityActive(player)) {
+        if (OcPlayerUsesRevisedRun() || sOcPlayer.oc == OC_KURA) {
+            return OC_REVISED_ATTACK_FIRST + MIN(OcAbilityVisualPhase(player), OC_REVISED_ATTACK_FRAME_COUNT - 1);
+        }
         return OC_ACTION_FRAME(16 + MIN(OcAbilityFramePhase(player), 3));
     }
     switch (state) {
@@ -212,6 +232,11 @@ static u8 OcPlayerFrame(Player *player)
         case CHARSTATE_AMY_HAMMER_ATTACK:
         case CHARSTATE_AMY_SA1_HAMMER_ATTACK:
         case CHARSTATE_AMY_MID_AIR_HAMMER_SWIRL:
+            /* Scripted/native attack states can outlive a blocked ability.
+             * Show a weapon only while its timed custom ability is active. */
+            if (OcPlayerUsesRevisedRun() || sOcPlayer.oc == OC_KURA) {
+                return (player->moveState & MOVESTATE_IN_AIR) ? OcPlayerJumpFrame(player) : OcPlayerRunFrame(player);
+            }
             return OC_ACTION_FRAME(16 + ((age / 4) % 4));
         case CHARSTATE_TRICK_DOWN:
         case CHARSTATE_TRICK_UP:
@@ -422,8 +447,15 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
     if (elapsed && !(player->moveState & MOVESTATE_IN_AIR) && !(sOcPlayer.lastMoveState & MOVESTATE_IN_AIR)
         && distance < Q(64) && ABS(player->qSpeedGround) >= Q(0.125) && !OcAbilityActive(player)
         && !(player->moveState & (MOVESTATE_DEAD | MOVESTATE_IGNORE_INPUT))) {
-        u32 advance = MIN((distance << 8) / OC_RUN_PHASE_DISTANCE, Q(0.75) * elapsed);
-        sOcPlayer.runPhase = (sOcPlayer.runPhase + advance) % (OC_RUN_PHASE_COUNT * Q(1));
+        bool32 revised = OcPlayerUsesRevisedRun();
+        /* Eight poses still cover the same 96px stride as the legacy twelve.
+         * At high velocity hold each revised pose for at least two ticks,
+         * rather than flickering through 45 poses per second. */
+        u32 stride = revised ? Q(12) : OC_RUN_PHASE_DISTANCE;
+        u32 limit = revised ? Q(0.5) : Q(0.75);
+        u32 count = revised ? OC_REVISED_RUN_FRAME_COUNT : OC_RUN_PHASE_COUNT;
+        u32 advance = MIN((distance << 8) / stride, limit * elapsed);
+        sOcPlayer.runPhase = (sOcPlayer.runPhase + advance) % (count * Q(1));
     }
     sOcPlayer.lastMoveState = player->moveState;
     frame = OcPlayerFrame(player);
@@ -438,8 +470,15 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
     sOcPlayer.dimensions.offsetY = OC_FRAME_PIVOT_Y - player->spriteOffsetY;
     if (frame != sOcPlayer.frame) {
         sOcPlayer.frame = frame;
-        sprite->graphics.src = frame < OC_FRAME_COUNT ? gOcFrameTiles[sOcPlayer.oc][frame]
-            : gOcActionFrameTiles[sOcPlayer.oc][frame - OC_FRAME_COUNT];
+        if (frame < OC_FRAME_COUNT) {
+            sprite->graphics.src = gOcFrameTiles[sOcPlayer.oc][frame];
+        } else if (frame < OC_REVISED_RUN_FIRST) {
+            sprite->graphics.src = gOcActionFrameTiles[sOcPlayer.oc][frame - OC_FRAME_COUNT];
+        } else if (frame < OC_REVISED_ATTACK_FIRST) {
+            sprite->graphics.src = gOcRevisedRunTiles[OcPlayerRevisedIndex()][frame - OC_REVISED_RUN_FIRST];
+        } else {
+            sprite->graphics.src = gOcRevisedAttackTiles[OcPlayerRevisedIndex()][frame - OC_REVISED_ATTACK_FIRST];
+        }
         ADD_TO_GRAPHICS_QUEUE(&sprite->graphics);
     }
     OcPlayerPreparePalette(player, body);

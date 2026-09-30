@@ -11,6 +11,7 @@
 #include "game/sa2/stage/player_controls.h"
 #include "game/shared/stage/camera.h"
 #include "game/shared/stage/terrain_collision.h"
+#include "game/shared/parameters/characters.h"
 #include "constants/sa2/char_states.h"
 #include "constants/sa2/songs.h"
 
@@ -132,6 +133,32 @@ u8 OcAbilityFramePhase(Player *player)
     return status->age <= (status->activeStart + status->activeEnd) / 2 ? 1 : 2;
 }
 
+u8 OcAbilityVisualPhase(Player *player)
+{
+    static const u8 katana[8] = { 0, 3, 5, 7, 9, 12, 15, 19 };
+    static const u8 pan[8] = { 0, 3, 6, 8, 11, 14, 17, 21 };
+    static const u8 gun[8] = { 0, 2, 3, 6, 8, 10, 11, 12 };
+    static const u8 flap[8] = { 0, 4, 8, 12, 16, 20, 24, 27 };
+    const u8 *starts;
+    s32 phase;
+    if (!OcAbilityActive(player)) {
+        return 0;
+    }
+    switch (sAbilities.status.kind) {
+        case OC_ABILITY_KATANA: starts = katana; break;
+        case OC_ABILITY_PAN: starts = pan; break;
+        case OC_ABILITY_GUN: starts = gun; break;
+        case OC_ABILITY_FLAP: starts = flap; break;
+        default: return OcAbilityFramePhase(player);
+    }
+    for (phase = 7; phase > 0; phase--) {
+        if (sAbilities.status.age >= starts[phase]) {
+            return phase;
+        }
+    }
+    return 0;
+}
+
 bool32 OcAbilityDodging(Player *player)
 {
     return OcAbilityActive(player) && sAbilities.status.kind == OC_ABILITY_GLITCH && sAbilities.status.damaging;
@@ -217,14 +244,28 @@ static void OcBeginAbility(Player *player)
             status->cooldown = 50;
             sound = SE_SONIC_INSTA_SHIELD;
             break;
-        default:
-            status->kind = OC_ABILITY_DASH;
-            status->activeStart = 2;
-            status->activeEnd = 8;
-            status->duration = 18;
+        case OC_KURA:
+            status->kind = OC_ABILITY_FLAP;
+            status->activeStart = 0;
+            status->activeEnd = 29;
+            status->duration = 30;
             status->cooldown = 36;
-            sound = SE_DASH_RING;
+            status->flapUsed = TRUE;
+            if (!(player->moveState & MOVESTATE_IN_AIR)) {
+                Player_TransitionCancelFlyingAndBoost(player);
+                player->moveState |= MOVESTATE_IN_AIR;
+                player->moveState &= ~MOVESTATE_STOOD_ON_OBJ;
+                player->stoodObj = NULL;
+                player->qSpeedAirY = -Q(3);
+                player->callback = Player_Jumping;
+            } else {
+                /* A single wingbeat can soften a fall, while preserving an
+                 * existing spring or jump's faster upward velocity. */
+                player->qSpeedAirY = MIN(player->qSpeedAirY, -Q(2.5));
+            }
+            sound = SE_JUMP;
             break;
+        default: return;
     }
     OcSuppressSpin(player);
     player->charState = CHARSTATE_BOOSTLESS_ATTACK;
@@ -292,6 +333,7 @@ bool32 OcAbilitiesUpdate(Player *player)
     }
     if (!(player->moveState & MOVESTATE_IN_AIR)) {
         status->aerialPanUsed = FALSE;
+        status->flapUsed = FALSE;
     }
     OcUpdateProjectiles(player);
     if (status->cooldown != 0) {
@@ -305,6 +347,9 @@ bool32 OcAbilitiesUpdate(Player *player)
         || (player->charState >= CHARSTATE_WINDUP_STICK_UPWARDS && player->charState <= CHARSTATE_WINDUP_STICK_SINGLE_TURN_DOWN)
         || (player->charState >= CHARSTATE_WALLRUN_INIT && player->charState <= CHARSTATE_WALLRUN_ON_WALL)
         || player->charState == CHARSTATE_LAUNCHER_IN_CART || player->charState == CHARSTATE_POLE;
+    if (gSelectedOc == OC_KURA && (player->moveState & MOVESTATE_IN_WATER)) {
+        blocked = TRUE;
+    }
     if (blocked) {
         OcAbilitiesCancel(player);
         if (player->moveState & (MOVESTATE_DEAD | MOVESTATE_IN_SCRIPTED | MOVESTATE_IA_OVERRIDE | MOVESTATE_GOAL_REACHED)) {
@@ -335,23 +380,32 @@ bool32 OcAbilitiesUpdate(Player *player)
         aerialPan = TRUE;
     }
     if (!status->attacking && status->cooldown == 0 && ((player->frameInput & gPlayerControls.attack) || aerialPan)) {
-        OcBeginAbility(player);
+        bool32 canBegin = TRUE;
+        if (gSelectedOc == OC_KURA) {
+            canBegin = !status->flapUsed;
+            if (!(player->moveState & MOVESTATE_IN_AIR)) {
+                u8 rot = player->rotation;
+                if (GRAVITY_IS_INVERTED) {
+                    rot += Q(0.25);
+                    rot = -rot;
+                    rot -= Q(0.25);
+                }
+                canBegin = SA2_LABEL(sub_8022F58)(rot + Q(0.5), player) > 3;
+            }
+        }
+        if (canBegin) {
+            OcBeginAbility(player);
+        }
     }
     if (!status->attacking) {
         return FALSE;
     }
-    status->damaging = status->age >= status->activeStart && status->age <= status->activeEnd;
+    status->damaging = status->kind != OC_ABILITY_FLAP
+        && status->age >= status->activeStart && status->age <= status->activeEnd;
     if (status->kind == OC_ABILITY_GUN && status->age == status->activeStart) {
         OcFireProjectile(player);
     }
-    player->moveState &= ~MOVESTATE_FACING_LEFT;
-    if (sAbilities.facingLeft) {
-        player->moveState |= MOVESTATE_FACING_LEFT;
-    }
-    if (status->kind == OC_ABILITY_DASH && status->damaging) {
-        player->qSpeedGround = sAbilities.facingLeft ? -Q(7) : Q(7);
-        player->qSpeedAirX = player->qSpeedGround;
-    } else if (!(player->moveState & MOVESTATE_IN_AIR)) {
+    if (!(player->moveState & MOVESTATE_IN_AIR) && status->kind != OC_ABILITY_FLAP) {
         if (status->kind == OC_ABILITY_PAN) {
             /* Amy's grounded attack slows by the native 0.375px/frame. */
             s32 speed = player->qSpeedGround;
@@ -361,6 +415,11 @@ bool32 OcAbilitiesUpdate(Player *player)
         }
     }
     if (player->moveState & MOVESTATE_IN_AIR) {
+        if (status->kind == OC_ABILITY_FLAP) {
+            /* Gravity and terrain collision still advance exactly once in
+             * the engine; this temporary terminal speed ends with the art. */
+            player->qSpeedAirY = MIN(player->qSpeedAirY, Q(1) - Q(PLAYER_GRAVITY));
+        }
         Player_HandlePhysicsWithAirInput(player);
     } else {
         Player_HandlePhysics(player);
@@ -369,6 +428,7 @@ bool32 OcAbilitiesUpdate(Player *player)
         bool32 touchGround = player->spriteOffsetY == 9 || player->callback == Player_TouchGround
             || (player->moveState & MOVESTATE_100);
         status->aerialPanUsed = FALSE;
+        status->flapUsed = FALSE;
         /* A platform can set TouchGround while this attack still owns the
          * frame. Restore its standing bounds here instead of deferring the
          * callback until recovery ends; keep the contacted feet fixed. */
@@ -381,6 +441,19 @@ bool32 OcAbilitiesUpdate(Player *player)
             Player_TransitionCancelFlyingAndBoost(player);
             player->callback = Player_Idle;
         }
+    }
+    if (status->kind != OC_ABILITY_FLAP) {
+        /* Air steering may turn the native body. Keep the visible weapon
+         * facing the same direction as its locked hitbox/projectile. */
+        player->moveState &= ~MOVESTATE_FACING_LEFT;
+        if (sAbilities.facingLeft) {
+            player->moveState |= MOVESTATE_FACING_LEFT;
+        }
+    } else if (!(player->moveState & MOVESTATE_IN_AIR)) {
+        OcAbilitiesCancel(player);
+        player->callback = Player_Idle;
+        player->charState = player->qSpeedGround ? CHARSTATE_WALK_A : CHARSTATE_IDLE;
+        return TRUE;
     }
     player->charState = CHARSTATE_BOOSTLESS_ATTACK;
     return TRUE;
@@ -395,6 +468,7 @@ void OcAbilitiesApplyHitbox(Player *player)
     }
     if (!(player->moveState & MOVESTATE_IN_AIR)) {
         sAbilities.status.aerialPanUsed = FALSE;
+        sAbilities.status.flapUsed = FALSE;
     }
     OcSuppressSpin(player);
     body = &player->spriteInfoBody->s;
@@ -409,7 +483,7 @@ void OcAbilitiesApplyHitbox(Player *player)
     } else if (sAbilities.status.kind == OC_ABILITY_PAN) {
         rectangle = (Rect8) { 3, -22, 24, 9 };
     } else {
-        rectangle = (Rect8) { 0, -13, 20, 12 };
+        return;
     }
     if (sAbilities.facingLeft) {
         s8 left = rectangle.left;

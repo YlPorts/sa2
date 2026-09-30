@@ -9,7 +9,7 @@ enum OcAbilityType {
     OC_ABILITY_GUN,
     OC_ABILITY_PAN,
     OC_ABILITY_GLITCH,
-    OC_ABILITY_DASH,
+    OC_ABILITY_FLAP,
 };
 
 typedef struct {
@@ -23,6 +23,7 @@ typedef struct {
     bool8 attacking;
     bool8 damaging;
     bool8 aerialPanUsed;
+    bool8 flapUsed;
     u32 attacksStarted;
     u32 shotsFired;
     u32 hitsLanded;
@@ -39,6 +40,8 @@ void OcAbilitiesDraw(Player *player);
 
 bool32 OcAbilityActive(Player *player);
 u8 OcAbilityFramePhase(Player *player);
+/* Eight visual poses; damage windows remain independent of the art. */
+u8 OcAbilityVisualPhase(Player *player);
 u8 OcAbilityKind(Player *player);
 u16 OcAbilityAge(Player *player);
 u16 OcAbilityCooldown(Player *player);

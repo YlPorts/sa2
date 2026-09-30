@@ -19,3 +19,11 @@ const u8 ALIGNED(4) gOcSpecialFrameTiles[OC_CHARACTER_COUNT][OC_SPECIAL_FRAME_CO
 const u8 ALIGNED(4) gOcActionFrameTiles[OC_CHARACTER_COUNT][OC_ACTION_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/action_tiles.inc"
 };
+
+const u8 ALIGNED(4) gOcRevisedRunTiles[OC_REVISED_RUN_CHARACTER_COUNT][OC_REVISED_RUN_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
+#include "../../../graphics/sa2/ocs/revised_run_tiles.inc"
+};
+
+const u8 ALIGNED(4) gOcRevisedAttackTiles[OC_REVISED_ATTACK_CHARACTER_COUNT][OC_REVISED_ATTACK_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
+#include "../../../graphics/sa2/ocs/revised_attack_tiles.inc"
+};
