@@ -1,0 +1,641 @@
+{
+  "alphaCutoff": 200,
+  "frameSize": [
+    64,
+    64
+  ],
+  "pivot": [
+    32,
+    48
+  ],
+  "order": [
+    "elizabeth",
+    "jude",
+    "kiro",
+    "yuliana"
+  ],
+  "frames": [
+    "rear_run_a",
+    "rear_run_b",
+    "rear_run_c",
+    "rear_run_d",
+    "rear_turn_left",
+    "rear_turn_right",
+    "rear_jump",
+    "rear_hurt"
+  ],
+  "characters": {
+    "elizabeth": {
+      "source": "graphics/sa2/ocs/source/elizabeth_rear.png",
+      "sourceSHA256": "c7c292095a0340206ad4277f8665e1575bb5db43736bc109d16974737d6e06bf",
+      "scale": 0.09,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/elizabeth.gbapal",
+      "frames": [
+        {
+          "index": 0,
+          "name": "rear_run_a",
+          "sourceBounds": [
+            75,
+            84,
+            325,
+            483
+          ],
+          "size": [
+            23,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ]
+        },
+        {
+          "index": 1,
+          "name": "rear_run_b",
+          "sourceBounds": [
+            440,
+            82,
+            694,
+            466
+          ],
+          "size": [
+            23,
+            35
+          ],
+          "offset": [
+            21,
+            14
+          ]
+        },
+        {
+          "index": 2,
+          "name": "rear_run_c",
+          "sourceBounds": [
+            817,
+            86,
+            1069,
+            482
+          ],
+          "size": [
+            23,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ]
+        },
+        {
+          "index": 3,
+          "name": "rear_run_d",
+          "sourceBounds": [
+            1176,
+            86,
+            1439,
+            482
+          ],
+          "size": [
+            24,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ]
+        },
+        {
+          "index": 4,
+          "name": "rear_turn_left",
+          "sourceBounds": [
+            36,
+            575,
+            317,
+            955
+          ],
+          "size": [
+            25,
+            34
+          ],
+          "offset": [
+            20,
+            15
+          ]
+        },
+        {
+          "index": 5,
+          "name": "rear_turn_right",
+          "sourceBounds": [
+            462,
+            576,
+            737,
+            955
+          ],
+          "size": [
+            25,
+            34
+          ],
+          "offset": [
+            20,
+            15
+          ]
+        },
+        {
+          "index": 6,
+          "name": "rear_jump",
+          "sourceBounds": [
+            794,
+            559,
+            1104,
+            872
+          ],
+          "size": [
+            28,
+            28
+          ],
+          "offset": [
+            18,
+            16
+          ]
+        },
+        {
+          "index": 7,
+          "name": "rear_hurt",
+          "sourceBounds": [
+            1187,
+            565,
+            1481,
+            955
+          ],
+          "size": [
+            27,
+            35
+          ],
+          "offset": [
+            19,
+            9
+          ]
+        }
+      ]
+    },
+    "jude": {
+      "source": "graphics/sa2/ocs/source/jude_rear.png",
+      "sourceSHA256": "93d0524fdee9357f18facf9bcfebf9db07c8b0787460d8c54919b7c5d5fef844",
+      "scale": 0.09326424870466321,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/jude.gbapal",
+      "frames": [
+        {
+          "index": 0,
+          "name": "rear_run_a",
+          "sourceBounds": [
+            89,
+            90,
+            295,
+            475
+          ],
+          "size": [
+            19,
+            36
+          ],
+          "offset": [
+            23,
+            13
+          ]
+        },
+        {
+          "index": 1,
+          "name": "rear_run_b",
+          "sourceBounds": [
+            473,
+            90,
+            680,
+            475
+          ],
+          "size": [
+            19,
+            36
+          ],
+          "offset": [
+            23,
+            13
+          ]
+        },
+        {
+          "index": 2,
+          "name": "rear_run_c",
+          "sourceBounds": [
+            853,
+            90,
+            1061,
+            475
+          ],
+          "size": [
+            19,
+            36
+          ],
+          "offset": [
+            23,
+            13
+          ]
+        },
+        {
+          "index": 3,
+          "name": "rear_run_d",
+          "sourceBounds": [
+            1250,
+            90,
+            1453,
+            475
+          ],
+          "size": [
+            19,
+            36
+          ],
+          "offset": [
+            23,
+            13
+          ]
+        },
+        {
+          "index": 4,
+          "name": "rear_turn_left",
+          "sourceBounds": [
+            70,
+            591,
+            310,
+            956
+          ],
+          "size": [
+            22,
+            34
+          ],
+          "offset": [
+            21,
+            15
+          ]
+        },
+        {
+          "index": 5,
+          "name": "rear_turn_right",
+          "sourceBounds": [
+            457,
+            591,
+            693,
+            956
+          ],
+          "size": [
+            22,
+            34
+          ],
+          "offset": [
+            21,
+            15
+          ]
+        },
+        {
+          "index": 6,
+          "name": "rear_jump",
+          "sourceBounds": [
+            829,
+            591,
+            1091,
+            911
+          ],
+          "size": [
+            25,
+            30
+          ],
+          "offset": [
+            20,
+            14
+          ]
+        },
+        {
+          "index": 7,
+          "name": "rear_hurt",
+          "sourceBounds": [
+            1235,
+            595,
+            1493,
+            908
+          ],
+          "size": [
+            24,
+            29
+          ],
+          "offset": [
+            20,
+            15
+          ]
+        }
+      ]
+    },
+    "kiro": {
+      "source": "graphics/sa2/ocs/source/kiro_rear.png",
+      "sourceSHA256": "a136c06274a3ca1c009313214e3a8d7591bf801a2fb168a49e18b9b4e2f2ac44",
+      "scale": 0.09254498714652956,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kiro.gbapal",
+      "frames": [
+        {
+          "index": 0,
+          "name": "rear_run_a",
+          "sourceBounds": [
+            73,
+            83,
+            297,
+            471
+          ],
+          "size": [
+            21,
+            36
+          ],
+          "offset": [
+            22,
+            13
+          ]
+        },
+        {
+          "index": 1,
+          "name": "rear_run_b",
+          "sourceBounds": [
+            467,
+            82,
+            691,
+            464
+          ],
+          "size": [
+            21,
+            35
+          ],
+          "offset": [
+            22,
+            14
+          ]
+        },
+        {
+          "index": 2,
+          "name": "rear_run_c",
+          "sourceBounds": [
+            842,
+            82,
+            1063,
+            470
+          ],
+          "size": [
+            21,
+            36
+          ],
+          "offset": [
+            22,
+            13
+          ]
+        },
+        {
+          "index": 3,
+          "name": "rear_run_d",
+          "sourceBounds": [
+            1234,
+            81,
+            1460,
+            470
+          ],
+          "size": [
+            21,
+            36
+          ],
+          "offset": [
+            22,
+            13
+          ]
+        },
+        {
+          "index": 4,
+          "name": "rear_turn_left",
+          "sourceBounds": [
+            64,
+            575,
+            306,
+            949
+          ],
+          "size": [
+            22,
+            35
+          ],
+          "offset": [
+            21,
+            14
+          ]
+        },
+        {
+          "index": 5,
+          "name": "rear_turn_right",
+          "sourceBounds": [
+            479,
+            570,
+            701,
+            949
+          ],
+          "size": [
+            21,
+            35
+          ],
+          "offset": [
+            22,
+            14
+          ]
+        },
+        {
+          "index": 6,
+          "name": "rear_jump",
+          "sourceBounds": [
+            835,
+            552,
+            1077,
+            871
+          ],
+          "size": [
+            22,
+            30
+          ],
+          "offset": [
+            21,
+            14
+          ]
+        },
+        {
+          "index": 7,
+          "name": "rear_hurt",
+          "sourceBounds": [
+            1197,
+            577,
+            1515,
+            923
+          ],
+          "size": [
+            30,
+            32
+          ],
+          "offset": [
+            17,
+            12
+          ]
+        }
+      ]
+    },
+    "yuliana": {
+      "source": "graphics/sa2/ocs/source/yuliana_rear.png",
+      "sourceSHA256": "f9a41c40e32eea36185e5c7cc2afdb8ae21fbb4cbbc883812acdcdc8426b2c83",
+      "scale": 0.1,
+      "referenceHeight": 38,
+      "paletteSource": "graphics/sa2/ocs/yuliana.gbapal",
+      "frames": [
+        {
+          "index": 0,
+          "name": "rear_run_a",
+          "sourceBounds": [
+            64,
+            91,
+            332,
+            470
+          ],
+          "size": [
+            27,
+            38
+          ],
+          "offset": [
+            19,
+            11
+          ]
+        },
+        {
+          "index": 1,
+          "name": "rear_run_b",
+          "sourceBounds": [
+            454,
+            91,
+            709,
+            470
+          ],
+          "size": [
+            26,
+            38
+          ],
+          "offset": [
+            19,
+            11
+          ]
+        },
+        {
+          "index": 2,
+          "name": "rear_run_c",
+          "sourceBounds": [
+            816,
+            91,
+            1077,
+            470
+          ],
+          "size": [
+            26,
+            38
+          ],
+          "offset": [
+            19,
+            11
+          ]
+        },
+        {
+          "index": 3,
+          "name": "rear_run_d",
+          "sourceBounds": [
+            1213,
+            91,
+            1470,
+            470
+          ],
+          "size": [
+            26,
+            38
+          ],
+          "offset": [
+            19,
+            11
+          ]
+        },
+        {
+          "index": 4,
+          "name": "rear_turn_left",
+          "sourceBounds": [
+            48,
+            604,
+            331,
+            959
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ]
+        },
+        {
+          "index": 5,
+          "name": "rear_turn_right",
+          "sourceBounds": [
+            442,
+            600,
+            730,
+            954
+          ],
+          "size": [
+            29,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ]
+        },
+        {
+          "index": 6,
+          "name": "rear_jump",
+          "sourceBounds": [
+            809,
+            593,
+            1097,
+            908
+          ],
+          "size": [
+            29,
+            32
+          ],
+          "offset": [
+            18,
+            12
+          ]
+        },
+        {
+          "index": 7,
+          "name": "rear_hurt",
+          "sourceBounds": [
+            1201,
+            580,
+            1485,
+            953
+          ],
+          "size": [
+            29,
+            37
+          ],
+          "offset": [
+            18,
+            7
+          ]
+        }
+      ]
+    }
+  }
+}

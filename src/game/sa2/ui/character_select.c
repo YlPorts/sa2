@@ -23,6 +23,7 @@ extern void Platform_SetNativeUiCrop(bool8 enabled);
 #include "game/shared/stage/stage.h"
 #include "game/sa2/ui/character_select.h"
 #include "game/sa2/save.h"
+#include "game/sa2/oc_characters.h"
 
 #include "constants/sa2/animations.h"
 #include "constants/sa2/songs.h"
@@ -192,6 +193,16 @@ static const u8 sCharacterSilhouettes[] = {
 
 void CreateCharacterSelectionScreen(u8 initialSelection, bool8 allUnlocked)
 {
+    if (IS_SINGLE_PLAYER) {
+        CreateOcCharacterSelectionScreen(initialSelection, allUnlocked);
+        return;
+    }
+
+    /* Link packets and multiplayer save arrays only contain the original five IDs. */
+    OcSetSelection(-1);
+    if (initialSelection >= NUM_CHARACTERS) {
+        initialSelection = CHARACTER_SONIC;
+    }
 #ifdef __ANDROID__
     Platform_SetNativeUiCrop(TRUE);
 #endif

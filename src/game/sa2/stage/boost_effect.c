@@ -10,6 +10,9 @@
 #include "game/shared/stage/player.h"
 #include "game/shared/stage/camera.h"
 #include "game/sa2/stage/boost_effect.h"
+#if PORTABLE
+#include "game/sa2/oc_characters.h"
+#endif
 
 #include "constants/sa2/animations.h"
 #include "constants/anim_commands.h"
@@ -183,6 +186,14 @@ void CreateBoostEffectTasks(void)
 {
     Sprite *s;
     u8 i;
+
+#if PORTABLE
+    /* Native trails are copies of Sonic's body. The OC keeps the gameplay boost
+     * and particles without briefly turning into Sonic in its afterimages. */
+    if (gSelectedOc >= 0) {
+        return;
+    }
+#endif
 
     if (IS_SINGLE_PLAYER && !gBoostEffectTasksCreated && !IS_BOSS_STAGE(gCurrentLevel)) {
         gBoostEffectTasksCreated = TRUE;

@@ -9,6 +9,9 @@
 
 #include "game/shared/stage/player.h"
 #include "game/sa2/stage/stage_ui.h"
+#if PORTABLE
+#include "game/sa2/oc_characters.h"
+#endif
 
 #include "lib/m4a/m4a.h"
 
@@ -98,6 +101,9 @@ typedef struct {
     /* 0x2D4 */ u16 playerIconTileData;
     /* 0x2D6 */ u16 ringContainerTileData;
     /* 0x2D8 */ u16 digitsTileData[12];
+#if PORTABLE
+    u8 ocIconTiles[128] ALIGNED(4);
+#endif
 } StageUI; /* size: 0x2F0 */
 
 void Task_StageUIMain(void);
@@ -173,6 +179,16 @@ Task *CreateStageUI(void)
             ui->playerIconTileData |= (id << 12);
         }
         UpdateSpriteAnimation(s);
+#if PORTABLE
+        if (OcIdentityIsActive()) {
+            OcBuildIdentityIcon(ui->ocIconTiles, gSelectedOc);
+            s->graphics.src = ui->ocIconTiles;
+            s->graphics.size = sizeof(ui->ocIconTiles);
+            ADD_TO_GRAPHICS_QUEUE(&s->graphics);
+            /* The mini head shares the OC player palette, including water tint. */
+            ui->playerIconTileData = GET_TILE_NUM(s->graphics.dest) & 0x3FF;
+        }
+#endif
     }
 
     s = &ui->ringContainer;

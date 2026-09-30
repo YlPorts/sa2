@@ -153,7 +153,13 @@ void sub_806E7C0(struct SpecialStageWorld *world)
         *unk94++ = I(-(temp4 << 2)) * worldScale;
     }
 
+#if PORTABLE
+    /* VBlank loads row 0 directly; the last visible HBlank prefetches row
+     * DISPLAY_HEIGHT for the next scanline. Keep that extra transfer in bounds. */
+    world->bgTransforms = EwramMalloc((DISPLAY_HEIGHT + 1) * sizeof(BgAffineReg));
+#else
     world->bgTransforms = EwramMalloc(DISPLAY_HEIGHT * sizeof(BgAffineReg));
+#endif
     gBgOffsetsHBlankPrimary = world->bgTransforms;
     gBgOffsetsPrimary = world->bgTransforms;
     gBgOffsetsSecondary = world->bgTransforms;
@@ -175,6 +181,9 @@ void sub_806E7C0(struct SpecialStageWorld *world)
             ((BgAffineReg *)unk4)->pc = Q(i);
         }
     }
+#if PORTABLE
+    ((BgAffineReg *)world->bgTransforms)[DISPLAY_HEIGHT] = ((BgAffineReg *)world->bgTransforms)[DISPLAY_HEIGHT - 1];
+#endif
 
     sub_806E94C(world);
 }
@@ -256,6 +265,10 @@ void sub_806EA04(void)
 
         unk1884 = ((void *)unk1884) + sizeof(s32) * 2;
     }
+#if PORTABLE
+    /* Refresh the prefetch row after the frame's projection has changed. */
+    ((BgAffineReg *)world->bgTransforms)[DISPLAY_HEIGHT] = ((BgAffineReg *)world->bgTransforms)[DISPLAY_HEIGHT - 1];
+#endif
 
     sub_806EB74();
 }
@@ -295,6 +308,27 @@ void sub_806EBF4(Task *t)
     }
 
     if (world->bgTransforms != NULL) {
+#if PORTABLE
+        /* No queued HBlank transfer or engine buffer may refer to freed host
+         * memory when this task is removed during a special-stage transition. */
+        if (gBgOffsetsHBlankPrimary == world->bgTransforms) {
+            DmaStop(0);
+            gFlags &= ~FLAGS_EXECUTE_HBLANK_COPY;
+            gFlagsPreVBlank &= ~FLAGS_EXECUTE_HBLANK_COPY;
+            gHBlankCopyTarget = NULL;
+            gHBlankCopySize = 0;
+            gBgOffsetsHBlankPrimary = gBgOffsetsBuffer[0];
+        }
+        if (gBgOffsetsHBlankSecondary == world->bgTransforms) {
+            gBgOffsetsHBlankSecondary = gBgOffsetsBuffer[1];
+        }
+        if (gBgOffsetsPrimary == world->bgTransforms) {
+            gBgOffsetsPrimary = gBgOffsetsBuffer[0];
+        }
+        if (gBgOffsetsSecondary == world->bgTransforms) {
+            gBgOffsetsSecondary = gBgOffsetsBuffer[1];
+        }
+#endif
         EwramFree(world->bgTransforms);
     }
 }

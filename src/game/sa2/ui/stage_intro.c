@@ -14,6 +14,10 @@
 #include "game/sa2/stage/stage_ui.h"
 #include "game/sa2/stage/boss_results_transition.h"
 #include "game/shared/stage/water_effects.h"
+#if PORTABLE
+#include "data/sa2/oc_sprite_data.h"
+#include "game/sa2/oc_characters.h"
+#endif
 
 #include "constants/sa2/animations.h"
 #include "constants/zones.h"
@@ -316,6 +320,12 @@ typedef struct {
     /* 0x2A4 */ Sprite sprLoadingWheel;
     /* 0x2D4 */ Sprite sprLoadingWheelIcon;
     /* 0x304 */ SpriteTransform transform;
+#if PORTABLE
+    bool8 ocIdentity;
+    u8 ocNameLength;
+    u16 previousOcPalette[16];
+    u8 ocLogoTiles[16 * TILE_SIZE_4BPP] ALIGNED(4);
+#endif
 } IntroUI; /* size: 0x310 */
 
 typedef struct {
@@ -349,6 +359,11 @@ Task *SetupStageIntro(void)
     void *tilesCursor;
     Sprite *s;
     u8 i; // r7
+    u8 characterLogoTiles = zoneLoadingCharacterLogos[gSelectedCharacter][0];
+#if PORTABLE
+    if (OcIdentityIsActive())
+        characterLogoTiles = 16;
+#endif
 
     gStageFlags |= STAGE_FLAG__ACT_START;
     gStageFlags |= STAGE_FLAG__100;
@@ -400,16 +415,22 @@ Task *SetupStageIntro(void)
     t2 = TaskCreate(Task_IntroZoneNameAndIconAnimations, sizeof(IntroUI), 0x2230, 0, TaskDestructor_803045C);
     introUI = TASK_DATA(t2);
     introUI->controller = introController;
+#if PORTABLE
+    introUI->ocIdentity = OcIdentityIsActive();
+    introUI->ocNameLength = 0;
+    if (introUI->ocIdentity)
+        memcpy(introUI->previousOcPalette, &gObjPalette[14 * 16], sizeof(introUI->previousOcPalette));
+#endif
 
     if (IS_SINGLE_PLAYER) {
         tilesCursor = VramMalloc(
-            zoneLoadingCharacterLogos[gSelectedCharacter][0] + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 0][0]
+            characterLogoTiles + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 0][0]
             + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 1][0] + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 2][0]
             + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 3][0]
             + ({ zoneLoadingIcons[LEVEL_TO_ZONE(gCurrentLevel)][0] + 0x24; }) + (sZoneUnlockedIcons[0][0] * NUM_ZONE_UNLOCKED_ICONS));
     } else {
         tilesCursor = VramMalloc(
-            zoneLoadingCharacterLogos[gSelectedCharacter][0] + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 0][0]
+            characterLogoTiles + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 0][0]
             + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 1][0] + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 2][0]
             + zoneLoadingZoneNames[LEVEL_TO_ZONE(gCurrentLevel) * 4 + 3][0]
             + ({ zoneLoadingIcons[LEVEL_TO_ZONE(gCurrentLevel)][0] + 0x24; }));
@@ -422,7 +443,7 @@ Task *SetupStageIntro(void)
     s->graphics.dest = tilesCursor;
 
     // Advance cursor to next collection of tiles
-    tilesCursor += zoneLoadingCharacterLogos[gSelectedCharacter][0] * TILE_SIZE_4BPP;
+    tilesCursor += characterLogoTiles * TILE_SIZE_4BPP;
 
     s->oamFlags = SPRITE_OAM_ORDER(4);
     s->graphics.size = 0;
@@ -441,6 +462,16 @@ Task *SetupStageIntro(void)
     s->hitboxes[0].index = -1;
     s->frameFlags = 0;
     UpdateSpriteAnimation(s);
+#if PORTABLE
+    if (introUI->ocIdentity) {
+        memset(introUI->ocLogoTiles, 0, sizeof(introUI->ocLogoTiles));
+        OcBuildIdentityIcon(introUI->ocLogoTiles, gSelectedOc);
+        introUI->ocNameLength = OcBuildIdentityName(introUI->ocLogoTiles + 128, gSelectedOc);
+        s->graphics.src = introUI->ocLogoTiles;
+        s->graphics.size = sizeof(introUI->ocLogoTiles);
+        ADD_TO_GRAPHICS_QUEUE(&s->graphics);
+    }
+#endif
 
     for (i = 0; i < NUM_ZONE_NAME_PARTS; i++) {
         u32 nameIndex;
@@ -732,10 +763,20 @@ static void Task_802F9F8(void)
         if (IS_SINGLE_PLAYER) {
             // _0802FA4C+8
             for (i = 0; i < PALETTE_LEN_4BPP; i++) {
-                r = gUnknown_080D6FF5[gSelectedCharacter][i][0];
-                r = (r * frameCounter) / 16u;
-                g = ((gUnknown_080D6FF5[gSelectedCharacter][i][1] * frameCounter) / 16u);
-                b = ((gUnknown_080D6FF5[gSelectedCharacter][i][2] * frameCounter) / 16u);
+#if PORTABLE
+                if (OcIdentityIsActive()) {
+                    u16 color = gOcPalettes[gSelectedOc][i];
+                    r = ((color & 31) * frameCounter) / 16u;
+                    g = (((color >> 5) & 31) * frameCounter) / 16u;
+                    b = (((color >> 10) & 31) * frameCounter) / 16u;
+                } else
+#endif
+                {
+                    r = gUnknown_080D6FF5[gSelectedCharacter][i][0];
+                    r = (r * frameCounter) / 16u;
+                    g = ((gUnknown_080D6FF5[gSelectedCharacter][i][1] * frameCounter) / 16u);
+                    b = ((gUnknown_080D6FF5[gSelectedCharacter][i][2] * frameCounter) / 16u);
+                }
 
                 SET_PALETTE_COLOR_OBJ(0, i, RGB16_REV(r, g, b));
 
@@ -912,6 +953,53 @@ static void Task_IntroColorAnimation(void)
     }
 }
 
+#if PORTABLE
+static void SetOcIntroObject(OamData *oam, s16 x, s16 y, u16 tile, u8 size)
+{
+#if !EXTENDED_OAM
+    oam->all.attr0 = y & 255;
+    oam->all.attr1 = (x & 511) | (size << 14);
+    oam->all.attr2 = tile | (14 << 12);
+#else
+    oam->split.x = x;
+    oam->split.y = y;
+    oam->split.affineMode = 0;
+    oam->split.objMode = 0;
+    oam->split.mosaic = 0;
+    oam->split.bpp = 0;
+    oam->split.shape = 0;
+    oam->split.matrixNum = 0;
+    oam->split.size = size;
+    oam->split.tileNum = tile;
+    oam->split.priority = 0;
+    oam->split.paletteNum = 14;
+#endif
+}
+
+static void RenderOcIntroIdentity(IntroUI *introUI, s16 x, s16 y)
+{
+    OamData *oam;
+    u8 i;
+    u16 base = GET_TILE_NUM_COMMON(introUI->sprCharacterLogo.graphics.dest, TILE_SIZE_4BPP);
+    if (x > -16 && x < DISPLAY_WIDTH + 16 && y > -16 && y < DISPLAY_HEIGHT + 16) {
+        oam = OamMalloc(4);
+        if (oam != (OamData *)iwram_end)
+            SetOcIntroObject(oam, x - 8, y - 8, base, SPRITE_SIZE(16x16));
+    }
+    for (i = 0; i < introUI->ocNameLength; i++) {
+        s16 glyphX = x + 10 + i * 7;
+        s16 glyphY = y - 18;
+        if (glyphX <= -8 || glyphX >= DISPLAY_WIDTH || glyphY <= -8 || glyphY >= DISPLAY_HEIGHT)
+            continue;
+        oam = OamMalloc(4);
+        if (oam != (OamData *)iwram_end)
+            SetOcIntroObject(oam, glyphX, glyphY, base + 4 + i, SPRITE_SIZE(8x8));
+    }
+    memcpy(&gObjPalette[14 * 16], gOcPalettes[gSelectedOc], 16 * sizeof(u16));
+    gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
+}
+#endif
+
 static void StageIntroUpdateIcons(void)
 {
     IntroUI *introUI = TASK_DATA(gCurTask);
@@ -923,6 +1011,11 @@ static void StageIntroUpdateIcons(void)
 
     /* Colored Character Logo */
     s = &introUI->sprCharacterLogo;
+#if PORTABLE
+    if (introUI->ocIdentity)
+        RenderOcIntroIdentity(introUI, s->x, s->y);
+    else
+#endif
     DisplaySprite(s);
 
     /* Zone Name */
@@ -1009,6 +1102,15 @@ static void Task_IntroZoneNameAndIconAnimations(void)
             }
 
             UpdateSpriteAnimation(s);
+#if PORTABLE
+            if (introUI->ocIdentity) {
+                u16 color = OcCharacterColor(gSelectedOc);
+                u8 r = color & 31, g = (color >> 5) & 31, b = (color >> 10) & 31;
+                SET_PALETTE_COLOR_OBJ(12, 1, color);
+                SET_PALETTE_COLOR_OBJ(12, 2, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
+                gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
+            }
+#endif
             DisplaySprite(s);
         }
         return;
@@ -1234,7 +1336,14 @@ static void Task_UpdateStageLoadingScreen(void)
     IntroBackgrounds *introBackgrounds = TASK_DATA(gCurTask);
     u32 counter = introBackgrounds->controller->counter;
 
-    SET_PALETTE_COLOR_BG(0, 0, sZoneLoadingCharacterColors[gSelectedCharacter]);
+#if PORTABLE
+    if (OcIdentityIsActive()) {
+        SET_PALETTE_COLOR_BG(0, 0, OcCharacterColor(gSelectedOc));
+    } else
+#endif
+    {
+        SET_PALETTE_COLOR_BG(0, 0, sZoneLoadingCharacterColors[gSelectedCharacter]);
+    }
 
     gFlags |= FLAGS_UPDATE_BACKGROUND_PALETTES;
 
@@ -1249,6 +1358,12 @@ static void TaskDestructor_Dummy(Task *t) { }
 static void TaskDestructor_803045C(Task *t)
 {
     IntroUI *introUI = TASK_DATA(t);
+#if PORTABLE
+    if (introUI->ocIdentity) {
+        memcpy(&gObjPalette[14 * 16], introUI->previousOcPalette, sizeof(introUI->previousOcPalette));
+        gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
+    }
+#endif
     VramFree(introUI->sprCharacterLogo.graphics.dest);
 }
 

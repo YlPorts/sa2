@@ -246,6 +246,10 @@ case "$BUILD_TYPE" in
     release)
         GRADLE_TASK="assembleRelease"
         APK="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
+        if [[ "${SA_UNSIGNED_RELEASE:-0}" == "1" ]]; then
+            APK="$PROJECT_DIR/app/build/outputs/apk/release/app-release-unsigned.apk"
+            APK_NAME="${APK_NAME%.apk}-unsigned.apk"
+        fi
         ;;
     debug)
         GRADLE_TASK="assembleDebug"

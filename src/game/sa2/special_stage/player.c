@@ -7,6 +7,22 @@
 
 #include "constants/sa2/animations.h"
 #include "constants/sa2/characters.h"
+#if PORTABLE
+#include "game/sa2/oc_characters.h"
+#include "game/sa2/oc_player.h"
+static u16 sOcSpecialPoseInput;
+#endif
+
+static void DisplaySpecialStagePlayerBody(Sprite *body)
+{
+#if PORTABLE
+    struct SpecialStagePlayer *player = TASK_DATA(gCurTask);
+    if (OcSpecialPlayerDraw(body, player->state, sOcSpecialPoseInput)) {
+        return;
+    }
+#endif
+    DisplaySprite(body);
+}
 
 void sub_806D788(void);
 void sub_806D2C8(void);
@@ -86,6 +102,14 @@ Task *CreateSpecialStagePlayer(struct SpecialStage *stage)
 
     player->sprites = characterSprites[stage->character];
     result = MaxSpriteSize(player->sprites);
+#if PORTABLE
+    if (gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT) {
+        /* Keep the atlas inside the stage's normal linear VRAM reservation. */
+        result = MAX(result, 64);
+    }
+    OcSpecialPlayerInit();
+    sOcSpecialPoseInput = 0;
+#endif
     player->unk98 = gSpecialStageVramPointer;
     gSpecialStageVramPointer += (result * TILE_SIZE_4BPP);
     player->unk9C = gSpecialStageVramPointer;
@@ -178,6 +202,10 @@ void sub_806D2C8(void)
     memcpy(stateHandlers, sPlayerStateHandlers, sizeof(sPlayerStateHandlers));
 
     if (stage->paused == FALSE) {
+#if PORTABLE
+        sOcSpecialPoseInput = gInput;
+        OcSpecialPlayerTick(player->speed);
+#endif
         stateHandlers[player->state + 1]();
         sub_806D788();
     } else {
@@ -189,13 +217,13 @@ void sub_806D2C8(void)
 
     if (player->unkB6 != 0 && stage->paused == FALSE) {
         if ((--player->unkB6) & 2) {
-            DisplaySprite(unk8);
+            DisplaySpecialStagePlayerBody(unk8);
             if (player->state < 14) {
                 DisplaySprite(unk38);
             }
         }
     } else {
-        DisplaySprite(unk8);
+        DisplaySpecialStagePlayerBody(unk8);
         if (player->state < 14) {
             DisplaySprite(unk38);
         }
@@ -227,7 +255,7 @@ void sub_806D388(void)
     sub_806D7D0(unk8, -1, stage->cameraHeight, unkC4);
 
     if (stage->state == 8) {
-        DisplaySprite(unk8);
+        DisplaySpecialStagePlayerBody(unk8);
         sub_806D830(unk8, -1, stage->cameraHeight, unkC4);
     }
 }

@@ -56,6 +56,9 @@
 #include "game/sa2/stage/player_callbacks.h"
 #include "game/sa2/stage/input_buffer.h"
 #include "game/sa2/save.h"
+#if PORTABLE
+#include "game/sa2/oc_player.h"
+#endif
 
 #include "constants/sa2/animations.h"
 #include "constants/sa2/char_states.h"
@@ -812,6 +815,9 @@ void AllocateCharacterStageGfx(Player *p, PlayerSpriteInfo *psi)
     psi->transform.qScaleY = +Q(1);
     psi->transform.x = 0;
     psi->transform.y = 0;
+#if PORTABLE && (GAME == GAME_SA2)
+    OcPlayerInit(p);
+#endif
 }
 
 #ifndef COLLECT_RINGS_ROM
@@ -6362,6 +6368,9 @@ top:
         // Draw Player sprite in SP modes
         if (p->moveState & MOVESTATE_DEAD
             || (!(p->moveState & MOVESTATE_100000) && (p->timerInvulnerability == 0 || (gStageTime & 2) == 0))) {
+#if PORTABLE && (GAME == GAME_SA2)
+            if (!OcPlayerDraw(p, psi))
+#endif
             DisplaySprite(s);
         }
 #endif
@@ -9831,6 +9840,9 @@ void TaskDestructor_Player(Task *t)
     }
 
     p->spriteTask = NULL;
+#if PORTABLE && (GAME == GAME_SA2)
+    OcPlayerRelease(p);
+#endif
 
     if (p->playerID != PLAYER_1) {
         VramFree(p->spriteInfoBody->s.graphics.dest);

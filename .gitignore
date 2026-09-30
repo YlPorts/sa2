@@ -79,6 +79,8 @@ reports
 *.gba
 ./maps
 *.4bpp
+!graphics/sa2/ocs/*.4bpp
+!graphics/sa2/ocs/*.gbapal
 *.8bpp
 libagbsyscall/*.s
 

@@ -28,6 +28,9 @@
 #include "platform/shared/dma.h"
 #include "platform/shared/input.h"
 #include "platform/shared/video/gpsp_renderer.h"
+#if PORTABLE && (GAME == GAME_SA2)
+#include "game/sa2/oc_characters.h"
+#endif
 #ifdef __ANDROID__
 #include "platform/shared/save_file.h"
 #include "platform/shared/android_controls.h"
@@ -282,6 +285,9 @@ int main(int argc, char **argv)
 
 #ifndef __ANDROID__
     ReadSaveFile(SAVE_FILENAME);
+#if (GAME == GAME_SA2)
+    OcSelectionSetStoragePath("sa2-selected-oc.bin");
+#endif
 #endif
 
     // Prevent the multiplayer screen from being drawn ( see core.c:EngineInit() )
@@ -322,6 +328,11 @@ int main(int argc, char **argv)
             && snprintf(savePath, sizeof(savePath), "%s/%s", internalStoragePath, SAVE_FILENAME) < (int)sizeof(savePath)) {
             ReadSaveFile(savePath);
             SDL_Log("SA Android save: %s", savePath);
+#if (GAME == GAME_SA2)
+            if (snprintf(savePath, sizeof(savePath), "%s/sa2-selected-oc.bin", internalStoragePath) < (int)sizeof(savePath)) {
+                OcSelectionSetStoragePath(savePath);
+            }
+#endif
         } else {
             ReadSaveFile(SAVE_FILENAME);
             SDL_Log("SA Android save fallback: %s", SAVE_FILENAME);
