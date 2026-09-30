@@ -2,6 +2,7 @@
 #include "core.h"
 #include "flags.h"
 #include "sprite.h"
+#include "platform/shared/sa1_ui_oam.h"
 
 #include "game/sa1/stage/ui_rendering.h"
 #include "game/sa1/stage/stage_ui.h"
@@ -193,6 +194,7 @@ void sub_8052C84(const char *param0, Strc_8052C84 *param1)
             b = strc0->unk4 * FROM_UI_DIGIT(param0[i]);
             a += strc0->unk0 + b;
             oam->all.attr2 = +a;
+            Sa1_ConvertUiOam(oam);
         }
     }
 }
@@ -239,6 +241,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_8052D64.inc", void sub_80
             oam->all.attr0 = oamStack2->all.attr0;
             oam->all.attr1 = ((strc0->unk8 << 14) | (r8 << 9)) | ((((strc0->unkA * i) << 3) + param1->unkA) & 0x1FF);
             oam->all.attr2 = oamStack2->all.attr2 + strc0->unk4 * FROM_UI_DIGIT(param0[i]);
+            Sa1_ConvertUiOam(oam);
         }
     }
 }
@@ -281,6 +284,7 @@ void sub_8052E40(u8 *param0, Strc_8052C84 *param1)
             r2 = (param1->unk12 << 12);
             r2 += strc0->unk0 + strc0->unk4 * FROM_UI_DIGIT(param0[i]);
             oam->all.attr2 = +r2;
+            Sa1_ConvertUiOam(oam);
         }
     }
 }
@@ -352,6 +356,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_8052F78.inc", void sub_80
             oam->all.attr1 = sp00.all.attr1;
             sp00.all.attr1 += r9;
             oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[i]) * strc0->unk4;
+            Sa1_ConvertUiOam(oam);
         }
     } else {
         s32 i = 0;
@@ -371,6 +376,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_8052F78.inc", void sub_80
                 sp00.all.attr1 += r9;
 
                 oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[w]) * strc0->unk4;
+                Sa1_ConvertUiOam(oam);
                 w++;
             }
             sp00.all.attr0 = sp08 + sp00.all.attr0;
@@ -418,6 +424,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_80530CC.inc", void sub_80
             oam->all.attr1 = sp00.all.attr1;
             sp00.all.attr1 += r9;
             oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[i]) * strc0->unk4;
+            Sa1_ConvertUiOam(oam);
         }
     } else {
         s32 i = 0;
@@ -437,6 +444,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_80530CC.inc", void sub_80
                 sp00.all.attr1 += r9;
 
                 oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[w]) * strc0->unk4;
+                Sa1_ConvertUiOam(oam);
                 w++;
             }
             sp00.all.attr0 = sp08 + sp00.all.attr0;
@@ -484,6 +492,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_805321C.inc", void sub_80
             oam->all.attr1 = sp00.all.attr1;
             sp00.all.attr1 += r9;
             oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[i]) * strc0->unk4;
+            Sa1_ConvertUiOam(oam);
         }
     } else {
         s32 i = 0;
@@ -503,6 +512,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_805321C.inc", void sub_80
                 sp00.all.attr1 += r9;
 
                 oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[w]) * strc0->unk4;
+                Sa1_ConvertUiOam(oam);
                 w++;
             }
             sp00.all.attr0 = sp08 + sp00.all.attr0;
@@ -564,6 +574,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_8053370.inc", void sub_80
 
             oam->all.attr2 = sp00.all.attr2 + v * strc0->unk4;
             oam->all.attr2 &= ~0xC00;
+            Sa1_ConvertUiOam(oam);
         }
     }
 }
@@ -608,6 +619,7 @@ NONMATCH("asm/non_matching/game/sa1/gTask_3006240__sub_805345C.inc", void sub_80
         oam->all.attr1 = sp00.all.attr1;
         sp00.all.attr1 += r8;
         oam->all.attr2 = sp00.all.attr2 + FROM_UI_DIGIT(param0[i]) * strc0->unk4;
+        Sa1_ConvertUiOam(oam);
     }
 }
 END_NONMATCH

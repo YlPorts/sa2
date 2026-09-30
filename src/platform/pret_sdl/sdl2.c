@@ -28,12 +28,15 @@
 #include "platform/shared/dma.h"
 #include "platform/shared/input.h"
 #include "platform/shared/video/gpsp_renderer.h"
+#ifdef SA1_RUNTIME_IMPORT
+#include "platform/shared/rom_assets.h"
+#endif
 #ifdef __ANDROID__
 #include "platform/shared/save_file.h"
 #include "platform/shared/android_controls.h"
 #include "platform/shared/android_viewport.h"
-#ifdef SA1_RUNTIME_IMPORT
-#include "platform/shared/rom_assets.h"
+#if (GAME == GAME_SA1)
+#include "game/shared/stage/stage.h"
 #endif
 #endif
 
@@ -649,7 +652,13 @@ void VBlankIntrWait(void)
 #ifdef __ANDROID__
         int outputW = 0, outputH = 0;
         SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
-        if (sAndroidNativeUiCrop) {
+        if (
+#if (GAME == GAME_SA1)
+            gGameStageTask == NULL
+#else
+            sAndroidNativeUiCrop
+#endif
+        ) {
             SDL_Rect nativeUiRect = { 0, 0, 240, 160 };
             SDL_Rect destination = AndroidViewport_Game(outputW, outputH, 240, 160);
             SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, &destination);

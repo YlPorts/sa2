@@ -7,6 +7,9 @@
 
 #include "lib/m4a/m4a.h"
 #include "platform/platform.h"
+#if PORTABLE && (GAME == GAME_SA1)
+#include "platform/shared/sa1_bg_sprites.h"
+#endif
 
 static AnimCmdResult animCmd_GetTiles_BG(void *, Sprite *);
 static AnimCmdResult animCmd_GetPalette_BG(void *, Sprite *);
@@ -30,6 +33,19 @@ const AnimationCommandFunc animCmdTable_BG[12] = {
 #define ReadInstruction(script, cursor) ((void *)(script) + (cursor * sizeof(s32)))
 
 #define CastPointer(ptr, index) (void *)&(((u8 *)(ptr))[(index)])
+
+#if PORTABLE && (GAME == GAME_SA1)
+static u32 ReadSa1Metatile(const Background *background, s32 column, s32 rowStart)
+{
+    // A 426-pixel view can extend beyond small maps such as The Moon. GBA
+    // code relied on neighbouring ROM bytes there; native allocations cannot.
+    if (column < 0 || column >= background->mapWidth || rowStart < 0
+        || (u32)rowStart >= (u32)background->mapWidth * background->mapHeight) {
+        return 0;
+    }
+    return background->metatileMap[rowStart + column];
+}
+#endif
 
 void DrawBackground(Background *background)
 {
@@ -350,7 +366,11 @@ NONMATCH("asm/non_matching/engine/sa2__sub_8002B20.inc", bool32 SA2_LABEL(sub_80
                         r1Ptr = CastPointer(r0Ptr, temp2);
 
                         // r1 = v
+#if PORTABLE && (GAME == GAME_SA1)
+                        v = ReadSa1Metatile(bg, sp18, result) * bg->xTiles * bg->yTiles;
+#else
                         v = *((u16 *)r1Ptr) * bg->xTiles * bg->yTiles;
+#endif
                         v += r4 * bg->xTiles + sp1C;
                         v *= bytesPerTileIndex;
 
@@ -609,7 +629,11 @@ NONMATCH("asm/non_matching/engine/sa2__sub_8002B20.inc", bool32 SA2_LABEL(sub_80
                             { // _0800355C
                                 s32 metatileIndex;
                                 s32 otherVal;
+#if PORTABLE && (GAME == GAME_SA1)
+                                s32 mtIndex = ReadSa1Metatile(bg, sp24, yPos);
+#else
                                 s32 mtIndex = *(&bg->metatileMap[yPos] + sp24);
+#endif
 #if NON_MATCHING
                                 // TEMP: Crash-Fix
                                 // 1024: 2^10, max. metatile num
@@ -834,6 +858,9 @@ void DisplaySprite_BG(Sprite *s)
 {
     const SpriteOffset *dims;
 
+#if PORTABLE && (GAME == GAME_SA1)
+    if (gBgSpritesCount >= ARRAY_COUNT(gBgSprites)) return;
+#endif
     gBgSprites[gBgSpritesCount] = s;
     gBgSpritesCount++;
 
@@ -888,7 +915,11 @@ NONMATCH("asm/non_matching/engine/sa2__sub_80039E4.inc", bool32 SA2_LABEL(sub_80
 
 // TODO: once function matches this can be removed
 #if PORTABLE
+#if (GAME == GAME_SA1)
+    Sa1_DrawBackgroundSprites();
+#else
     gBgSpritesCount = 0;
+#endif
     return TRUE;
 #endif
 
@@ -1069,6 +1100,10 @@ void SA2_LABEL(sub_8003EE4)(u16 p0, s16 p1, s16 p2, s16 p3, s16 p4, s16 p5, s16 
 #if 01
 NONMATCH("asm/non_matching/engine/sa2__sub_8004010.inc", u32 SA2_LABEL(sub_8004010)(void))
 {
+#if PORTABLE && (GAME == GAME_SA1)
+    Sa1_ClearBackgroundSpriteMaps();
+    return TRUE;
+#endif
     u8 bgIndex = 0;
     u16 sp00[2];
     u8 r4;

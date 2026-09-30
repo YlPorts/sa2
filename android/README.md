@@ -5,7 +5,7 @@ importer loads remaining SA1 asset ranges; it does not execute a GBA ROM.
 
 ## Build
 
-- `bash android/build-apk.sh sa1` -> Sonic Advance 1, 0.1.0-alpha1
+- `bash android/build-apk.sh sa1` -> Sonic Advance 1, 0.1.0-alpha2
 - `bash android/build-apk.sh sa2` -> Sonic Advance 2, 0.1.0-beta5
 
 Default: optimized release, `armeabi-v7a`, non-debuggable, Android 6+ (API 23).
@@ -13,6 +13,16 @@ Both builds use the existing 426×240 viewport, fixed 60 Hz game timing,
 automatic landscape, cached multitouch controls and app-private saves.
 Physical-device performance still needs validation; 60 Hz timing is not an FPS
 guarantee. The existing upstream single-pak/chao-garden support is incomplete.
+
+SA1 alpha2 restores its background-sprite map pass, which the portable engine
+previously skipped. It also clears requested screen maps in virtual VRAM rather
+than overwriting the clear-request table, and converts SA1 UI entries from GBA
+attribute words to the widened native OAM format. Wide views of small level maps
+also guard metatile reads at the map edges. Character-selector backgrounds,
+character names, HUD digits and menu labels use their original assets. Android
+shows SA1 menus through their original 240x160 viewport and fills the landscape
+surface; live stages keep 426x240. These changes are conditional on SA1 and do
+not change SA2's drawing or package version.
 
 Beta5 keeps the fixed landscape orientation from beta4 and restores the earlier
 full-screen landscape scaling requested by the user, with no side bars added by
@@ -117,3 +127,16 @@ The matching native 32-bit smoke test can be run with `SA_RUNTIME_BITS=32`
 on hosts without direct i386 execution. QEMU is used only for host tests; the
 Android APK remains a native ARM build. Hardware rotation, drivers and device
 frame rates require a physical-device test.
+
+`bash android/test-sa1-graphics.sh` runs SA1's four selectors, the first two
+stage graphics and The Moon through the actual engine and software renderer under
+AddressSanitizer. Set `SA_RUNTIME_BITS=32` for the native 32-bit host build, or
+`SA_RUNTIME_ANDROID_BACKEND=1` to exercise Android's SDL code with dummy drivers
+and assert the menu crop and full stage viewport. Set `SA_TEST_LEVELS` and
+`SA_TEST_FRAMES` to select additional stages and longer runs. Without
+`SA_TEST_ROM`, remaining ROM-only tables are empty and the harness deliberately
+limits these checks to graphics and memory safety. With `SA_TEST_ROM` set to
+the user's European ROM, it imports the real tables before the same checks.
+The test harness and its optional ROM input are never packaged in APKs. The
+focused unit suite also checks text/affine map clears, tile flips, palette banks,
+VRAM bounds and UI OAM on the host and optimized ARM32 when its test tools exist.
