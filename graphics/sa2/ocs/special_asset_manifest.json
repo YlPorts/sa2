@@ -12,7 +12,8 @@
     "elizabeth",
     "jude",
     "kiro",
-    "yuliana"
+    "yuliana",
+    "kura"
   ],
   "frames": [
     "rear_run_a",
@@ -633,6 +634,159 @@
           "offset": [
             18,
             7
+          ]
+        }
+      ]
+    },
+    "kura": {
+      "source": "graphics/sa2/ocs/source/kura_rear.png",
+      "sourceSHA256": "a974259057d7b19c1dd7572c20b430fb1796c8ed817e477b748574e7c30a993a",
+      "scale": 0.08695652173913043,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kura.gbapal",
+      "frames": [
+        {
+          "index": 0,
+          "name": "rear_run_a",
+          "sourceBounds": [
+            65,
+            49,
+            314,
+            462
+          ],
+          "size": [
+            22,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ]
+        },
+        {
+          "index": 1,
+          "name": "rear_run_b",
+          "sourceBounds": [
+            449,
+            48,
+            725,
+            471
+          ],
+          "size": [
+            24,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ]
+        },
+        {
+          "index": 2,
+          "name": "rear_run_c",
+          "sourceBounds": [
+            850,
+            51,
+            1110,
+            473
+          ],
+          "size": [
+            23,
+            37
+          ],
+          "offset": [
+            21,
+            12
+          ]
+        },
+        {
+          "index": 3,
+          "name": "rear_run_d",
+          "sourceBounds": [
+            1224,
+            53,
+            1502,
+            473
+          ],
+          "size": [
+            24,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ]
+        },
+        {
+          "index": 4,
+          "name": "rear_turn_left",
+          "sourceBounds": [
+            50,
+            565,
+            361,
+            971
+          ],
+          "size": [
+            27,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ]
+        },
+        {
+          "index": 5,
+          "name": "rear_turn_right",
+          "sourceBounds": [
+            446,
+            565,
+            764,
+            974
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ]
+        },
+        {
+          "index": 6,
+          "name": "rear_jump",
+          "sourceBounds": [
+            833,
+            556,
+            1137,
+            923
+          ],
+          "size": [
+            27,
+            32
+          ],
+          "offset": [
+            19,
+            12
+          ]
+        },
+        {
+          "index": 7,
+          "name": "rear_hurt",
+          "sourceBounds": [
+            1244,
+            567,
+            1489,
+            963
+          ],
+          "size": [
+            21,
+            35
+          ],
+          "offset": [
+            22,
+            9
           ]
         }
       ]

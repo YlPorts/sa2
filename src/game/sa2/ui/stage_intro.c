@@ -1106,8 +1106,9 @@ static void Task_IntroZoneNameAndIconAnimations(void)
             if (introUI->ocIdentity) {
                 u16 color = OcCharacterColor(gSelectedOc);
                 u8 r = color & 31, g = (color >> 5) & 31, b = (color >> 10) & 31;
-                SET_PALETTE_COLOR_OBJ(12, 1, color);
-                SET_PALETTE_COLOR_OBJ(12, 2, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
+                u8 colorIndex = OcBaseCharacter(gSelectedOc) == CHARACTER_AMY ? 7 : 1;
+                SET_PALETTE_COLOR_OBJ(12, colorIndex, color);
+                SET_PALETTE_COLOR_OBJ(12, colorIndex + 1, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
                 gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
             }
 #endif

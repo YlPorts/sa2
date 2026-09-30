@@ -36,9 +36,13 @@ extern void Platform_SetNativeUiCrop(bool8 enabled);
 #define OC_MENU_UI_PALETTE 14
 #define OC_MENU_PREVIEW_PALETTE 15
 /* The original selector's heap starts at OBJ+0x3A00. Its single-player cross-box
- * is unused, leaving this area for four circles and a small pixel font. */
+ * is unused, leaving this area for five circles and a small pixel font. */
 #define OC_MENU_CIRCLE_TILES (OBJ_VRAM0 + 0x2800)
-#define OC_MENU_FONT_TILES (OBJ_VRAM0 + 0x3000)
+#define OC_MENU_FONT_TILES (OBJ_VRAM0 + 0x3200)
+
+_Static_assert(0x2800 + OC_CHARACTER_COUNT * 512 <= 0x3200, "OC circles must stay below the font tiles");
+_Static_assert(0x3200 + 26 * 32 <= 0x3A00, "OC font must stay below the original selector heap");
+_Static_assert(4 + OC_CHARACTER_COUNT * 2 <= PALETTE_LEN_4BPP, "OC circle shades must fit one palette");
 
 enum OcMenuPhase { OC_MENU_IN, OC_MENU_READY, OC_MENU_CONFIRM, OC_MENU_BACK };
 
@@ -75,9 +79,9 @@ typedef struct {
 s8 gSelectedOc = -1;
 static char sOcStoragePath[2048];
 
-static const char *const sOcNames[OC_CHARACTER_COUNT] = { "ELIZABETH", "JUDE", "KIRO", "YULIANA" };
+static const char *const sOcNames[OC_CHARACTER_COUNT] = { "ELIZABETH", "JUDE", "KIRO", "YULIANA", "KURA" };
 static const u16 sOcColors[OC_CHARACTER_COUNT] = {
-    RGB16(24, 25, 27), RGB16(29, 23, 5), RGB16(15, 17, 7), RGB16(5, 11, 8),
+    RGB16(24, 25, 27), RGB16(29, 23, 5), RGB16(15, 17, 7), RGB16(5, 11, 8), RGB16(22, 7, 27),
 };
 static const u8 sSilhouettes[NUM_CHARACTERS] = { 8, 4, 7, 6, 5 };
 static const u8 sCharacterVariants[NUM_CHARACTERS] = { 0, 2, 4, 6, 8 };
@@ -109,12 +113,13 @@ static void RefreshSelection(OcMenu *menu, bool8 chosen);
 
 const char *OcCharacterName(u8 oc) { return oc < OC_CHARACTER_COUNT ? sOcNames[oc] : ""; }
 u16 OcCharacterColor(u8 oc) { return oc < OC_CHARACTER_COUNT ? sOcColors[oc] : 0; }
+u8 OcBaseCharacter(u8 oc) { return oc == OC_JUDE ? CHARACTER_AMY : CHARACTER_SONIC; }
 void OcSetSelection(s8 oc) { gSelectedOc = (oc >= 0 && oc < OC_CHARACTER_COUNT) ? oc : -1; }
 
 bool8 OcIdentityIsActive(void)
 {
     return gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT && IS_SINGLE_PLAYER
-        && gSelectedCharacter == CHARACTER_SONIC && !(gStageFlags & STAGE_FLAG__DEMO_RUNNING);
+        && gSelectedCharacter == OcBaseCharacter(gSelectedOc) && !(gStageFlags & STAGE_FLAG__DEMO_RUNNING);
 }
 
 void OcSelectionSetStoragePath(const char *path)
@@ -222,8 +227,8 @@ void OcBuildIdentityIcon(u8 *tiles, u8 oc)
         return;
     for (y = 0; y < 16; y++) {
         for (x = 0; x < 16; x++) {
-            unsigned sourceX = 22 + x * 24 / 16;
-            unsigned sourceY = 12 + y * 20 / 16;
+            unsigned sourceX = oc == OC_KURA ? 20 + x * 28 / 16 : 22 + x * 24 / 16;
+            unsigned sourceY = oc == OC_KURA ? 11 + y * 24 / 16 : 12 + y * 20 / 16;
             unsigned offset = ((sourceY / 8) * 8 + sourceX / 8) * 32 + (sourceY & 7) * 4 + (sourceX & 7) / 2;
             u8 packed = gOcFrameTiles[oc][0][offset];
             u8 index = (sourceX & 1) ? packed >> 4 : packed & 15;
@@ -274,7 +279,7 @@ static void GenerateCircle(u8 *tiles, u8 oc, unsigned size, bool8 active)
             else if (distance > (radius - (active ? 10 : 4)) * (radius - (active ? 10 : 4)))
                 pixel = 1;
             else
-                pixel = 4 + oc * 3 + ((x + y < size * 3 / 4) ? 2 : ((x + y > size * 5 / 4) ? 0 : 1));
+                pixel = 4 + oc * 2 + ((x + y < size) ? 1 : 0);
             SetTilePixel(tiles, size, x, y, pixel);
         }
     }
@@ -564,7 +569,7 @@ static void Task_OcCharacterSelect(void)
             if (menu->queuedConfirm && EntryAvailable(menu) && menu->scrollFrame == OC_MENU_SCROLL_FRAMES) {
                 if (menu->selection >= OC_SELECT_FIRST) {
                     OcSetSelection(menu->selection - OC_SELECT_FIRST);
-                    gSelectedCharacter = CHARACTER_SONIC;
+                    gSelectedCharacter = OcBaseCharacter(gSelectedOc);
                     m4aSongNumStart(SE_SELECT);
                 } else {
                     OcSetSelection(-1);
@@ -691,9 +696,8 @@ static void RenderOcMenu(OcMenu *menu)
     for (i = 0; i < OC_CHARACTER_COUNT; i++) {
         u16 color = sOcColors[i];
         u8 r = color & 31, g = (color >> 5) & 31, b = (color >> 10) & 31;
-        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 4 + i * 3, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
-        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 5 + i * 3, color);
-        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 6 + i * 3, RGB16(r + (31 - r) / 3, g + (31 - g) / 3, b + (31 - b) / 3));
+        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 4 + i * 2, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
+        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 5 + i * 2, color);
     }
     gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
 }

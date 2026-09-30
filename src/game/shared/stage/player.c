@@ -58,6 +58,8 @@
 #include "game/sa2/save.h"
 #if PORTABLE
 #include "game/sa2/oc_player.h"
+#include "game/sa2/oc_abilities.h"
+#include "game/sa2/oc_characters.h"
 #endif
 
 #include "constants/sa2/animations.h"
@@ -817,6 +819,7 @@ void AllocateCharacterStageGfx(Player *p, PlayerSpriteInfo *psi)
     psi->transform.y = 0;
 #if PORTABLE && (GAME == GAME_SA2)
     OcPlayerInit(p);
+    OcAbilitiesInit(p);
 #endif
 }
 
@@ -884,6 +887,15 @@ void AllocateCharacterMidAirGfx(Player *p, PlayerSpriteInfo *param2)
 
 void SetStageSpawnPos(u32 character, u32 level, u32 playerID, Player *p)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    /* Normalize old ocs1 saves before allocation/intro consult the identity;
+     * Jude now uses Amy's native movement and progression slot. */
+    if (playerID == PLAYER_1 && IS_SINGLE_PLAYER && !(gStageFlags & STAGE_FLAG__DEMO_RUNNING)
+        && gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT) {
+        character = OcBaseCharacter(gSelectedOc);
+        gSelectedCharacter = character;
+    }
+#endif
     p->playerID = playerID;
     p->character = character;
 
@@ -1364,7 +1376,11 @@ void SA2_LABEL(sub_8021BE0)(Player *p)
 #endif
         }
 
-        if (p->moveState & MOVESTATE_SPIN_ATTACK) {
+        if ((p->moveState & MOVESTATE_SPIN_ATTACK)
+#if PORTABLE && (GAME == GAME_SA2)
+            || (OcAbilitiesOwnPlayer(p) && p->spriteOffsetY == 9)
+#endif
+        ) {
             p->moveState &= ~MOVESTATE_SPIN_ATTACK;
             Player_HandleSpriteYOffsetChange(p, 14);
         }
@@ -1933,7 +1949,11 @@ void SA2_LABEL(sub_8022318)(Player *p)
 {
     s32 offsetY;
 
-    if (!(p->moveState & MOVESTATE_SPIN_ATTACK)) {
+    if (!(p->moveState & MOVESTATE_SPIN_ATTACK)
+#if PORTABLE && (GAME == GAME_SA2)
+        && !(OcAbilitiesOwnPlayer(p) && p->spriteOffsetY == 9)
+#endif
+    ) {
         p->spriteOffsetX = 6;
         p->spriteOffsetY = 14;
     } else {
@@ -4901,6 +4921,9 @@ void Task_PlayerDied(void)
 void Task_PlayerMain(void)
 {
     Player *p = &gPlayer;
+#if PORTABLE && (GAME == GAME_SA2)
+    bool32 abilityUpdated;
+#endif
 
 #if (GAME == GAME_SA2)
     Player_HandleBoostThreshold(p);
@@ -4917,7 +4940,13 @@ void Task_PlayerMain(void)
 #endif
     CallPlayerTransition(p);
 
+#if PORTABLE
+    abilityUpdated = OcAbilitiesUpdate(p);
+#endif
     if (!(p->moveState & MOVESTATE_IA_OVERRIDE)) {
+#if PORTABLE
+        if (!abilityUpdated)
+#endif
         p->callback(p);
     } else if (IS_BOSS_STAGE(gCurrentLevel)) {
         SA2_LABEL(sub_80232D0)(p);
@@ -4927,6 +4956,9 @@ void Task_PlayerMain(void)
     SA2_LABEL(sub_8024B10)(p, p->spriteInfoBody);
 #ifndef COLLECT_RINGS_ROM
     SA2_LABEL(sub_8024F74)(p, p->spriteInfoLimbs);
+#endif
+#if PORTABLE
+    OcAbilitiesDraw(p);
 #endif
 
     if (p->charState != CHARSTATE_HIT_AIR && p->timerInvulnerability > 0) {
@@ -5768,6 +5800,9 @@ void sub_80246DC(Player *p)
     if ((charState == CHARSTATE_JUMP_1) || (charState == CHARSTATE_JUMP_2)) {
         if (p->variant == 0 && (s->frameFlags & SPRITE_FLAG_MASK_ANIM_OVER) && (((u16)anim - 10) == 0 || ((u16)anim - 10) == 1)) {
             p->variant = 1;
+#if PORTABLE
+            if (!OcAbilitiesOwnPlayer(p))
+#endif
             p->moveState |= MOVESTATE_SPIN_ATTACK;
 
             PLAYERFN_CHANGE_SHIFT_OFFSETS(p, 6, 9);
@@ -6360,6 +6395,10 @@ top:
 #endif
     }
 
+#if PORTABLE && (GAME == GAME_SA2)
+    OcAbilitiesApplyHitbox(p);
+    OcPlayerPreparePalette(p, psi);
+#endif
 #ifndef COLLECT_RINGS_ROM
     if (IS_SINGLE_PLAYER)
 #endif
@@ -7026,7 +7065,11 @@ void Player_Jumping(Player *p)
     if (p->moveState & MOVESTATE_100) {
 #ifndef COLLECT_RINGS_ROM
         if (gGameMode != GAME_MODE_MULTI_PLAYER_COLLECT_RINGS)
-            if (Player_Sonic_TryForwardThrust(p) || Player_TryMidAirAction(p))
+            if (
+#if PORTABLE
+                !OcAbilitiesOwnPlayer(p) &&
+#endif
+                (Player_Sonic_TryForwardThrust(p) || Player_TryMidAirAction(p)))
                 return;
 #endif
 
@@ -7171,7 +7214,11 @@ void Player_Uncurl(Player *p)
         Player_AirInputControls(p);
 #ifndef COLLECT_RINGS_ROM
         if ((gGameMode != GAME_MODE_MULTI_PLAYER_COLLECT_RINGS) && (p->moveState & MOVESTATE_100)) {
-            if (Player_Sonic_TryForwardThrust(p) || Player_TryMidAirAction(p))
+            if (
+#if PORTABLE
+                !OcAbilitiesOwnPlayer(p) &&
+#endif
+                (Player_Sonic_TryForwardThrust(p) || Player_TryMidAirAction(p)))
                 return;
         }
 #endif
@@ -8855,6 +8902,11 @@ void Player_DashRing(Player *p)
 bool32 Player_TryMidAirAction(Player *p)
 {
     u16 song;
+#if PORTABLE
+    if (OcAbilitiesOwnPlayer(p)) {
+        return FALSE;
+    }
+#endif
     if (!(p->moveState & MOVESTATE_SOME_ATTACK)) {
         if (p->frameInput & gPlayerControls.attack) {
             switch (p->character) {
@@ -9842,6 +9894,7 @@ void TaskDestructor_Player(Task *t)
     p->spriteTask = NULL;
 #if PORTABLE && (GAME == GAME_SA2)
     OcPlayerRelease(p);
+    OcAbilitiesRelease(p);
 #endif
 
     if (p->playerID != PLAYER_1) {
@@ -9897,6 +9950,11 @@ bool32 Player_TryCrouchOrSpinAttack(Player *p)
             return TRUE;
         } else if (((u16)(p->qSpeedGround + (Q(0.5) - 1)) > Q(1.0) - 2)
                    && !(p->moveState & (MOVESTATE_1000000 | MOVESTATE_SPIN_ATTACK | MOVESTATE_IN_AIR))) {
+#if PORTABLE
+            if (OcAbilitiesOwnPlayer(p)) {
+                return FALSE;
+            }
+#endif
             PLAYERFN_SET(Player_SpinAttack);
             m4aSongNumStart(SE_SPIN_ATTACK);
             return TRUE;
@@ -9910,6 +9968,11 @@ bool32 Player_TryCrouchOrSpinAttack(Player *p)
 bool32 Player_TryInitSpindash(Player *p)
 {
     u32 r6 = 0;
+#if PORTABLE
+    if (OcAbilitiesOwnPlayer(p)) {
+        return FALSE;
+    }
+#endif
     if (p->charState == CHARSTATE_CROUCH) {
         if (p->frameInput & gPlayerControls.jump) {
             PLAYERFN_SET_AND_CALL(Player_InitSpindash, p);
@@ -10017,6 +10080,11 @@ void Player_802A258(Player *p)
 
 bool32 Player_TryAttack(Player *p)
 {
+#if PORTABLE
+    if (OcAbilitiesOwnPlayer(p)) {
+        return FALSE;
+    }
+#endif
     if ((gGameMode == GAME_MODE_MULTI_PLAYER_COLLECT_RINGS) || (p->moveState & (MOVESTATE_8000 | MOVESTATE_SPINDASH))
         || ((s8)(p->rotation + Q(0.25)) <= 0)) {
         return FALSE;

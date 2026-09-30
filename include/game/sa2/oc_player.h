@@ -6,6 +6,9 @@
 /* The original player animation continues to own movement and hitboxes. */
 void OcPlayerInit(Player *player);
 void OcPlayerRelease(Player *player);
+/* Call after the native animation even on hidden invulnerability frames, so
+ * the player's palette and the HUD head keep their OC colors. */
+void OcPlayerPreparePalette(Player *player, PlayerSpriteInfo *body);
 bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body);
 
 /* Special-stage native player storage reserves the atlas VRAM up front. */

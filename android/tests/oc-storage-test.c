@@ -18,6 +18,13 @@ int main(void) {
     FILE *file;
     char temporaryDirectory[] = "/tmp/sa2-oc-storage-XXXXXX";
     char missingPath[256];
+    assert(NUM_CHARACTERS == 5 && OC_CHARACTER_COUNT == 5 && OC_SELECT_FIRST == 5);
+    assert(OcBaseCharacter(OC_JUDE) == CHARACTER_AMY);
+    assert(OcBaseCharacter(OC_ELIZABETH) == CHARACTER_SONIC);
+    assert(OcBaseCharacter(OC_KIRO) == CHARACTER_SONIC);
+    assert(OcBaseCharacter(OC_YULIANA) == CHARACTER_SONIC);
+    assert(OcBaseCharacter(OC_KURA) == CHARACTER_SONIC);
+    assert(strcmp(OcCharacterName(OC_KURA), "KURA") == 0);
     assert(mkdtemp(temporaryDirectory) != NULL);
     snprintf(storagePath, sizeof(storagePath), "%s/selected.bin", temporaryDirectory);
     OcSelectionSetStoragePath(storagePath);
@@ -37,7 +44,12 @@ int main(void) {
     OcSetSelection(3);
     OcSelectionSetStoragePath(storagePath);
     assert(gSelectedOc == -1);
-    corrupt((const unsigned char *)"OCS1\4", 5);
+    OcSetSelection(OC_KURA);
+    assert(OcSaveSelection());
+    OcSetSelection(-1);
+    OcSelectionSetStoragePath(storagePath);
+    assert(gSelectedOc == OC_KURA);
+    corrupt((const unsigned char *)"OCS1\5", 5);
     OcSelectionSetStoragePath(storagePath);
     assert(gSelectedOc == -1);
     corrupt((const unsigned char *)"OCS1\2x", 6);

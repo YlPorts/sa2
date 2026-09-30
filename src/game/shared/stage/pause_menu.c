@@ -286,11 +286,17 @@ void Task_PauseMenuUpdate(void)
     }
 
     /* Color CONTINUE/QUIT by copying the correct palette */
+    bool32 hasWaterPalette = (gWater.isActive == TRUE);
+#if PORTABLE
+    /* The water task owns this palette. Stage transitions can leave no task;
+     * a location/activity flag alone cannot establish that its data exists. */
+    hasWaterPalette = hasWaterPalette && (gWater.t != NULL);
+#endif
     if (pm->cursor != PMCURSOR_CONTINUE) {
         DmaCopy16(3, pm->pal6A, &(((u16 *)OBJ_PLTT)[249]), sizeof(pm->pal6A));
         DmaCopy16(3, pm->pal64, &(((u16 *)OBJ_PLTT)[252]), sizeof(pm->pal64));
 
-        if (gWater.isActive == TRUE) {
+        if (hasWaterPalette) {
             u16 *somePalette = TASK_DATA(gWater.t);
 
             DmaCopy16(3, pm->pal6A, &somePalette[249], sizeof(pm->pal6A));
@@ -300,7 +306,7 @@ void Task_PauseMenuUpdate(void)
         DmaCopy16(3, pm->pal6A, &(((u16 *)OBJ_PLTT)[252]), sizeof(pm->pal6A));
         DmaCopy16(3, pm->pal64, &(((u16 *)OBJ_PLTT)[249]), sizeof(pm->pal64));
 
-        if (gWater.isActive == TRUE) {
+        if (hasWaterPalette) {
             u16 *somePalette = TASK_DATA(gWater.t);
 
             DmaCopy16(3, pm->pal6A, &somePalette[252], sizeof(pm->pal6A));

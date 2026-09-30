@@ -1,0 +1,2996 @@
+{
+  "alphaCutoff": 200,
+  "frameSize": [
+    64,
+    64
+  ],
+  "pivot": [
+    32,
+    48
+  ],
+  "order": [
+    "elizabeth",
+    "jude",
+    "kiro",
+    "yuliana",
+    "kura"
+  ],
+  "frames": [
+    "run_0",
+    "run_1",
+    "run_2",
+    "run_3",
+    "run_4",
+    "run_5",
+    "run_6",
+    "run_7",
+    "run_8",
+    "run_9",
+    "run_10",
+    "run_11",
+    "jump_0",
+    "jump_1",
+    "jump_2",
+    "jump_3",
+    "attack_0",
+    "attack_1",
+    "attack_2",
+    "attack_3",
+    "victory_0",
+    "victory_1",
+    "victory_2",
+    "victory_3"
+  ],
+  "characters": {
+    "elizabeth": {
+      "source": "graphics/sa2/ocs/source/elizabeth_action_v2.png",
+      "sourceSHA256": "3ffe146963d9f6b7cc1992926af07ecb8c676e492c3cdce32d836b1dd9cc0995",
+      "scale": 0.17307692307692307,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/elizabeth.gbapal",
+      "meanColorError": 91.80313823870998,
+      "severeColorErrorFraction": 0.00012227928588897041,
+      "distinctRunFrames": 12,
+      "runChanges": [
+        {
+          "from": 11,
+          "to": 0,
+          "changedPixels": 653,
+          "changedSilhouette": 214
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "changedPixels": 716,
+          "changedSilhouette": 311
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "changedPixels": 624,
+          "changedSilhouette": 217
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "changedPixels": 683,
+          "changedSilhouette": 313
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "changedPixels": 583,
+          "changedSilhouette": 168
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "changedPixels": 453,
+          "changedSilhouette": 112
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "changedPixels": 642,
+          "changedSilhouette": 285
+        },
+        {
+          "from": 6,
+          "to": 7,
+          "changedPixels": 441,
+          "changedSilhouette": 93
+        },
+        {
+          "from": 7,
+          "to": 8,
+          "changedPixels": 826,
+          "changedSilhouette": 444
+        },
+        {
+          "from": 8,
+          "to": 9,
+          "changedPixels": 821,
+          "changedSilhouette": 410
+        },
+        {
+          "from": 9,
+          "to": 10,
+          "changedPixels": 704,
+          "changedSilhouette": 251
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "changedPixels": 581,
+          "changedSilhouette": 136
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "run_0",
+          "sourceBounds": [
+            23,
+            66,
+            204,
+            277
+          ],
+          "size": [
+            32,
+            37
+          ],
+          "offset": [
+            14,
+            12
+          ],
+          "hipX": 125,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 1,
+          "name": "run_1",
+          "sourceBounds": [
+            278,
+            71,
+            454,
+            276
+          ],
+          "size": [
+            31,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 359,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 2,
+          "name": "run_2",
+          "sourceBounds": [
+            528,
+            71,
+            700,
+            279
+          ],
+          "size": [
+            30,
+            36
+          ],
+          "offset": [
+            16,
+            13
+          ],
+          "hipX": 622,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 3,
+          "name": "run_3",
+          "sourceBounds": [
+            778,
+            71,
+            975,
+            276
+          ],
+          "size": [
+            34,
+            36
+          ],
+          "offset": [
+            15,
+            13
+          ],
+          "hipX": 876,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 4,
+          "name": "run_4",
+          "sourceBounds": [
+            1043,
+            63,
+            1224,
+            277
+          ],
+          "size": [
+            32,
+            37
+          ],
+          "offset": [
+            17,
+            12
+          ],
+          "hipX": 1130,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 5,
+          "name": "run_5",
+          "sourceBounds": [
+            1306,
+            65,
+            1494,
+            276
+          ],
+          "size": [
+            33,
+            37
+          ],
+          "offset": [
+            15,
+            12
+          ],
+          "hipX": 1405,
+          "groundY": 277,
+          "pivotY": 48
+        },
+        {
+          "index": 6,
+          "name": "run_6",
+          "sourceBounds": [
+            30,
+            326,
+            215,
+            526
+          ],
+          "size": [
+            32,
+            35
+          ],
+          "offset": [
+            16,
+            14
+          ],
+          "hipX": 122,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 7,
+          "name": "run_7",
+          "sourceBounds": [
+            283,
+            325,
+            462,
+            526
+          ],
+          "size": [
+            31,
+            35
+          ],
+          "offset": [
+            17,
+            14
+          ],
+          "hipX": 372,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 8,
+          "name": "run_8",
+          "sourceBounds": [
+            526,
+            313,
+            729,
+            506
+          ],
+          "size": [
+            35,
+            34
+          ],
+          "offset": [
+            15,
+            11
+          ],
+          "hipX": 625,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 9,
+          "name": "run_9",
+          "sourceBounds": [
+            778,
+            322,
+            964,
+            529
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            15,
+            13
+          ],
+          "hipX": 878,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 10,
+          "name": "run_10",
+          "sourceBounds": [
+            1033,
+            315,
+            1218,
+            529
+          ],
+          "size": [
+            32,
+            37
+          ],
+          "offset": [
+            15,
+            12
+          ],
+          "hipX": 1132,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 11,
+          "name": "run_11",
+          "sourceBounds": [
+            1292,
+            321,
+            1482,
+            528
+          ],
+          "size": [
+            33,
+            36
+          ],
+          "offset": [
+            15,
+            13
+          ],
+          "hipX": 1390,
+          "groundY": 529,
+          "pivotY": 48
+        },
+        {
+          "index": 12,
+          "name": "jump_0",
+          "sourceBounds": [
+            27,
+            599,
+            211,
+            775
+          ],
+          "size": [
+            32,
+            31
+          ],
+          "offset": [
+            17,
+            18
+          ],
+          "hipX": 116,
+          "groundY": 775,
+          "pivotY": 48
+        },
+        {
+          "index": 13,
+          "name": "jump_1",
+          "sourceBounds": [
+            275,
+            559,
+            447,
+            746
+          ],
+          "size": [
+            30,
+            33
+          ],
+          "offset": [
+            16,
+            16
+          ],
+          "hipX": 369,
+          "groundY": 746,
+          "pivotY": 48
+        },
+        {
+          "index": 14,
+          "name": "jump_2",
+          "sourceBounds": [
+            543,
+            545,
+            699,
+            755
+          ],
+          "size": [
+            27,
+            37
+          ],
+          "offset": [
+            16,
+            12
+          ],
+          "hipX": 637,
+          "groundY": 755,
+          "pivotY": 48
+        },
+        {
+          "index": 15,
+          "name": "jump_3",
+          "sourceBounds": [
+            770,
+            576,
+            959,
+            778
+          ],
+          "size": [
+            33,
+            35
+          ],
+          "offset": [
+            15,
+            14
+          ],
+          "hipX": 866,
+          "groundY": 778,
+          "pivotY": 48
+        },
+        {
+          "index": 16,
+          "name": "attack_0",
+          "sourceBounds": [
+            1034,
+            572,
+            1255,
+            774
+          ],
+          "size": [
+            38,
+            35
+          ],
+          "offset": [
+            14,
+            14
+          ],
+          "hipX": 1136,
+          "groundY": 774,
+          "pivotY": 48
+        },
+        {
+          "index": 17,
+          "name": "attack_1",
+          "sourceBounds": [
+            1288,
+            578,
+            1509,
+            774
+          ],
+          "size": [
+            38,
+            34
+          ],
+          "offset": [
+            14,
+            15
+          ],
+          "hipX": 1390,
+          "groundY": 774,
+          "pivotY": 48
+        },
+        {
+          "index": 18,
+          "name": "attack_2",
+          "sourceBounds": [
+            22,
+            802,
+            254,
+            990
+          ],
+          "size": [
+            40,
+            33
+          ],
+          "offset": [
+            14,
+            16
+          ],
+          "hipX": 124,
+          "groundY": 990,
+          "pivotY": 48
+        },
+        {
+          "index": 19,
+          "name": "attack_3",
+          "sourceBounds": [
+            280,
+            794,
+            457,
+            994
+          ],
+          "size": [
+            31,
+            35
+          ],
+          "offset": [
+            15,
+            14
+          ],
+          "hipX": 379,
+          "groundY": 994,
+          "pivotY": 48
+        },
+        {
+          "index": 20,
+          "name": "victory_0",
+          "sourceBounds": [
+            542,
+            791,
+            714,
+            1003
+          ],
+          "size": [
+            30,
+            37
+          ],
+          "offset": [
+            15,
+            12
+          ],
+          "hipX": 643,
+          "groundY": 1003,
+          "pivotY": 48
+        },
+        {
+          "index": 21,
+          "name": "victory_1",
+          "sourceBounds": [
+            797,
+            794,
+            946,
+            1003
+          ],
+          "size": [
+            26,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 879,
+          "groundY": 1003,
+          "pivotY": 48
+        },
+        {
+          "index": 22,
+          "name": "victory_2",
+          "sourceBounds": [
+            1050,
+            790,
+            1230,
+            1003
+          ],
+          "size": [
+            31,
+            37
+          ],
+          "offset": [
+            15,
+            12
+          ],
+          "hipX": 1147,
+          "groundY": 1003,
+          "pivotY": 48
+        },
+        {
+          "index": 23,
+          "name": "victory_3",
+          "sourceBounds": [
+            1326,
+            790,
+            1479,
+            1003
+          ],
+          "size": [
+            27,
+            37
+          ],
+          "offset": [
+            18,
+            12
+          ],
+          "hipX": 1405,
+          "groundY": 1003,
+          "pivotY": 48
+        }
+      ]
+    },
+    "jude": {
+      "source": "graphics/sa2/ocs/source/jude_action_v2.png",
+      "sourceSHA256": "8d8224248bdd38c1b5f1f2361420edae0b2c6cf4915439fa2c0e74b5c61032a1",
+      "scale": 0.18181818181818182,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/jude.gbapal",
+      "meanColorError": 137.3132435148959,
+      "severeColorErrorFraction": 0,
+      "distinctRunFrames": 12,
+      "runChanges": [
+        {
+          "from": 11,
+          "to": 0,
+          "changedPixels": 431,
+          "changedSilhouette": 134
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "changedPixels": 521,
+          "changedSilhouette": 231
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "changedPixels": 610,
+          "changedSilhouette": 282
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "changedPixels": 414,
+          "changedSilhouette": 182
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "changedPixels": 529,
+          "changedSilhouette": 212
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "changedPixels": 439,
+          "changedSilhouette": 138
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "changedPixels": 352,
+          "changedSilhouette": 97
+        },
+        {
+          "from": 6,
+          "to": 7,
+          "changedPixels": 497,
+          "changedSilhouette": 245
+        },
+        {
+          "from": 7,
+          "to": 8,
+          "changedPixels": 569,
+          "changedSilhouette": 227
+        },
+        {
+          "from": 8,
+          "to": 9,
+          "changedPixels": 633,
+          "changedSilhouette": 283
+        },
+        {
+          "from": 9,
+          "to": 10,
+          "changedPixels": 567,
+          "changedSilhouette": 293
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "changedPixels": 644,
+          "changedSilhouette": 368
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "run_0",
+          "sourceBounds": [
+            44,
+            53,
+            199,
+            251
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ],
+          "hipX": 109,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 1,
+          "name": "run_1",
+          "sourceBounds": [
+            313,
+            64,
+            451,
+            248
+          ],
+          "size": [
+            25,
+            34
+          ],
+          "offset": [
+            21,
+            15
+          ],
+          "hipX": 371,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 2,
+          "name": "run_2",
+          "sourceBounds": [
+            535,
+            45,
+            700,
+            251
+          ],
+          "size": [
+            30,
+            38
+          ],
+          "offset": [
+            19,
+            11
+          ],
+          "hipX": 607,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 3,
+          "name": "run_3",
+          "sourceBounds": [
+            790,
+            43,
+            954,
+            240
+          ],
+          "size": [
+            30,
+            36
+          ],
+          "offset": [
+            19,
+            11
+          ],
+          "hipX": 864,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 4,
+          "name": "run_4",
+          "sourceBounds": [
+            1057,
+            54,
+            1215,
+            252
+          ],
+          "size": [
+            29,
+            36
+          ],
+          "offset": [
+            19,
+            13
+          ],
+          "hipX": 1127,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 5,
+          "name": "run_5",
+          "sourceBounds": [
+            1315,
+            54,
+            1476,
+            251
+          ],
+          "size": [
+            29,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ],
+          "hipX": 1383,
+          "groundY": 251,
+          "pivotY": 48
+        },
+        {
+          "index": 6,
+          "name": "run_6",
+          "sourceBounds": [
+            34,
+            308,
+            198,
+            501
+          ],
+          "size": [
+            30,
+            35
+          ],
+          "offset": [
+            20,
+            14
+          ],
+          "hipX": 99,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 7,
+          "name": "run_7",
+          "sourceBounds": [
+            305,
+            304,
+            456,
+            503
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ],
+          "hipX": 365,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 8,
+          "name": "run_8",
+          "sourceBounds": [
+            550,
+            287,
+            706,
+            499
+          ],
+          "size": [
+            29,
+            39
+          ],
+          "offset": [
+            19,
+            10
+          ],
+          "hipX": 623,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 9,
+          "name": "run_9",
+          "sourceBounds": [
+            799,
+            307,
+            959,
+            498
+          ],
+          "size": [
+            29,
+            35
+          ],
+          "offset": [
+            18,
+            14
+          ],
+          "hipX": 876,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 10,
+          "name": "run_10",
+          "sourceBounds": [
+            1064,
+            306,
+            1213,
+            501
+          ],
+          "size": [
+            27,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ],
+          "hipX": 1145,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 11,
+          "name": "run_11",
+          "sourceBounds": [
+            1319,
+            308,
+            1473,
+            499
+          ],
+          "size": [
+            28,
+            35
+          ],
+          "offset": [
+            20,
+            14
+          ],
+          "hipX": 1385,
+          "groundY": 501,
+          "pivotY": 48
+        },
+        {
+          "index": 12,
+          "name": "jump_0",
+          "sourceBounds": [
+            28,
+            578,
+            188,
+            738
+          ],
+          "size": [
+            29,
+            29
+          ],
+          "offset": [
+            15,
+            20
+          ],
+          "hipX": 121,
+          "groundY": 738,
+          "pivotY": 48
+        },
+        {
+          "index": 13,
+          "name": "jump_1",
+          "sourceBounds": [
+            314,
+            532,
+            458,
+            724
+          ],
+          "size": [
+            26,
+            35
+          ],
+          "offset": [
+            18,
+            14
+          ],
+          "hipX": 389,
+          "groundY": 724,
+          "pivotY": 48
+        },
+        {
+          "index": 14,
+          "name": "jump_2",
+          "sourceBounds": [
+            560,
+            531,
+            696,
+            728
+          ],
+          "size": [
+            25,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 639,
+          "groundY": 728,
+          "pivotY": 48
+        },
+        {
+          "index": 15,
+          "name": "jump_3",
+          "sourceBounds": [
+            789,
+            556,
+            950,
+            738
+          ],
+          "size": [
+            29,
+            33
+          ],
+          "offset": [
+            15,
+            16
+          ],
+          "hipX": 883,
+          "groundY": 738,
+          "pivotY": 48
+        },
+        {
+          "index": 16,
+          "name": "attack_0",
+          "sourceBounds": [
+            1041,
+            531,
+            1222,
+            738
+          ],
+          "size": [
+            33,
+            38
+          ],
+          "offset": [
+            14,
+            11
+          ],
+          "hipX": 1140,
+          "groundY": 738,
+          "pivotY": 48
+        },
+        {
+          "index": 17,
+          "name": "attack_1",
+          "sourceBounds": [
+            1289,
+            538,
+            1500,
+            738
+          ],
+          "size": [
+            39,
+            37
+          ],
+          "offset": [
+            16,
+            12
+          ],
+          "hipX": 1378,
+          "groundY": 738,
+          "pivotY": 48
+        },
+        {
+          "index": 18,
+          "name": "attack_2",
+          "sourceBounds": [
+            22,
+            794,
+            256,
+            978
+          ],
+          "size": [
+            43,
+            34
+          ],
+          "offset": [
+            15,
+            15
+          ],
+          "hipX": 116,
+          "groundY": 978,
+          "pivotY": 48
+        },
+        {
+          "index": 19,
+          "name": "attack_3",
+          "sourceBounds": [
+            304,
+            778,
+            492,
+            977
+          ],
+          "size": [
+            34,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 383,
+          "groundY": 977,
+          "pivotY": 48
+        },
+        {
+          "index": 20,
+          "name": "victory_0",
+          "sourceBounds": [
+            561,
+            746,
+            708,
+            981
+          ],
+          "size": [
+            27,
+            43
+          ],
+          "offset": [
+            16,
+            6
+          ],
+          "hipX": 648,
+          "groundY": 981,
+          "pivotY": 48
+        },
+        {
+          "index": 21,
+          "name": "victory_1",
+          "sourceBounds": [
+            808,
+            756,
+            967,
+            981
+          ],
+          "size": [
+            29,
+            41
+          ],
+          "offset": [
+            19,
+            8
+          ],
+          "hipX": 877,
+          "groundY": 981,
+          "pivotY": 48
+        },
+        {
+          "index": 22,
+          "name": "victory_2",
+          "sourceBounds": [
+            1028,
+            774,
+            1226,
+            977
+          ],
+          "size": [
+            36,
+            37
+          ],
+          "offset": [
+            14,
+            12
+          ],
+          "hipX": 1126,
+          "groundY": 977,
+          "pivotY": 48
+        },
+        {
+          "index": 23,
+          "name": "victory_3",
+          "sourceBounds": [
+            1315,
+            778,
+            1466,
+            977
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ],
+          "hipX": 1396,
+          "groundY": 977,
+          "pivotY": 48
+        }
+      ]
+    },
+    "kiro": {
+      "source": "graphics/sa2/ocs/source/kiro_action_v2.png",
+      "sourceSHA256": "367f7463138219f73db82654a02a9ae994040f2256494358082f6c7d34af885e",
+      "scale": 0.15483870967741936,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kiro.gbapal",
+      "meanColorError": 128.3175586921764,
+      "severeColorErrorFraction": 0.000075642965204236,
+      "distinctRunFrames": 12,
+      "runChanges": [
+        {
+          "from": 11,
+          "to": 0,
+          "changedPixels": 456,
+          "changedSilhouette": 126
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "changedPixels": 540,
+          "changedSilhouette": 201
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "changedPixels": 585,
+          "changedSilhouette": 270
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "changedPixels": 530,
+          "changedSilhouette": 196
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "changedPixels": 463,
+          "changedSilhouette": 160
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "changedPixels": 449,
+          "changedSilhouette": 126
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "changedPixels": 422,
+          "changedSilhouette": 124
+        },
+        {
+          "from": 6,
+          "to": 7,
+          "changedPixels": 491,
+          "changedSilhouette": 163
+        },
+        {
+          "from": 7,
+          "to": 8,
+          "changedPixels": 560,
+          "changedSilhouette": 223
+        },
+        {
+          "from": 8,
+          "to": 9,
+          "changedPixels": 615,
+          "changedSilhouette": 255
+        },
+        {
+          "from": 9,
+          "to": 10,
+          "changedPixels": 463,
+          "changedSilhouette": 136
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "changedPixels": 499,
+          "changedSilhouette": 154
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "run_0",
+          "sourceBounds": [
+            27,
+            15,
+            200,
+            250
+          ],
+          "size": [
+            27,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ],
+          "hipX": 105,
+          "groundY": 250,
+          "pivotY": 48
+        },
+        {
+          "index": 1,
+          "name": "run_1",
+          "sourceBounds": [
+            311,
+            21,
+            462,
+            250
+          ],
+          "size": [
+            24,
+            36
+          ],
+          "offset": [
+            23,
+            13
+          ],
+          "hipX": 368,
+          "groundY": 250,
+          "pivotY": 48
+        },
+        {
+          "index": 2,
+          "name": "run_2",
+          "sourceBounds": [
+            541,
+            15,
+            720,
+            247
+          ],
+          "size": [
+            28,
+            36
+          ],
+          "offset": [
+            19,
+            12
+          ],
+          "hipX": 625,
+          "groundY": 250,
+          "pivotY": 48
+        },
+        {
+          "index": 3,
+          "name": "run_3",
+          "sourceBounds": [
+            786,
+            23,
+            967,
+            250
+          ],
+          "size": [
+            28,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ],
+          "hipX": 868,
+          "groundY": 250,
+          "pivotY": 48
+        },
+        {
+          "index": 4,
+          "name": "run_4",
+          "sourceBounds": [
+            1054,
+            17,
+            1219,
+            250
+          ],
+          "size": [
+            26,
+            36
+          ],
+          "offset": [
+            22,
+            13
+          ],
+          "hipX": 1121,
+          "groundY": 250,
+          "pivotY": 48
+        },
+        {
+          "index": 5,
+          "name": "run_5",
+          "sourceBounds": [
+            1310,
+            23,
+            1478,
+            254
+          ],
+          "size": [
+            26,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ],
+          "hipX": 1380,
+          "groundY": 254,
+          "pivotY": 48
+        },
+        {
+          "index": 6,
+          "name": "run_6",
+          "sourceBounds": [
+            40,
+            274,
+            199,
+            510
+          ],
+          "size": [
+            25,
+            37
+          ],
+          "offset": [
+            21,
+            12
+          ],
+          "hipX": 112,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 7,
+          "name": "run_7",
+          "sourceBounds": [
+            302,
+            278,
+            462,
+            503
+          ],
+          "size": [
+            25,
+            35
+          ],
+          "offset": [
+            22,
+            13
+          ],
+          "hipX": 368,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 8,
+          "name": "run_8",
+          "sourceBounds": [
+            546,
+            271,
+            720,
+            498
+          ],
+          "size": [
+            27,
+            35
+          ],
+          "offset": [
+            18,
+            12
+          ],
+          "hipX": 634,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 9,
+          "name": "run_9",
+          "sourceBounds": [
+            805,
+            276,
+            967,
+            510
+          ],
+          "size": [
+            25,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ],
+          "hipX": 875,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 10,
+          "name": "run_10",
+          "sourceBounds": [
+            1056,
+            276,
+            1219,
+            510
+          ],
+          "size": [
+            25,
+            36
+          ],
+          "offset": [
+            22,
+            13
+          ],
+          "hipX": 1123,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 11,
+          "name": "run_11",
+          "sourceBounds": [
+            1309,
+            280,
+            1468,
+            505
+          ],
+          "size": [
+            25,
+            35
+          ],
+          "offset": [
+            21,
+            13
+          ],
+          "hipX": 1382,
+          "groundY": 510,
+          "pivotY": 48
+        },
+        {
+          "index": 12,
+          "name": "jump_0",
+          "sourceBounds": [
+            32,
+            529,
+            228,
+            744
+          ],
+          "size": [
+            31,
+            33
+          ],
+          "offset": [
+            20,
+            16
+          ],
+          "hipX": 107,
+          "groundY": 744,
+          "pivotY": 48
+        },
+        {
+          "index": 13,
+          "name": "jump_1",
+          "sourceBounds": [
+            308,
+            514,
+            475,
+            736
+          ],
+          "size": [
+            26,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ],
+          "hipX": 394,
+          "groundY": 736,
+          "pivotY": 48
+        },
+        {
+          "index": 14,
+          "name": "jump_2",
+          "sourceBounds": [
+            562,
+            512,
+            714,
+            736
+          ],
+          "size": [
+            24,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ],
+          "hipX": 644,
+          "groundY": 736,
+          "pivotY": 48
+        },
+        {
+          "index": 15,
+          "name": "jump_3",
+          "sourceBounds": [
+            794,
+            539,
+            965,
+            747
+          ],
+          "size": [
+            27,
+            32
+          ],
+          "offset": [
+            19,
+            17
+          ],
+          "hipX": 876,
+          "groundY": 747,
+          "pivotY": 48
+        },
+        {
+          "index": 16,
+          "name": "attack_0",
+          "sourceBounds": [
+            1023,
+            523,
+            1225,
+            743
+          ],
+          "size": [
+            31,
+            34
+          ],
+          "offset": [
+            21,
+            15
+          ],
+          "hipX": 1096,
+          "groundY": 743,
+          "pivotY": 48
+        },
+        {
+          "index": 17,
+          "name": "attack_1",
+          "sourceBounds": [
+            1273,
+            533,
+            1523,
+            743
+          ],
+          "size": [
+            39,
+            33
+          ],
+          "offset": [
+            19,
+            16
+          ],
+          "hipX": 1359,
+          "groundY": 743,
+          "pivotY": 48
+        },
+        {
+          "index": 18,
+          "name": "attack_2",
+          "sourceBounds": [
+            26,
+            750,
+            245,
+            995
+          ],
+          "size": [
+            34,
+            38
+          ],
+          "offset": [
+            20,
+            11
+          ],
+          "hipX": 104,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 19,
+          "name": "attack_3",
+          "sourceBounds": [
+            292,
+            762,
+            508,
+            995
+          ],
+          "size": [
+            34,
+            36
+          ],
+          "offset": [
+            21,
+            13
+          ],
+          "hipX": 361,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 20,
+          "name": "victory_0",
+          "sourceBounds": [
+            556,
+            754,
+            703,
+            995
+          ],
+          "size": [
+            23,
+            37
+          ],
+          "offset": [
+            19,
+            12
+          ],
+          "hipX": 639,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 21,
+          "name": "victory_1",
+          "sourceBounds": [
+            800,
+            758,
+            944,
+            995
+          ],
+          "size": [
+            22,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ],
+          "hipX": 877,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 22,
+          "name": "victory_2",
+          "sourceBounds": [
+            1042,
+            760,
+            1232,
+            995
+          ],
+          "size": [
+            30,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ],
+          "hipX": 1122,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 23,
+          "name": "victory_3",
+          "sourceBounds": [
+            1324,
+            758,
+            1508,
+            995
+          ],
+          "size": [
+            29,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ],
+          "hipX": 1401,
+          "groundY": 995,
+          "pivotY": 48
+        }
+      ]
+    },
+    "yuliana": {
+      "source": "graphics/sa2/ocs/source/yuliana_action_v2.png",
+      "sourceSHA256": "8d73008034b92ed7b38f51cb623e8dc3350c2d23c80644ea773e84fce4ce57da",
+      "scale": 0.17966903073286053,
+      "referenceHeight": 38,
+      "paletteSource": "graphics/sa2/ocs/yuliana.gbapal",
+      "meanColorError": 68.77903918039792,
+      "severeColorErrorFraction": 0.00015512694555044212,
+      "distinctRunFrames": 12,
+      "runChanges": [
+        {
+          "from": 11,
+          "to": 0,
+          "changedPixels": 875,
+          "changedSilhouette": 353
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "changedPixels": 847,
+          "changedSilhouette": 393
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "changedPixels": 696,
+          "changedSilhouette": 199
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "changedPixels": 785,
+          "changedSilhouette": 306
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "changedPixels": 611,
+          "changedSilhouette": 229
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "changedPixels": 637,
+          "changedSilhouette": 179
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "changedPixels": 756,
+          "changedSilhouette": 271
+        },
+        {
+          "from": 6,
+          "to": 7,
+          "changedPixels": 674,
+          "changedSilhouette": 183
+        },
+        {
+          "from": 7,
+          "to": 8,
+          "changedPixels": 764,
+          "changedSilhouette": 356
+        },
+        {
+          "from": 8,
+          "to": 9,
+          "changedPixels": 794,
+          "changedSilhouette": 359
+        },
+        {
+          "from": 9,
+          "to": 10,
+          "changedPixels": 759,
+          "changedSilhouette": 291
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "changedPixels": 486,
+          "changedSilhouette": 85
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "run_0",
+          "sourceBounds": [
+            22,
+            58,
+            220,
+            273
+          ],
+          "size": [
+            36,
+            39
+          ],
+          "offset": [
+            15,
+            10
+          ],
+          "hipX": 117,
+          "groundY": 273,
+          "pivotY": 48
+        },
+        {
+          "index": 1,
+          "name": "run_1",
+          "sourceBounds": [
+            239,
+            56,
+            426,
+            273
+          ],
+          "size": [
+            34,
+            39
+          ],
+          "offset": [
+            13,
+            10
+          ],
+          "hipX": 345,
+          "groundY": 273,
+          "pivotY": 48
+        },
+        {
+          "index": 2,
+          "name": "run_2",
+          "sourceBounds": [
+            479,
+            57,
+            650,
+            268
+          ],
+          "size": [
+            31,
+            38
+          ],
+          "offset": [
+            15,
+            11
+          ],
+          "hipX": 575,
+          "groundY": 268,
+          "pivotY": 48
+        },
+        {
+          "index": 3,
+          "name": "run_3",
+          "sourceBounds": [
+            741,
+            57,
+            933,
+            268
+          ],
+          "size": [
+            35,
+            38
+          ],
+          "offset": [
+            16,
+            11
+          ],
+          "hipX": 831,
+          "groundY": 268,
+          "pivotY": 48
+        },
+        {
+          "index": 4,
+          "name": "run_4",
+          "sourceBounds": [
+            1002,
+            57,
+            1181,
+            268
+          ],
+          "size": [
+            32,
+            38
+          ],
+          "offset": [
+            17,
+            11
+          ],
+          "hipX": 1086,
+          "groundY": 268,
+          "pivotY": 48
+        },
+        {
+          "index": 5,
+          "name": "run_5",
+          "sourceBounds": [
+            1270,
+            57,
+            1458,
+            272
+          ],
+          "size": [
+            34,
+            39
+          ],
+          "offset": [
+            16,
+            11
+          ],
+          "hipX": 1357,
+          "groundY": 268,
+          "pivotY": 48
+        },
+        {
+          "index": 6,
+          "name": "run_6",
+          "sourceBounds": [
+            24,
+            305,
+            208,
+            511
+          ],
+          "size": [
+            33,
+            37
+          ],
+          "offset": [
+            15,
+            12
+          ],
+          "hipX": 116,
+          "groundY": 511,
+          "pivotY": 48
+        },
+        {
+          "index": 7,
+          "name": "run_7",
+          "sourceBounds": [
+            267,
+            304,
+            447,
+            519
+          ],
+          "size": [
+            33,
+            39
+          ],
+          "offset": [
+            15,
+            10
+          ],
+          "hipX": 362,
+          "groundY": 518,
+          "pivotY": 48
+        },
+        {
+          "index": 8,
+          "name": "run_8",
+          "sourceBounds": [
+            504,
+            304,
+            690,
+            500
+          ],
+          "size": [
+            34,
+            35
+          ],
+          "offset": [
+            12,
+            12
+          ],
+          "hipX": 617,
+          "groundY": 511,
+          "pivotY": 48
+        },
+        {
+          "index": 9,
+          "name": "run_9",
+          "sourceBounds": [
+            750,
+            303,
+            945,
+            516
+          ],
+          "size": [
+            35,
+            38
+          ],
+          "offset": [
+            13,
+            11
+          ],
+          "hipX": 857,
+          "groundY": 516,
+          "pivotY": 48
+        },
+        {
+          "index": 10,
+          "name": "run_10",
+          "sourceBounds": [
+            1016,
+            305,
+            1206,
+            511
+          ],
+          "size": [
+            34,
+            37
+          ],
+          "offset": [
+            13,
+            12
+          ],
+          "hipX": 1123,
+          "groundY": 511,
+          "pivotY": 48
+        },
+        {
+          "index": 11,
+          "name": "run_11",
+          "sourceBounds": [
+            1279,
+            304,
+            1476,
+            511
+          ],
+          "size": [
+            36,
+            37
+          ],
+          "offset": [
+            13,
+            12
+          ],
+          "hipX": 1386,
+          "groundY": 511,
+          "pivotY": 48
+        },
+        {
+          "index": 12,
+          "name": "jump_0",
+          "sourceBounds": [
+            31,
+            582,
+            224,
+            751
+          ],
+          "size": [
+            35,
+            31
+          ],
+          "offset": [
+            11,
+            18
+          ],
+          "hipX": 147,
+          "groundY": 751,
+          "pivotY": 48
+        },
+        {
+          "index": 13,
+          "name": "jump_1",
+          "sourceBounds": [
+            265,
+            536,
+            476,
+            740
+          ],
+          "size": [
+            38,
+            37
+          ],
+          "offset": [
+            12,
+            12
+          ],
+          "hipX": 377,
+          "groundY": 740,
+          "pivotY": 48
+        },
+        {
+          "index": 14,
+          "name": "jump_2",
+          "sourceBounds": [
+            508,
+            522,
+            702,
+            729
+          ],
+          "size": [
+            35,
+            37
+          ],
+          "offset": [
+            11,
+            12
+          ],
+          "hipX": 627,
+          "groundY": 729,
+          "pivotY": 48
+        },
+        {
+          "index": 15,
+          "name": "jump_3",
+          "sourceBounds": [
+            744,
+            555,
+            941,
+            752
+          ],
+          "size": [
+            36,
+            36
+          ],
+          "offset": [
+            10,
+            13
+          ],
+          "hipX": 867,
+          "groundY": 752,
+          "pivotY": 48
+        },
+        {
+          "index": 16,
+          "name": "attack_0",
+          "sourceBounds": [
+            986,
+            549,
+            1175,
+            754
+          ],
+          "size": [
+            34,
+            37
+          ],
+          "offset": [
+            9,
+            12
+          ],
+          "hipX": 1115,
+          "groundY": 754,
+          "pivotY": 48
+        },
+        {
+          "index": 17,
+          "name": "attack_1",
+          "sourceBounds": [
+            1232,
+            550,
+            1501,
+            752
+          ],
+          "size": [
+            49,
+            36
+          ],
+          "offset": [
+            10,
+            13
+          ],
+          "hipX": 1354,
+          "groundY": 752,
+          "pivotY": 48
+        },
+        {
+          "index": 18,
+          "name": "attack_2",
+          "sourceBounds": [
+            24,
+            779,
+            247,
+            989
+          ],
+          "size": [
+            40,
+            38
+          ],
+          "offset": [
+            11,
+            11
+          ],
+          "hipX": 139,
+          "groundY": 989,
+          "pivotY": 48
+        },
+        {
+          "index": 19,
+          "name": "attack_3",
+          "sourceBounds": [
+            289,
+            775,
+            469,
+            989
+          ],
+          "size": [
+            33,
+            39
+          ],
+          "offset": [
+            8,
+            10
+          ],
+          "hipX": 422,
+          "groundY": 989,
+          "pivotY": 48
+        },
+        {
+          "index": 20,
+          "name": "victory_0",
+          "sourceBounds": [
+            545,
+            768,
+            719,
+            987
+          ],
+          "size": [
+            31,
+            40
+          ],
+          "offset": [
+            12,
+            9
+          ],
+          "hipX": 655,
+          "groundY": 987,
+          "pivotY": 48
+        },
+        {
+          "index": 21,
+          "name": "victory_1",
+          "sourceBounds": [
+            784,
+            770,
+            944,
+            990
+          ],
+          "size": [
+            29,
+            40
+          ],
+          "offset": [
+            16,
+            9
+          ],
+          "hipX": 872,
+          "groundY": 990,
+          "pivotY": 48
+        },
+        {
+          "index": 22,
+          "name": "victory_2",
+          "sourceBounds": [
+            1018,
+            773,
+            1190,
+            990
+          ],
+          "size": [
+            31,
+            39
+          ],
+          "offset": [
+            11,
+            10
+          ],
+          "hipX": 1134,
+          "groundY": 990,
+          "pivotY": 48
+        },
+        {
+          "index": 23,
+          "name": "victory_3",
+          "sourceBounds": [
+            1274,
+            772,
+            1442,
+            990
+          ],
+          "size": [
+            30,
+            39
+          ],
+          "offset": [
+            13,
+            10
+          ],
+          "hipX": 1380,
+          "groundY": 990,
+          "pivotY": 48
+        }
+      ]
+    },
+    "kura": {
+      "source": "graphics/sa2/ocs/source/kura_action_v2.png",
+      "sourceSHA256": "8f943d28226ec9015c1aeb1e5fe1611e5975b6849177651bb07272dfceb2a5e1",
+      "scale": 0.16289592760180996,
+      "referenceHeight": 36,
+      "paletteSource": "graphics/sa2/ocs/kura.gbapal",
+      "meanColorError": 192.5871852449663,
+      "severeColorErrorFraction": 0.0015543034777540316,
+      "distinctRunFrames": 12,
+      "runChanges": [
+        {
+          "from": 11,
+          "to": 0,
+          "changedPixels": 369,
+          "changedSilhouette": 121
+        },
+        {
+          "from": 0,
+          "to": 1,
+          "changedPixels": 504,
+          "changedSilhouette": 162
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "changedPixels": 608,
+          "changedSilhouette": 232
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "changedPixels": 527,
+          "changedSilhouette": 166
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "changedPixels": 451,
+          "changedSilhouette": 125
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "changedPixels": 483,
+          "changedSilhouette": 197
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "changedPixels": 444,
+          "changedSilhouette": 126
+        },
+        {
+          "from": 6,
+          "to": 7,
+          "changedPixels": 548,
+          "changedSilhouette": 177
+        },
+        {
+          "from": 7,
+          "to": 8,
+          "changedPixels": 571,
+          "changedSilhouette": 213
+        },
+        {
+          "from": 8,
+          "to": 9,
+          "changedPixels": 602,
+          "changedSilhouette": 219
+        },
+        {
+          "from": 9,
+          "to": 10,
+          "changedPixels": 522,
+          "changedSilhouette": 213
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "changedPixels": 511,
+          "changedSilhouette": 193
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "run_0",
+          "sourceBounds": [
+            28,
+            26,
+            226,
+            248
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 117,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 1,
+          "name": "run_1",
+          "sourceBounds": [
+            290,
+            31,
+            480,
+            247
+          ],
+          "size": [
+            31,
+            35
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 378,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 2,
+          "name": "run_2",
+          "sourceBounds": [
+            531,
+            27,
+            738,
+            247
+          ],
+          "size": [
+            34,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ],
+          "hipX": 626,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 3,
+          "name": "run_3",
+          "sourceBounds": [
+            797,
+            26,
+            986,
+            245
+          ],
+          "size": [
+            31,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 881,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 4,
+          "name": "run_4",
+          "sourceBounds": [
+            1059,
+            30,
+            1246,
+            247
+          ],
+          "size": [
+            31,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 1146,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 5,
+          "name": "run_5",
+          "sourceBounds": [
+            1311,
+            29,
+            1507,
+            249
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ],
+          "hipX": 1402,
+          "groundY": 249,
+          "pivotY": 48
+        },
+        {
+          "index": 6,
+          "name": "run_6",
+          "sourceBounds": [
+            33,
+            282,
+            224,
+            502
+          ],
+          "size": [
+            31,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ],
+          "hipX": 126,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 7,
+          "name": "run_7",
+          "sourceBounds": [
+            281,
+            279,
+            481,
+            503
+          ],
+          "size": [
+            33,
+            37
+          ],
+          "offset": [
+            17,
+            12
+          ],
+          "hipX": 372,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 8,
+          "name": "run_8",
+          "sourceBounds": [
+            529,
+            271,
+            735,
+            501
+          ],
+          "size": [
+            34,
+            38
+          ],
+          "offset": [
+            17,
+            11
+          ],
+          "hipX": 622,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 9,
+          "name": "run_9",
+          "sourceBounds": [
+            790,
+            275,
+            997,
+            503
+          ],
+          "size": [
+            34,
+            37
+          ],
+          "offset": [
+            16,
+            12
+          ],
+          "hipX": 887,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 10,
+          "name": "run_10",
+          "sourceBounds": [
+            1054,
+            282,
+            1248,
+            501
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 1142,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 11,
+          "name": "run_11",
+          "sourceBounds": [
+            1308,
+            280,
+            1505,
+            499
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            18,
+            13
+          ],
+          "hipX": 1395,
+          "groundY": 503,
+          "pivotY": 48
+        },
+        {
+          "index": 12,
+          "name": "jump_0",
+          "sourceBounds": [
+            33,
+            570,
+            245,
+            749
+          ],
+          "size": [
+            35,
+            29
+          ],
+          "offset": [
+            18,
+            20
+          ],
+          "hipX": 122,
+          "groundY": 749,
+          "pivotY": 48
+        },
+        {
+          "index": 13,
+          "name": "jump_1",
+          "sourceBounds": [
+            284,
+            522,
+            474,
+            729
+          ],
+          "size": [
+            31,
+            34
+          ],
+          "offset": [
+            18,
+            15
+          ],
+          "hipX": 371,
+          "groundY": 729,
+          "pivotY": 48
+        },
+        {
+          "index": 14,
+          "name": "jump_2",
+          "sourceBounds": [
+            548,
+            510,
+            709,
+            734
+          ],
+          "size": [
+            26,
+            37
+          ],
+          "offset": [
+            18,
+            12
+          ],
+          "hipX": 634,
+          "groundY": 734,
+          "pivotY": 48
+        },
+        {
+          "index": 15,
+          "name": "jump_3",
+          "sourceBounds": [
+            770,
+            542,
+            965,
+            751
+          ],
+          "size": [
+            32,
+            34
+          ],
+          "offset": [
+            20,
+            15
+          ],
+          "hipX": 846,
+          "groundY": 751,
+          "pivotY": 48
+        },
+        {
+          "index": 16,
+          "name": "attack_0",
+          "sourceBounds": [
+            1016,
+            562,
+            1233,
+            751
+          ],
+          "size": [
+            36,
+            31
+          ],
+          "offset": [
+            13,
+            18
+          ],
+          "hipX": 1132,
+          "groundY": 751,
+          "pivotY": 48
+        },
+        {
+          "index": 17,
+          "name": "attack_1",
+          "sourceBounds": [
+            1281,
+            534,
+            1495,
+            750
+          ],
+          "size": [
+            35,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ],
+          "hipX": 1361,
+          "groundY": 750,
+          "pivotY": 48
+        },
+        {
+          "index": 18,
+          "name": "attack_2",
+          "sourceBounds": [
+            26,
+            779,
+            248,
+            992
+          ],
+          "size": [
+            36,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ],
+          "hipX": 107,
+          "groundY": 992,
+          "pivotY": 48
+        },
+        {
+          "index": 19,
+          "name": "attack_3",
+          "sourceBounds": [
+            287,
+            781,
+            480,
+            991
+          ],
+          "size": [
+            32,
+            34
+          ],
+          "offset": [
+            18,
+            15
+          ],
+          "hipX": 374,
+          "groundY": 991,
+          "pivotY": 48
+        },
+        {
+          "index": 20,
+          "name": "victory_0",
+          "sourceBounds": [
+            560,
+            759,
+            703,
+            993
+          ],
+          "size": [
+            23,
+            38
+          ],
+          "offset": [
+            18,
+            11
+          ],
+          "hipX": 646,
+          "groundY": 993,
+          "pivotY": 48
+        },
+        {
+          "index": 21,
+          "name": "victory_1",
+          "sourceBounds": [
+            790,
+            766,
+            964,
+            992
+          ],
+          "size": [
+            29,
+            37
+          ],
+          "offset": [
+            19,
+            12
+          ],
+          "hipX": 869,
+          "groundY": 992,
+          "pivotY": 48
+        },
+        {
+          "index": 22,
+          "name": "victory_2",
+          "sourceBounds": [
+            1055,
+            773,
+            1213,
+            995
+          ],
+          "size": [
+            26,
+            36
+          ],
+          "offset": [
+            19,
+            13
+          ],
+          "hipX": 1134,
+          "groundY": 995,
+          "pivotY": 48
+        },
+        {
+          "index": 23,
+          "name": "victory_3",
+          "sourceBounds": [
+            1321,
+            769,
+            1476,
+            993
+          ],
+          "size": [
+            25,
+            37
+          ],
+          "offset": [
+            20,
+            12
+          ],
+          "hipX": 1395,
+          "groundY": 993,
+          "pivotY": 48
+        }
+      ]
+    }
+  }
+}

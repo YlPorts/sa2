@@ -22,6 +22,9 @@
 #elif (GAME == GAME_SA2)
 #include "game/sa2/stage/trapped_animals.h"
 #include "game/sa2/stage/cheese.h"
+#if PORTABLE
+#include "game/sa2/oc_abilities.h"
+#endif
 
 #include "constants/sa2/animations.h"
 #include "constants/sa2/player_transitions.h"
@@ -411,6 +414,12 @@ bool32 Coll_Player_Boss_Attack(Sprite *s, s32 sx, s32 sy, s16 hbIndex, Player *p
         return FALSE;
     }
 
+#if PORTABLE && (GAME == GAME_SA2)
+    if (OcAbilitiesOwnPlayer(p)) {
+        /* A ranged hit must not bounce the player's body at a distance. */
+        return OcAbilityHitsTarget(s, sx, sy, hbIndex);
+    }
+#endif
     if (!HITBOX_IS_ACTIVE(sprPlayer->hitboxes[1])) {
         return FALSE;
     }
@@ -487,30 +496,36 @@ bool32 Coll_Player_Enemy_Attack(Sprite *s, CamCoord sx, CamCoord sy, u8 hbIndex)
             if (!(player->moveState & MOVESTATE_IN_SCRIPTED))
 #endif
             {
-                if (HITBOX_IS_ACTIVE(sprPlayer->hitboxes[1])) {
-                    if (HB_COLLISION(sx, sy, s->hitboxes[hbIndex].b, I(player->qWorldX), I(player->qWorldY), sprPlayer->hitboxes[1].b)) {
-                        if (IS_MULTI_PLAYER) {
-                            RoomEvent_EnemyDestroy *roomEvent = CreateRoomEvent();
-                            roomEvent->type = ROOMEVENT_TYPE_ENEMY_DESTROYED;
-                            roomEvent->x = eb->base.regionX;
-                            roomEvent->y = eb->base.regionY;
-                            roomEvent->id = eb->base.id;
-                        }
+                if (
+#if PORTABLE && (GAME == GAME_SA2)
+                    OcAbilitiesOwnPlayer(player) ? OcAbilityHitsTarget(s, sx, sy, hbIndex) :
+#endif
+                    HITBOX_IS_ACTIVE(sprPlayer->hitboxes[1])
+                        && HB_COLLISION(sx, sy, s->hitboxes[hbIndex].b, I(player->qWorldX), I(player->qWorldY), sprPlayer->hitboxes[1].b)) {
+                    if (IS_MULTI_PLAYER) {
+                        RoomEvent_EnemyDestroy *roomEvent = CreateRoomEvent();
+                        roomEvent->type = ROOMEVENT_TYPE_ENEMY_DESTROYED;
+                        roomEvent->x = eb->base.regionX;
+                        roomEvent->y = eb->base.regionY;
+                        roomEvent->id = eb->base.id;
+                    }
 
 #if (GAME == GAME_SA1)
-                        if (player->qSpeedAirY > 0) {
-                            player->qSpeedAirY = -player->qSpeedAirY;
-                        }
+                    if (player->qSpeedAirY > 0) {
+                        player->qSpeedAirY = -player->qSpeedAirY;
+                    }
 #else
+#if PORTABLE
+                    if (!OcAbilitiesOwnPlayer(player))
+#endif
                         Coll_Player_Enemy_AdjustSpeed(player);
 #endif
 
-                        CreateDustCloud(sx, sy);
-                        CreateTrappedAnimal(sx, sy);
-                        CreateEnemyDefeatScoreAndManageLives(sx, sy);
+                    CreateDustCloud(sx, sy);
+                    CreateTrappedAnimal(sx, sy);
+                    CreateEnemyDefeatScoreAndManageLives(sx, sy);
 
-                        return TRUE;
-                    }
+                    return TRUE;
                 }
 
                 if (HITBOX_IS_ACTIVE(sprPlayer->hitboxes[0])
@@ -619,6 +634,11 @@ bool32 Coll_Player_ItemBox(Sprite *s, CamCoord sx, CamCoord sy)
     PlayerSpriteInfo *psi = p->spriteInfoBody;
     Sprite *sprPlayer = &psi->s;
 
+#if PORTABLE
+    if (OcAbilitiesOwnPlayer(p)) {
+        return PLAYER_IS_ALIVE && OcAbilityHitsTarget(s, sx, sy, 0);
+    }
+#endif
     if (PLAYER_IS_ALIVE && HITBOX_IS_ACTIVE(sprPlayer->hitboxes[1]) && (HITBOX_IS_ACTIVE(s->hitboxes[0]))) {
         if (HB_COLLISION(sx, sy, s->hitboxes[0].b, I(p->qWorldX), I(p->qWorldY), sprPlayer->hitboxes[1].b)) {
             result = TRUE;
@@ -638,6 +658,15 @@ bool32 Coll_Player_Enemy(Sprite *s, CamCoord sx, CamCoord sy, s16 hbIndex, Playe
 {
     PlayerSpriteInfo *psi = p->spriteInfoBody;
     Sprite *sprPlayer = &psi->s;
+#if PORTABLE && (GAME == GAME_SA2)
+    /* Some enemies check body damage before their destroyable hitbox. Give an
+     * active weapon strike priority without consuming its hit here. */
+    if (OcAbilitiesOwnPlayer(p) && OcAbilityActive(p) && HITBOX_IS_ACTIVE(s->hitboxes[hbIndex])
+        && HITBOX_IS_ACTIVE(sprPlayer->hitboxes[1])
+        && HB_COLLISION(sx, sy, s->hitboxes[hbIndex].b, I(p->qWorldX), I(p->qWorldY), sprPlayer->hitboxes[1].b)) {
+        return FALSE;
+    }
+#endif
 #if (GAME == GAME_SA1)
     const int hbIndex = 0;
 
@@ -930,10 +959,18 @@ u32 sub_800C394(Sprite *s, s16 sx, s16 sy, Player *p)
 // SA2: https://decomp.me/scratch/verla
 bool32 Coll_DamagePlayer(Player *p)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    if (OcAbilityDodging(p)) {
+        return FALSE;
+    }
+#endif
     if (p->timerInvincibility > 0 || p->timerInvulnerability > 0) {
         return FALSE;
     }
 
+#if PORTABLE && (GAME == GAME_SA2)
+    OcAbilitiesCancel(p);
+#endif
     p->timerInvulnerability = PLAYER_INVULNERABLE_DURATION;
 
 #if (GAME == GAME_SA1)

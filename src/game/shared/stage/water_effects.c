@@ -218,6 +218,11 @@ void LoadPalette423Anim(void)
 
 void CreateStageWaterTask(s32 waterLevel, u32 p1, u32 mask)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    /* Activity belongs to this stage's water task. A dry stage has no task
+     * to recompute it after leaving the active water stretch in Leaf Forest. */
+    gWater.isActive = FALSE;
+#endif
     gWater.currentWaterLevel = waterLevel;
     gWater.targetWaterLevel = waterLevel;
     gWater.SA2_LABEL(unk2) = 0xFF;
@@ -439,6 +444,11 @@ static void TaskDestructor_WaterSurface(Task *t)
 {
     Water *water = &gWater;
 
+#if PORTABLE && (GAME == GAME_SA2)
+    /* Do not leave consumers pointing at an active, already destroyed water
+     * palette when the next stage or a menu has no water task. */
+    water->isActive = FALSE;
+#endif
     gFlags &= ~FLAGS_40;
     gIntrTable[INTR_INDEX_VCOUNT] = gIntrTableTemplate[INTR_INDEX_VCOUNT];
     water->t = NULL;
@@ -450,7 +460,8 @@ static void TaskDestructor_WaterSurface(Task *t)
 static void SA2_LABEL(sub_8011A4C)(void)
 {
     Water *water = &gWater;
-#ifdef BUG_FIX
+#if defined(BUG_FIX) || (PORTABLE && (GAME == GAME_SA2))
+    /* A queued VBlank callback can outlive stage-task destruction. */
     if (water && water->t)
 #endif
     {
@@ -479,7 +490,8 @@ static void SA2_LABEL(sub_8011A4C)(void)
 static void SA2_LABEL(VCountIntr_8011ACC)(void)
 {
     Water *water = &gWater;
-#ifdef BUG_FIX
+#if defined(BUG_FIX) || (PORTABLE && (GAME == GAME_SA2))
+    /* Match the palette owner's lifetime when a stage ends mid-frame. */
     if (water && water->t)
 #endif
     {

@@ -1,0 +1,47 @@
+{
+  "elizabeth": {
+    "scale": 0.17307692307692307,
+    "frames": [
+      {"groundY":277}, {"groundY":277}, {"groundY":277},
+      {"groundY":277}, {"groundY":277}, {"groundY":277},
+      {"groundY":529}, {"groundY":529}, {"groundY":529},
+      {"groundY":529}, {"groundY":529}, {"groundY":529}
+    ]
+  },
+  "jude": {
+    "scale": 0.18181818181818182,
+    "frames": [
+      {"groundY":251}, {"groundY":251}, {"groundY":251},
+      {"groundY":251}, {"groundY":251}, {"groundY":251},
+      {"groundY":501}, {"groundY":501}, {"groundY":501},
+      {"groundY":501}, {"groundY":501}, {"groundY":501}
+    ]
+  },
+  "kiro": {
+    "scale": 0.15483870967741936,
+    "frames": [
+      {"groundY":250}, {"groundY":250}, {"groundY":250},
+      {"groundY":250}, {"groundY":250}, {"groundY":254},
+      {"groundY":510}, {"groundY":510}, {"groundY":510},
+      {"groundY":510}, {"groundY":510}, {"groundY":510}
+    ]
+  },
+  "kura": {
+    "scale": 0.16289592760180996,
+    "frames": [
+      {"groundY":249}, {"groundY":249}, {"groundY":249},
+      {"groundY":249}, {"groundY":249}, {"groundY":249},
+      {"groundY":503}, {"groundY":503}, {"groundY":503},
+      {"groundY":503}, {"groundY":503}, {"groundY":503}
+    ]
+  },
+  "yuliana": {
+    "scale": 0.17966903073286053,
+    "frames": [
+      {"groundY":273}, {"groundY":273}, {"groundY":268},
+      {"groundY":268}, {"groundY":268}, {"groundY":268},
+      {"groundY":511}, {"groundY":518}, {"groundY":511},
+      {"groundY":516}, {"groundY":511}, {"groundY":511}
+    ]
+  }
+}

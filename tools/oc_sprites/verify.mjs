@@ -6,9 +6,9 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const sharp=require(require.resolve('sharp',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES||'',process.cwd()]}));
 const root=path.resolve(path.dirname(new URL(import.meta.url).pathname),'../..');
-for(const name of ['elizabeth','jude','kiro','yuliana']) {
+for(const name of ['elizabeth','jude','kiro','yuliana','kura']) {
   const dir=path.join(root,'graphics/sa2/ocs'),pal=fs.readFileSync(path.join(dir,`${name}.gbapal`));
-  for(const mode of [{suffix:'',count:32,columns:8},{suffix:'_special',count:8,columns:4}]) {
+  for(const mode of [{suffix:'',count:32,columns:8},{suffix:'_special',count:8,columns:4},{suffix:'_actions',count:24,columns:6}]) {
   const tiles=fs.readFileSync(path.join(dir,`${name}${mode.suffix}.4bpp`));
   const {data,info}=await sharp(path.join(dir,`${name}${mode.suffix}.png`)).raw().toBuffer({resolveWithObject:true});
   if(tiles.length!==mode.count*2048||pal.length!==32||info.width!==mode.columns*64||info.height!==mode.count/mode.columns*64||info.channels!==4)throw new Error(`${name}${mode.suffix}: invalid dimensions`);

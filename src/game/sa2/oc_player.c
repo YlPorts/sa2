@@ -8,6 +8,7 @@
 #include "data/sa2/oc_sprite_data.h"
 #include "game/globals.h"
 #include "game/sa2/oc_characters.h"
+#include "game/sa2/oc_abilities.h"
 #include "game/sa2/oc_player.h"
 #include "game/shared/stage/water_effects.h"
 #include "constants/sa2/animations.h"
@@ -21,20 +22,79 @@ typedef struct {
     Player *owner;
     u32 lastStageTime;
     u32 runPhase;
+    s32 lastWorldX;
+    s32 lastWorldY;
+    u32 lastMoveState;
+    u32 victoryAge;
     u16 stateAge;
-    u16 rollAngle;
     s8 lastState;
     s8 oc;
     u8 frame;
+    bool8 victoryActive;
 } OcPlayerRenderer;
 
 static OcPlayerRenderer sOcPlayer;
 static u32 sOcSpecialRunPhase;
 
+/* Extended art keeps the original atlas stable. The action atlas contains
+ * twelve gait phases, four upright jumps, four ability phases and four cheers. */
+#define OC_ACTION_FRAME(index) (OC_FRAME_COUNT + (index))
+#define OC_RUN_PHASE_COUNT 12
+#define OC_RUN_PHASE_DISTANCE Q(8)
+
+static bool32 OcPlayerIsVictoryState(u8 state)
+{
+    return state == CHARSTATE_ACT_CLEAR_A || state == CHARSTATE_ACT_CLEAR_B || state == CHARSTATE_ACT_CLEAR_C
+        || state == CHARSTATE_ACT_CLEAR_TIME_ATTACK_OR_BOSS;
+}
+
+static u8 OcPlayerVictoryFrame(void)
+{
+    u32 age = sOcPlayer.victoryAge;
+    u8 phase;
+    switch (sOcPlayer.oc) {
+        case OC_KIRO:
+            /* Light once, take the first puff, then keep the smoke loop. */
+            phase = age < 20 ? 0 : age < 40 ? 1 : 2 + (((age - 40) / 28) & 1);
+            break;
+        case OC_ELIZABETH:
+            phase = (age / 18) % 4;
+            break;
+        case OC_YULIANA:
+            /* Hold the gesture, then lower the hand and settle. */
+            phase = MIN(age / 20, 3);
+            break;
+        default:
+            phase = (age / 20) % 4;
+            break;
+    }
+    return OC_ACTION_FRAME(20 + phase);
+}
+
+static u8 OcPlayerJumpFrame(Player *player)
+{
+    if (sOcPlayer.stateAge < 3 && (player->charState == CHARSTATE_JUMP_1 || player->charState == CHARSTATE_JUMP_2
+                                 || player->charState == CHARSTATE_AMY_SA1_JUMP)) {
+        return OC_ACTION_FRAME(12);
+    }
+    if (player->qSpeedAirY < -Q(1)) {
+        return OC_ACTION_FRAME(13);
+    }
+    return OC_ACTION_FRAME(player->qSpeedAirY <= Q(1) ? 14 : 15);
+}
+
+static u8 OcPlayerRunFrame(Player *player)
+{
+    if (ABS(player->qSpeedGround) < Q(0.125)) {
+        return 0;
+    }
+    return OC_ACTION_FRAME((sOcPlayer.runPhase >> 8) % OC_RUN_PHASE_COUNT);
+}
+
 static bool32 OcPlayerIsSelected(Player *player)
 {
-    return player == &gPlayer && player->playerID == PLAYER_1 && player->character == CHARACTER_SONIC
-        && gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT && IS_SINGLE_PLAYER
+    return player == &gPlayer && player->playerID == PLAYER_1 && gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT
+        && player->character == OcBaseCharacter(gSelectedOc) && IS_SINGLE_PLAYER
         && !(gStageFlags & STAGE_FLAG__DEMO_RUNNING);
 }
 
@@ -64,6 +124,9 @@ void OcPlayerInit(Player *player)
         sOcPlayer.frame = 0xFF;
         sOcPlayer.lastState = CHARSTATE_INVALID;
         sOcPlayer.lastStageTime = gStageTime;
+        sOcPlayer.lastWorldX = player->qWorldX;
+        sOcPlayer.lastWorldY = player->qWorldY;
+        sOcPlayer.lastMoveState = player->moveState;
         sOcPlayer.sprite.graphics.dest = tiles;
         sOcPlayer.sprite.graphics.size = 64 * TILE_SIZE_4BPP;
         sOcPlayer.sprite.palId = 0;
@@ -76,40 +139,38 @@ void OcPlayerInit(Player *player)
     }
 }
 
-static u8 OcPlayerFrame(Player *player, bool32 *rolling)
+static u8 OcPlayerFrame(Player *player)
 {
     u16 age = sOcPlayer.stateAge;
     u8 state = player->charState;
-    *rolling = FALSE;
 
     if ((player->moveState & MOVESTATE_DEAD) || state == CHARSTATE_DEAD) {
         return 20;
     }
+    if (state == CHARSTATE_HIT_AIR || state == CHARSTATE_HIT_STUNNED) {
+        return 18 + ((age / 8) & 1);
+    }
+    if (OcAbilityActive(player)) {
+        return OC_ACTION_FRAME(16 + MIN(OcAbilityFramePhase(player), 3));
+    }
     switch (state) {
-        case CHARSTATE_HIT_AIR:
-        case CHARSTATE_HIT_STUNNED:
-            return 18 + ((age / 8) & 1);
         case CHARSTATE_SPIN_DASH:
+            return 9;
         case CHARSTATE_SPIN_ATTACK:
+            return (player->moveState & MOVESTATE_IN_AIR) ? OcPlayerJumpFrame(player) : OcPlayerRunFrame(player);
         case CHARSTATE_CURLED_IN_AIR:
+            return OcPlayerJumpFrame(player);
         case CHARSTATE_IN_WHIRLWIND:
         case CHARSTATE_WINDUP_STICK_UPWARDS:
         case CHARSTATE_WINDUP_STICK_DOWNWARDS:
         case CHARSTATE_WINDUP_STICK_SINGLE_TURN_UP:
         case CHARSTATE_WINDUP_STICK_SINGLE_TURN_DOWN:
-            *rolling = TRUE;
-            return 30 + ((sOcPlayer.rollAngle >> 7) & 1);
+            return 23;
         case CHARSTATE_JUMP_1:
         case CHARSTATE_JUMP_2:
+        case CHARSTATE_AMY_SA1_JUMP:
         case CHARSTATE_GRINDING_SONIC_AMY_JUMP_OFF:
-            if (age < 4 && player->variant == 0) {
-                return 10;
-            }
-            if (player->variant == 1 && (player->moveState & MOVESTATE_SPIN_ATTACK)) {
-                *rolling = TRUE;
-                return 12;
-            }
-            return player->qSpeedAirY < -Q(1) ? 11 : 13;
+            return OcPlayerJumpFrame(player);
         case CHARSTATE_HIT_GROUND:
             return 14;
         case CHARSTATE_BRAKE:
@@ -139,7 +200,7 @@ static u8 OcPlayerFrame(Player *player, bool32 *rolling)
         case CHARSTATE_ACT_CLEAR_B:
         case CHARSTATE_ACT_CLEAR_C:
         case CHARSTATE_ACT_CLEAR_TIME_ATTACK_OR_BOSS:
-            return ((age / 20) & 1) ? 28 : 27;
+            return OcPlayerVictoryFrame();
         case CHARSTATE_BOOSTLESS_ATTACK:
         case CHARSTATE_AIR_ATTACK:
         case CHARSTATE_BOOST_ATTACK:
@@ -148,12 +209,13 @@ static u8 OcPlayerFrame(Player *player, bool32 *rolling)
         case CHARSTATE_SONIC_FORWARD_THRUST:
         case CHARSTATE_TRICK_FORWARD:
         case CHARSTATE_TRICK_BACKWARD:
-            return 29;
+        case CHARSTATE_AMY_HAMMER_ATTACK:
+        case CHARSTATE_AMY_SA1_HAMMER_ATTACK:
+        case CHARSTATE_AMY_MID_AIR_HAMMER_SWIRL:
+            return OC_ACTION_FRAME(16 + ((age / 4) % 4));
         case CHARSTATE_TRICK_DOWN:
-            *rolling = TRUE;
-            return 30 + ((sOcPlayer.rollAngle >> 7) & 1);
         case CHARSTATE_TRICK_UP:
-            return 11;
+            return OcPlayerJumpFrame(player);
         case CHARSTATE_WALK_A:
         case CHARSTATE_WALLRUN_INIT:
         case CHARSTATE_WALLRUN_TO_WALL:
@@ -165,7 +227,7 @@ static u8 OcPlayerFrame(Player *player, bool32 *rolling)
             if (player->moveState & MOVESTATE_20) {
                 return 24;
             }
-            return 3 + ((sOcPlayer.runPhase >> 8) % 6);
+            return OcPlayerRunFrame(player);
         case CHARSTATE_FALLING_VULNERABLE_A:
         case CHARSTATE_FALLING_VULNERABLE_B:
         case CHARSTATE_SPRING_MUSIC_PLANT:
@@ -175,10 +237,10 @@ static u8 OcPlayerFrame(Player *player, bool32 *rolling)
         case CHARSTATE_NOTE_BLOCK:
         case CHARSTATE_FLUTE_EXHAUST:
         case CHARSTATE_LAUNCHER_IN_AIR:
-            return player->qSpeedAirY < -Q(1) ? 11 : 13;
+            return OcPlayerJumpFrame(player);
         default:
             if (player->moveState & MOVESTATE_IN_AIR) {
-                return player->qSpeedAirY < -Q(1) ? 11 : 13;
+                return OcPlayerJumpFrame(player);
             }
             if (player->moveState & MOVESTATE_20) {
                 return 24;
@@ -190,14 +252,24 @@ static u8 OcPlayerFrame(Player *player, bool32 *rolling)
     }
 }
 
-static void OcPlayerLoadPalette(void)
+void OcPlayerPreparePalette(Player *player, PlayerSpriteInfo *body)
 {
-    const u16 *palette = gOcPalettes[sOcPlayer.oc];
-    /* Stage intro blends this same bank to black; let its controller own it
-     * until it finishes, so skipping/loading retains the normal fade. */
-    if (!(gStageFlags & STAGE_FLAG__100)) {
+    const u16 *palette;
+    const Sprite *nativeBody = &body->s;
+    if (!OcPlayerIsSelected(player)) {
+        return;
+    }
+    palette = gOcPalettes[gSelectedOc];
+    /* Only the intro fade owns this bank. STAGE_FLAG__100 also covers the
+     * countdown, after the fade has ended and the native Sonic script can
+     * write its own incompatible colors here. The intro clears MASK_18 when
+     * it releases palette ownership; restore the OC from that point onward. */
+    if (!(nativeBody->frameFlags & SPRITE_FLAG_MASK_18)) {
         memcpy(&gObjPalette[0], palette, 16 * sizeof(u16));
         gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
+    } else {
+        /* The lower half of a water split must share the same intro fade. */
+        palette = &gObjPalette[0];
     }
     if (gWater.t != NULL && gWater.isActive) {
         WaterData *data = TASK_DATA(gWater.t);
@@ -298,8 +370,9 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
     Sprite *sprite;
     SpriteTransform transform;
     u32 elapsed;
-    u32 speed;
-    bool32 rolling;
+    u32 distanceX;
+    u32 distanceY;
+    u32 distance;
     u8 frame;
 
     if (!OcPlayerIsSelected(player)) {
@@ -326,28 +399,50 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
     } else {
         sOcPlayer.stateAge += elapsed;
     }
-    speed = ABS(player->qSpeedGround);
-    if (player->moveState & MOVESTATE_IN_AIR) {
-        speed = ABS(player->qSpeedAirX);
+    /* Native clear A/B/C transitions must not restart the OC's celebration. */
+    if (OcPlayerIsVictoryState(player->charState)) {
+        if (sOcPlayer.victoryActive) {
+            sOcPlayer.victoryAge += elapsed;
+        } else {
+            sOcPlayer.victoryAge = 0;
+            sOcPlayer.victoryActive = TRUE;
+        }
+    } else {
+        sOcPlayer.victoryAge = 0;
+        sOcPlayer.victoryActive = FALSE;
     }
-    sOcPlayer.runPhase += MAX(speed >> 5, 24) * elapsed;
-    sOcPlayer.rollAngle += MAX(speed >> 3, 48) * elapsed;
-    frame = OcPlayerFrame(player, &rolling);
+    distanceX = ABS(player->qWorldX - sOcPlayer.lastWorldX);
+    distanceY = ABS(player->qWorldY - sOcPlayer.lastWorldY);
+    sOcPlayer.lastWorldX = player->qWorldX;
+    sOcPlayer.lastWorldY = player->qWorldY;
+    /* Advance a gait from actual travel, so a blocked character and a pause
+     * cannot run in place. max + 3/8 min approximates distance on slopes
+     * without making diagonal ground animation run sqrt(2) times too fast. */
+    distance = MAX(distanceX, distanceY) + ((MIN(distanceX, distanceY) * 3) >> 3);
+    if (elapsed && !(player->moveState & MOVESTATE_IN_AIR) && !(sOcPlayer.lastMoveState & MOVESTATE_IN_AIR)
+        && distance < Q(64) && ABS(player->qSpeedGround) >= Q(0.125) && !OcAbilityActive(player)
+        && !(player->moveState & (MOVESTATE_DEAD | MOVESTATE_IGNORE_INPUT))) {
+        u32 advance = MIN((distance << 8) / OC_RUN_PHASE_DISTANCE, Q(0.75) * elapsed);
+        sOcPlayer.runPhase = (sOcPlayer.runPhase + advance) % (OC_RUN_PHASE_COUNT * Q(1));
+    }
+    sOcPlayer.lastMoveState = player->moveState;
+    frame = OcPlayerFrame(player);
 
     sprite = &sOcPlayer.sprite;
     sprite->oamFlags = body->s.oamFlags;
     sprite->frameFlags = body->s.frameFlags;
     sprite->x = body->s.x;
     sprite->y = body->s.y;
-    /* Rolled poses pivot around their torso, rather than circling the feet
-     * anchor as the affine angle changes. The jump tuck is centered higher. */
-    sOcPlayer.dimensions.offsetY = rolling ? ((frame == 12) ? 29 : 32) : 48 - player->spriteOffsetY;
+    /* All human poses use the same feet anchor, including upright jumps and
+     * attacks. The native body still owns collision and sloped-ground motion. */
+    sOcPlayer.dimensions.offsetY = OC_FRAME_PIVOT_Y - player->spriteOffsetY;
     if (frame != sOcPlayer.frame) {
         sOcPlayer.frame = frame;
-        sprite->graphics.src = gOcFrameTiles[sOcPlayer.oc][frame];
+        sprite->graphics.src = frame < OC_FRAME_COUNT ? gOcFrameTiles[sOcPlayer.oc][frame]
+            : gOcActionFrameTiles[sOcPlayer.oc][frame - OC_FRAME_COUNT];
         ADD_TO_GRAPHICS_QUEUE(&sprite->graphics);
     }
-    OcPlayerLoadPalette();
+    OcPlayerPreparePalette(player, body);
     transform = body->transform;
 
     /* Atlas poses face right; native Sonic poses face left. Invert the native
@@ -357,15 +452,6 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
         sprite->x = transform.x;
         sprite->y = transform.y;
         sprite->frameFlags |= SPRITE_FLAG_MASK_ROT_SCALE_DOUBLE_SIZE;
-        TransformSprite(sprite, &transform);
-    } else if (rolling) {
-        sprite->frameFlags &= ~(SPRITE_FLAG_MASK_X_FLIP | SPRITE_FLAG_MASK_Y_FLIP | SPRITE_FLAG_MASK_ROT_SCALE);
-        sprite->frameFlags |= SPRITE_FLAG_MASK_ROT_SCALE_ENABLE | SPRITE_FLAG_MASK_ROT_SCALE_DOUBLE_SIZE | player->playerID;
-        transform.x = body->s.x;
-        transform.y = body->s.y;
-        transform.rotation = sOcPlayer.rollAngle & 0x3FF;
-        transform.qScaleX = (player->moveState & MOVESTATE_FACING_LEFT) ? -Q(1) : Q(1);
-        transform.qScaleY = GRAVITY_IS_INVERTED ? -Q(1) : Q(1);
         TransformSprite(sprite, &transform);
     } else {
         sprite->frameFlags ^= SPRITE_FLAG_MASK_X_FLIP;

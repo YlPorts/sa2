@@ -12,7 +12,8 @@
     "elizabeth",
     "jude",
     "kiro",
-    "yuliana"
+    "yuliana",
+    "kura"
   ],
   "frames": [
     "idle",
@@ -2453,6 +2454,608 @@
           "offset": [
             20,
             20
+          ]
+        }
+      ]
+    },
+    "kura": {
+      "source": "graphics/sa2/ocs/source/kura_front.png",
+      "sourceSHA256": "91c7ccb03f2fcf2f418a3292f693cb266ee1a5fe03ff190b0f0b88cfcae0fad5",
+      "scale": 0.16981132075471697,
+      "standingHeight": 36,
+      "palette": [
+        "0x0000",
+        "0x0000",
+        "0x739e",
+        "0x2477",
+        "0x6260",
+        "0x71f1",
+        "0x367d",
+        "0x20c7",
+        "0x3d80",
+        "0x573e",
+        "0x552b",
+        "0x1064",
+        "0x184f",
+        "0x3df2",
+        "0x6eb8",
+        "0x2197"
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "name": "idle",
+          "sourceBounds": [
+            27,
+            56,
+            172,
+            267
+          ],
+          "size": [
+            25,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ]
+        },
+        {
+          "index": 1,
+          "name": "blink",
+          "sourceBounds": [
+            210,
+            56,
+            357,
+            267
+          ],
+          "size": [
+            25,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ]
+        },
+        {
+          "index": 2,
+          "name": "breathe",
+          "sourceBounds": [
+            391,
+            53,
+            542,
+            267
+          ],
+          "size": [
+            26,
+            37
+          ],
+          "offset": [
+            19,
+            12
+          ]
+        },
+        {
+          "index": 3,
+          "name": "run_a",
+          "sourceBounds": [
+            567,
+            60,
+            765,
+            267
+          ],
+          "size": [
+            34,
+            35
+          ],
+          "offset": [
+            15,
+            14
+          ]
+        },
+        {
+          "index": 4,
+          "name": "run_b",
+          "sourceBounds": [
+            779,
+            60,
+            951,
+            267
+          ],
+          "size": [
+            29,
+            35
+          ],
+          "offset": [
+            18,
+            14
+          ]
+        },
+        {
+          "index": 5,
+          "name": "run_c",
+          "sourceBounds": [
+            970,
+            57,
+            1160,
+            266
+          ],
+          "size": [
+            32,
+            36
+          ],
+          "offset": [
+            16,
+            13
+          ]
+        },
+        {
+          "index": 6,
+          "name": "run_d",
+          "sourceBounds": [
+            1167,
+            57,
+            1343,
+            267
+          ],
+          "size": [
+            30,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ]
+        },
+        {
+          "index": 7,
+          "name": "run_e",
+          "sourceBounds": [
+            1355,
+            58,
+            1530,
+            267
+          ],
+          "size": [
+            30,
+            36
+          ],
+          "offset": [
+            17,
+            13
+          ]
+        },
+        {
+          "index": 8,
+          "name": "run_f",
+          "sourceBounds": [
+            16,
+            303,
+            203,
+            507
+          ],
+          "size": [
+            32,
+            35
+          ],
+          "offset": [
+            16,
+            14
+          ]
+        },
+        {
+          "index": 9,
+          "name": "crouch",
+          "sourceBounds": [
+            201,
+            371,
+            376,
+            512
+          ],
+          "size": [
+            30,
+            24
+          ],
+          "offset": [
+            17,
+            25
+          ]
+        },
+        {
+          "index": 10,
+          "name": "launch",
+          "sourceBounds": [
+            395,
+            296,
+            580,
+            512
+          ],
+          "size": [
+            32,
+            37
+          ],
+          "offset": [
+            16,
+            12
+          ]
+        },
+        {
+          "index": 11,
+          "name": "rise",
+          "sourceBounds": [
+            609,
+            290,
+            751,
+            501
+          ],
+          "size": [
+            24,
+            36
+          ],
+          "offset": [
+            20,
+            8
+          ]
+        },
+        {
+          "index": 12,
+          "name": "tuck",
+          "sourceBounds": [
+            792,
+            298,
+            931,
+            487
+          ],
+          "size": [
+            24,
+            32
+          ],
+          "offset": [
+            20,
+            12
+          ]
+        },
+        {
+          "index": 13,
+          "name": "fall",
+          "sourceBounds": [
+            955,
+            305,
+            1113,
+            508
+          ],
+          "size": [
+            27,
+            35
+          ],
+          "offset": [
+            19,
+            12
+          ]
+        },
+        {
+          "index": 14,
+          "name": "land",
+          "sourceBounds": [
+            1148,
+            364,
+            1322,
+            512
+          ],
+          "size": [
+            30,
+            25
+          ],
+          "offset": [
+            17,
+            24
+          ]
+        },
+        {
+          "index": 15,
+          "name": "brake_a",
+          "sourceBounds": [
+            1349,
+            327,
+            1524,
+            512
+          ],
+          "size": [
+            30,
+            32
+          ],
+          "offset": [
+            17,
+            17
+          ]
+        },
+        {
+          "index": 16,
+          "name": "brake_b",
+          "sourceBounds": [
+            14,
+            548,
+            197,
+            751
+          ],
+          "size": [
+            31,
+            35
+          ],
+          "offset": [
+            17,
+            14
+          ]
+        },
+        {
+          "index": 17,
+          "name": "brake_c",
+          "sourceBounds": [
+            213,
+            560,
+            363,
+            751
+          ],
+          "size": [
+            26,
+            33
+          ],
+          "offset": [
+            19,
+            16
+          ]
+        },
+        {
+          "index": 18,
+          "name": "hurt_a",
+          "sourceBounds": [
+            395,
+            545,
+            588,
+            751
+          ],
+          "size": [
+            33,
+            35
+          ],
+          "offset": [
+            16,
+            9
+          ]
+        },
+        {
+          "index": 19,
+          "name": "hurt_b",
+          "sourceBounds": [
+            579,
+            537,
+            739,
+            750
+          ],
+          "size": [
+            27,
+            36
+          ],
+          "offset": [
+            19,
+            8
+          ]
+        },
+        {
+          "index": 20,
+          "name": "death",
+          "sourceBounds": [
+            745,
+            636,
+            963,
+            751
+          ],
+          "size": [
+            37,
+            20
+          ],
+          "offset": [
+            14,
+            29
+          ]
+        },
+        {
+          "index": 21,
+          "name": "balance_a",
+          "sourceBounds": [
+            986,
+            543,
+            1143,
+            751
+          ],
+          "size": [
+            27,
+            35
+          ],
+          "offset": [
+            19,
+            14
+          ]
+        },
+        {
+          "index": 22,
+          "name": "balance_b",
+          "sourceBounds": [
+            1167,
+            543,
+            1360,
+            751
+          ],
+          "size": [
+            33,
+            35
+          ],
+          "offset": [
+            16,
+            14
+          ]
+        },
+        {
+          "index": 23,
+          "name": "hang",
+          "sourceBounds": [
+            1368,
+            544,
+            1496,
+            750
+          ],
+          "size": [
+            22,
+            35
+          ],
+          "offset": [
+            21,
+            14
+          ]
+        },
+        {
+          "index": 24,
+          "name": "push",
+          "sourceBounds": [
+            16,
+            800,
+            195,
+            995
+          ],
+          "size": [
+            31,
+            33
+          ],
+          "offset": [
+            17,
+            16
+          ]
+        },
+        {
+          "index": 25,
+          "name": "grind",
+          "sourceBounds": [
+            202,
+            805,
+            386,
+            985
+          ],
+          "size": [
+            31,
+            31
+          ],
+          "offset": [
+            17,
+            18
+          ]
+        },
+        {
+          "index": 26,
+          "name": "swim",
+          "sourceBounds": [
+            397,
+            835,
+            606,
+            974
+          ],
+          "size": [
+            36,
+            24
+          ],
+          "offset": [
+            14,
+            20
+          ]
+        },
+        {
+          "index": 27,
+          "name": "victory",
+          "sourceBounds": [
+            617,
+            772,
+            753,
+            990
+          ],
+          "size": [
+            23,
+            37
+          ],
+          "offset": [
+            21,
+            12
+          ]
+        },
+        {
+          "index": 28,
+          "name": "wave",
+          "sourceBounds": [
+            786,
+            780,
+            926,
+            990
+          ],
+          "size": [
+            24,
+            36
+          ],
+          "offset": [
+            20,
+            13
+          ]
+        },
+        {
+          "index": 29,
+          "name": "attack",
+          "sourceBounds": [
+            950,
+            774,
+            1133,
+            992
+          ],
+          "size": [
+            31,
+            37
+          ],
+          "offset": [
+            17,
+            12
+          ]
+        },
+        {
+          "index": 30,
+          "name": "curl_a",
+          "sourceBounds": [
+            1149,
+            813,
+            1354,
+            969
+          ],
+          "size": [
+            35,
+            27
+          ],
+          "offset": [
+            15,
+            19
+          ]
+        },
+        {
+          "index": 31,
+          "name": "curl_b",
+          "sourceBounds": [
+            1366,
+            794,
+            1521,
+            965
+          ],
+          "size": [
+            26,
+            29
+          ],
+          "offset": [
+            19,
+            18
           ]
         }
       ]
