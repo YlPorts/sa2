@@ -578,7 +578,7 @@ data/$(GAME_NAME)/mb_chao_garden_japan.gba.lz: data/$(GAME_NAME)/mb_chao_garden_
 
 %.bin: %.aif ; $(AIF) $< $@
 
-$(ELF): $(OBJS)
+$(ELF): $(OBJS) | libagbsyscall
 ifeq ($(PLATFORM),gba)
 	@echo "$(LD) -T $(LDSCRIPT) $(MAP_FLAG) $(MAP) <objects> <lib> -o $@"
 	@$(CPP) -P $(CPPFLAGS) $(LDSCRIPT) > $(OBJ_DIR)/$(LDSCRIPT)

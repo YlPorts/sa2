@@ -182,7 +182,13 @@ extern u8 gBossRingsRespawnCount;
 extern bool8 gBossRingsShallRespawn;
 extern bool8 gBoostEffectTasksCreated;
 
+#if PORTABLE
+/* Native compilers vectorize this array's initialization using its declared
+ * alignment. The definition must agree even in non-matching portable builds. */
+extern Task *ALIGNED(16) gMultiplayerPlayerTasks[4];
+#else
 extern Task *gMultiplayerPlayerTasks[4];
+#endif
 extern s8 gMultiplayerCharacters[4];
 extern s8 gMultiplayerRanks[4];
 extern u8 gOamMatrixIndex;

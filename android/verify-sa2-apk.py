@@ -11,7 +11,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
 
-def symbols(data):
+def symbols(data, addresses=None):
     assert data[:4] == b'\x7fELF' and data[5] == 1, 'little-endian ELF required'
     bits = data[4]
     shoff = struct.unpack_from('<I' if bits == 1 else '<Q', data, 32 if bits == 1 else 40)[0]
@@ -41,6 +41,8 @@ def symbols(data):
                 name, _, _, index, value, length = struct.unpack_from('<IBBHQQ', data, p)
             name = names[name:names.find(b'\0', name)].decode('utf-8')
             if 0 < index < len(sections):
+                if addresses is not None:
+                    addresses[name] = value
                 section = sections[index]
                 start = section[2] + value - section[1]
                 result[name] = data[start:start + length]
@@ -95,7 +97,9 @@ def main():
             data = z.read(f'lib/{abi}/libmain.so')
             assert z.getinfo(f'lib/{abi}/libSDL2.so').file_size > 0
             assert struct.unpack_from('<H',data,18)[0] == {'armeabi-v7a':40,'arm64-v8a':183,'x86_64':62}[abi]
-            syms = symbols(data)
+            addresses = {}
+            syms = symbols(data, addresses)
+            assert addresses['gMultiplayerPlayerTasks'] % 16 == 0, 'native task array must agree with vectorized compiler alignment'
             assert b'Game decompiled by:' not in data, 'PC intro remains in Android payload'
             assert not any(n.startswith('__wrap_') for n in syms), 'test harness must not ship'
             assert 'Java_org_libsdl_app_SA2Activity_nativeOptions' in syms
