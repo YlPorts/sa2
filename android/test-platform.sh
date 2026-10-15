@@ -11,3 +11,9 @@ gcc -g -O1 -fno-omit-frame-pointer -fno-pie -no-pie -fsanitize=address,undefined
     src/platform/shared/android_touch.c src/platform/shared/android_options.c \
     src/platform/shared/android_viewport.c "${SDL_FLAGS[@]}" "${SDL_LIBS[@]}" -lm -o build/platform-check/check
 ASAN_OPTIONS=detect_leaks=0 build/platform-check/check build/platform-check/controls.bmp
+for SIMD in 0 1; do
+    gcc -O3 -DCPU_ARCH_X86="$SIMD" -DPLATFORM_GBA=0 -DPORTABLE=1 -DL_CpuFastSet=1 -Iinclude \
+        libagbsyscall/libagbsyscall.c android/tests/cpu-fast-set-check.c -lm \
+        -o "build/platform-check/cpu-fast-$SIMD"
+    "build/platform-check/cpu-fast-$SIMD"
+done

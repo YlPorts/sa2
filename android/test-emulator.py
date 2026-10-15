@@ -17,11 +17,12 @@ package = re.search(r"package: name='([a-zA-Z0-9_.]+)'", metadata).group(1)
 assert package.startswith('com.ylports.sonicadvance2')
 
 def adb(*args, binary=False):
-    return subprocess.check_output(['adb', *args], text=not binary, stderr=subprocess.STDOUT)
+    return subprocess.check_output(['adb', *args], text=not binary, stderr=subprocess.STDOUT, timeout=20)
 
 def capture(name):
     data = adb('exec-out','screencap','-p',binary=True)
     (out / (name+'.png')).write_bytes(data)
+    print('Captured '+name, flush=True)
     return struct.unpack_from('>II',data,16)
 
 def hierarchy():
@@ -41,6 +42,7 @@ def find(prefix='', description=''):
     raise AssertionError('Android UI target unavailable: '+prefix+description)
 
 def click(prefix='',description=''):
+    print('Android UI: '+prefix+description, flush=True)
     x,y=find(prefix,description)
     adb('shell','input','tap',str(x),str(y))
     time.sleep(.3)

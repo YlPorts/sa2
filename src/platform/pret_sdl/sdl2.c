@@ -534,7 +534,9 @@ int main(int argc, char **argv)
     want.freq = 48000;
     want.format = AUDIO_S16;
     want.channels = 2;
-    want.samples = (want.freq / 60);
+    /* Device callback buffers are independent of the game's 800-sample tick.
+     * A power-of-two request is compatible with AAudio/OpenSL backends. */
+    want.samples = 1024;
     cgb_audio_init(want.freq);
 
 #ifdef __ANDROID__

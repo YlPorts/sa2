@@ -67,7 +67,7 @@ void CpuFastSet(const void *inSrc, void *inDest, u32 control)
 {
 #if CPU_ARCH_X86
     const u32 *src = inSrc;
-    const u32 *dest = inDest;
+    u32 *dest = inDest;
     assert(((uintptr_t)src & 0x3) == 0); // should be aligned by 4
     u32 word_count = control & 0x1FFFFF;
 
@@ -75,23 +75,25 @@ void CpuFastSet(const void *inSrc, void *inDest, u32 control)
     word_count = ((word_count + 7) & ~0x7);
 
     const u32 *target = &dest[word_count];
+    /* GBA CpuFastSet requires word alignment, not 16-byte alignment. Native
+     * globals and ROM assets may be four-byte aligned even on x86_64. */
     if (control & CPU_FAST_SET_SRC_FIXED) {
         __m128i v = _mm_set_epi32(*src, *src, *src, *src);
 
         // Store 4-byte source value, 32 bytes at a time.
         while (dest < target) {
-            _mm_store_si128((__m128i *)dest, v);
+            _mm_storeu_si128((__m128i *)dest, v);
             dest += 4;
-            _mm_store_si128((__m128i *)dest, v);
+            _mm_storeu_si128((__m128i *)dest, v);
             dest += 4;
         }
     } else
         while (dest < target) {
             // Copy source to dest, 32bytes at a time.
-            _mm_store_si128((__m128i *)dest, _mm_load_si128((__m128i *)src));
+            _mm_storeu_si128((__m128i *)dest, _mm_loadu_si128((__m128i *)src));
             dest += 4;
             src += 4;
-            _mm_store_si128((__m128i *)dest, _mm_load_si128((__m128i *)src));
+            _mm_storeu_si128((__m128i *)dest, _mm_loadu_si128((__m128i *)src));
             dest += 4;
             src += 4;
         }
