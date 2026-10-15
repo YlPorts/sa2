@@ -1,0 +1,124 @@
+name: Sonic Advance 2 v0.2.0 validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [android-v0.2.0-ocs4]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sa2-v020-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev libsdl2-dev
+          npm install --no-save sharp
+      - name: Atlas and palette preservation
+        run: |
+          node tools/oc_sprites/verify.mjs
+          node tools/oc_sprites/verify_revised.mjs
+          node tools/oc_sprites/verify_guests.mjs
+      - name: Storage, Java and water regressions
+        run: python3 -m unittest discover -s android/tests -v
+      - name: Multitouch, display and settings regressions
+        run: bash android/test-platform.sh
+      - name: Full native OC and original character integration
+        run: bash android/test-ocs.sh > oc-runtime.log 2>&1
+      - name: Android backend boot and actual game loop
+        run: SA_RUNTIME_ANDROID_BACKEND=1 bash android/test-runtime.sh > android-runtime.log 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sa2-v020-test-evidence
+          path: |
+            *runtime.log
+            build/platform-check/*.bmp
+            build/oc-runtime64/captures/*.bmp
+          compression-level: 9
+          if-no-files-found: warn
+
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev curl
+      - name: Select SDK and 16 KB capable NDK
+        run: |
+          sdkmanager 'platforms;android-34' 'build-tools;35.0.0' 'ndk;27.2.12479018' >/dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+      - name: Configure existing signing key when available
+        env:
+          KEY_B64: ${{ secrets.SA_SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SA_SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SA_SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SA_SIGNING_KEY_PASSWORD }}
+        run: |
+          if [[ -n "$KEY_B64" ]]; then
+            umask 077
+            printf '%s' "$KEY_B64" | base64 --decode > "$RUNNER_TEMP/sa2-signing.jks"
+            echo "SA_SIGNING_KEYSTORE=$RUNNER_TEMP/sa2-signing.jks" >> "$GITHUB_ENV"
+            echo "SA_SIGNING_STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "SA_SIGNING_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "SA_SIGNING_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+          else
+            # A separate installable candidate never replaces the user's signed
+            # beta or touches its private saves with an unrelated CI key.
+            echo 'SA_PACKAGE_SUFFIX=.preview' >> "$GITHUB_ENV"
+          fi
+      - name: Build ARM32 and ARM64 candidate
+        env:
+          ANDROID_ABIS: armeabi-v7a arm64-v8a
+          JOBS: '4'
+        run: bash android/build-apk.sh sa2 > apk-build.log 2>&1
+      - name: Verify packaged payload and certificate
+        run: |
+          cp android/out/SonicAdvance2-android-release.apk android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk
+          python3 android/verify-sa2-apk.py android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk --output android/out/apk-validation.json
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/signature.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/package.txt
+          if [[ -n "${SA_SIGNING_KEYSTORE:-}" ]]; then
+            grep -q '15767e621886f4c420af89c6f9767d1857b5fe830782095177a0166400a14e76' android/out/signature.txt
+          fi
+          sha256sum android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/SHA256SUMS
+          tar -czf android/out/native-symbols.tar.gz build/android/*/sa2/sa2.android.elf build/android/*/sa2/sa2.android.map
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SonicAdvance2-v0.2.0-OCS4-candidate
+          path: |
+            android/out/*rc1.apk
+            android/out/*.json
+            android/out/*.txt
+            android/out/SHA256SUMS
+            android/out/native-symbols.tar.gz
+            apk-build.log
+          if-no-files-found: warn
+      - name: Remove temporary private key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa2-signing.jks"

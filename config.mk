@@ -56,6 +56,12 @@ else
     LDSCRIPT := $(LDSCRIPT).txt
 endif
 
+# Android starts with the original game's presentation. Desktop builds retain
+# their optional decompilation introduction; attribution remains in the docs.
+ifeq ($(PLATFORM),android)
+  ENABLE_DECOMP_CREDITS := 0
+endif
+
 
 BUILD_NAME := $(GAME_NAME)
 

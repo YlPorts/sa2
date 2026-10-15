@@ -2,6 +2,7 @@
 #include "global.h"
 #include "platform/shared/android_controls.h"
 #include <math.h>
+#include "platform/shared/android_options.h"
 
 typedef struct Control {
     float x, y, halfW, halfH, radius;
@@ -10,6 +11,24 @@ typedef struct Control {
 } Control;
 
 static float Base(int width, int height) { return (float)(width < height ? width : height); }
+
+static Control Configure(Control c, int id, int width, int height)
+{
+    int j = SA_OPT_LAYOUT + id * 3;
+    float scale = gAndroidOptions[SA_OPT_SIZE] * gAndroidOptions[j + 2] / 10000.f;
+    c.halfW *= scale; c.halfH *= scale; c.radius *= scale;
+    if (gAndroidOptions[j] >= 0) c.x = width * gAndroidOptions[j] / 1000.f;
+    if (gAndroidOptions[j + 1] >= 0) c.y = height * gAndroidOptions[j + 1] / 1000.f;
+    c.x = fminf(width - c.halfW, fmaxf(c.halfW, c.x));
+    c.y = fminf(height - c.halfH, fmaxf(c.halfH, c.y));
+    return c;
+}
+
+static Control Dpad(int width, int height)
+{
+    float b = Base(width, height), unit = b * .105f;
+    return Configure((Control){ b * .22f, height - b * .25f, unit * 1.5f, unit * 1.5f, unit * .14f, 0, 0 }, 0, width, height);
+}
 
 static void Layout(int width, int height, Control controls[6])
 {
@@ -21,16 +40,27 @@ static void Layout(int width, int height, Control controls[6])
     controls[3] = (Control){ width - b * .17f, b * .22f, b * .105f, b * .05f, b * .05f, R_BUTTON, 'R' };
     controls[4] = (Control){ width * .5f - b * .10f, height - b * .07f, b * .07f, b * .038f, b * .038f, SELECT_BUTTON, '=' };
     controls[5] = (Control){ width * .5f + b * .10f, height - b * .07f, b * .07f, b * .038f, b * .038f, START_BUTTON, '>' };
+    for (int i = 0; i < 6; i++) controls[i] = Configure(controls[i], i + 1, width, height);
+}
+
+void AndroidControls_Describe(int id, int width, int height, SDL_FRect *rect)
+{
+    Control c, buttons[6];
+    Layout(width, height, buttons);
+    c = id == 0 ? Dpad(width, height) : buttons[(id - 1) % 6];
+    *rect = (SDL_FRect){ c.x - c.halfW, c.y - c.halfH, c.halfW * 2, c.halfH * 2 };
 }
 
 uint16_t AndroidControls_TouchMask(float x, float y, int width, int height)
 {
     if (width <= 0 || height <= 0) return 0;
-    const float b = Base(width, height), unit = b * .105f;
+    const float b = Base(width, height);
+    Control pad = Dpad(width, height);
+    const float unit = pad.halfW / 1.5f, hit = gAndroidOptions[SA_OPT_HIT_AREA] / 100.f;
     const float px = x * width, py = y * height;
-    const float dx = px - b * .22f, dy = py - (height - b * .25f);
+    const float dx = px - pad.x, dy = py - pad.y;
     u16 mask = 0;
-    if (fabsf(dx) <= unit * 1.72f && fabsf(dy) <= unit * 1.72f) {
+    if (fabsf(dx) <= unit * 1.5f * hit && fabsf(dy) <= unit * 1.5f * hit) {
         const float dead = unit * .22f;
         if (dx < -dead) mask |= DPAD_LEFT;
         if (dx > dead) mask |= DPAD_RIGHT;
@@ -43,9 +73,9 @@ uint16_t AndroidControls_TouchMask(float x, float y, int width, int height)
         const Control *c = &controls[i];
         const float xDistance = px - c->x, yDistance = py - c->y;
         if (i < 2) {
-            const float hitRadius = c->radius + b * .014f;
+            const float hitRadius = c->radius * hit + b * .008f;
             if (xDistance * xDistance + yDistance * yDistance <= hitRadius * hitRadius) mask |= c->key;
-        } else if (fabsf(xDistance) <= c->halfW + b * .015f && fabsf(yDistance) <= c->halfH + b * .012f) {
+        } else if (fabsf(xDistance) <= c->halfW * hit + b * .008f && fabsf(yDistance) <= c->halfH * hit + b * .008f) {
             mask |= c->key;
         }
     }
@@ -176,9 +206,9 @@ SDL_Surface *AndroidControls_CreateSurface(int width, int height, int highlight)
     if (width <= 0 || height <= 0) return NULL;
     SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
     if (surface == NULL) return NULL;
-    const float b = Base(width, height), unit = b * .105f;
-    const float cx = b * .22f, cy = height - b * .25f;
-    Shape(surface, (Control){ cx, cy, unit * 1.5f, unit * 1.5f, unit * .14f, 0, 0 }, 1, highlight);
+    Control pad = Dpad(width, height);
+    const float unit = pad.halfW / 1.5f, cx = pad.x, cy = pad.y;
+    Shape(surface, pad, 1, highlight);
     if (!highlight) {
         Glyph(surface, cx - unit, cy, unit * .48f, 'l'); Glyph(surface, cx + unit, cy, unit * .48f, 'r');
         Glyph(surface, cx, cy - unit, unit * .48f, 'u'); Glyph(surface, cx, cy + unit, unit * .48f, 'd');
@@ -200,8 +230,8 @@ static void CopyRegion(SDL_Renderer *renderer, SDL_Texture *texture, float left,
 
 void AndroidControls_DrawHighlights(SDL_Renderer *renderer, SDL_Texture *texture, int width, int height, uint16_t keys)
 {
-    const float b = Base(width, height), unit = b * .105f;
-    const float cx = b * .22f, cy = height - b * .25f;
+    Control pad = Dpad(width, height);
+    const float unit = pad.halfW / 1.5f, cx = pad.x, cy = pad.y;
     if (keys & DPAD_LEFT) CopyRegion(renderer, texture, cx - unit * 1.5f - 1, cy - unit * .5f - 1, unit + 2, unit + 2);
     if (keys & DPAD_RIGHT) CopyRegion(renderer, texture, cx + unit * .5f - 1, cy - unit * .5f - 1, unit + 2, unit + 2);
     if (keys & DPAD_UP) CopyRegion(renderer, texture, cx - unit * .5f - 1, cy - unit * 1.5f - 1, unit + 2, unit + 2);

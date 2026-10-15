@@ -98,6 +98,24 @@ bool16 SpecialStageCalcEntityScreenPosition(struct UNK_806CB84 *a, struct Specia
         }
     }
 
+#if PORTABLE
+    /* In the original decompiled search the exact-match branch assigned the
+     * step size to the scanline. At coincident depths that could project an
+     * object above the horizon (or divide by the zero perspective row).
+     * Search the same real perspective table, keeping the row in its domain. */
+    {
+        s16 low = stage->horizonHeight;
+        s16 high = DISPLAY_HEIGHT - 1;
+        while (low < high) {
+            s16 mid = low + (high - low) / 2;
+            if (stage->unk94[mid][1] > r4)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        val = low;
+    }
+#else
     val2 = stage->viewDistance;
     val = stage->unk5D3;
 
@@ -116,6 +134,7 @@ bool16 SpecialStageCalcEntityScreenPosition(struct UNK_806CB84 *a, struct Specia
         }
         val2 >>= 1;
     }
+#endif
 
     {
         s32 r2 = (-(stage->unk94[val][0] >> 1) * 9) >> 3;

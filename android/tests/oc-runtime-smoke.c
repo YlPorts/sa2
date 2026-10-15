@@ -19,6 +19,9 @@
 #include "game/sa2/stage/enemies/buzzer.h"
 #include "game/sa2/ui/character_select.h"
 #include "game/sa2/special_stage/main.h"
+#include "game/sa2/special_stage/player.h"
+#include "game/sa2/special_stage/utils.h"
+#include "game/sa2/special_stage/world.h"
 #include "game/shared/stage/stage.h"
 #include "game/shared/stage/player.h"
 #include "game/shared/stage/water_effects.h"
@@ -61,6 +64,7 @@ static FILE *frameTrace;
 static bool previousPaletteReady;
 static const u8 *bodyTiles;
 static Task *testEnemy;
+static Task *specialStageTask;
 static Sprite *testEnemySprite;
 static MapEntity testEnemyMap;
 static unsigned abilityTicks, abilityStarts, abilityActiveFrames, abilityWindupFrames, abilityRecoveryFrames;
@@ -702,7 +706,8 @@ void __wrap_AgbMain(void)
     if (!strcmp(mode, "special")) {
         gSelectedOc = oc;
         gSelectedCharacter = ExpectedBase();
-        CreateSpecialStage(ExpectedBase(), 0);
+        CreateSpecialStage(ExpectedBase(), getenv("SA_OC_LEVEL") ? atoi(getenv("SA_OC_LEVEL")) : 0);
+        specialStageTask = gTaskPtrs[gNumTasks - 1];
     } else if (!strcmp(mode, "stage") || !strcmp(mode, "abilities") || !strcmp(mode, "stage-lifecycle")
                || !strcmp(mode, "glitch-defense") || !strcmp(mode, "pause") || !strcmp(mode, "air-abilities")
                || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")
@@ -1737,6 +1742,33 @@ static bool CheckPauseQuit(void)
     return true;
 }
 
+static void CheckSpecialProjection(void)
+{
+    struct SpecialStage *real = TASK_DATA(specialStageTask);
+    Require(real->worldTask != NULL, "real special stage created its floor projection task");
+    struct SpecialStage *fixture = malloc(sizeof(*fixture));
+    Require(fixture != NULL, "allocate isolated exact-depth projection fixture");
+    *fixture = *real;
+    fixture->cameraRotX = 0;
+    fixture->q16CameraX = fixture->q16CameraY = Q_16_16(512);
+    for (int row = fixture->horizonHeight; row < DISPLAY_HEIGHT; row++) {
+        fixture->unk94[row][0] = Q(64);
+        fixture->unk94[row][1] = (DISPLAY_HEIGHT - row) * 32768;
+    }
+    for (int row = fixture->horizonHeight + 1; row < DISPLAY_HEIGHT - 1; row++) {
+        struct SpecialStageCollectables_UNK874_2 item = {0};
+        struct UNK_806CB84 screen = {0};
+        item.unk0 = fixture->q16CameraX;
+        item.unk4 = fixture->q16CameraY - Q_16_16(DISPLAY_HEIGHT - row);
+        Require(SpecialStageCalcEntityScreenPosition(&screen, &item, fixture), "visible exact-depth entity stays visible");
+        Require(screen.unkA == row, "exact depth selects the actual scanline, never the binary-search step size");
+        Require(screen.screenX == DISPLAY_CENTER_X && screen.unkC > 0,
+                "centered entity retains positive scale and the correct center");
+    }
+    free(fixture);
+    fprintf(stderr, "PASS: special exact-depth projection: all interior horizon/floor rows, positive scales and centered objects\n");
+}
+
 void __wrap_VBlankIntrWait(void)
 {
     if (displayedBodyVisible && bodyTiles) {
@@ -1758,6 +1790,7 @@ void __wrap_VBlankIntrWait(void)
     __real_VBlankIntrWait();
     frames++;
     if (!strcmp(mode, "special")) {
+        if (frames == 300) CheckSpecialProjection();
         unsigned cycle = frames % 150;
         SetInput(DPAD_UP | (cycle < 50 ? DPAD_LEFT : cycle < 100 ? DPAD_RIGHT : 0)
                     | (frames % 100 < 12 ? A_BUTTON : 0));

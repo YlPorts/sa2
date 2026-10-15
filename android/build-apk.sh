@@ -156,6 +156,7 @@ for ABI in "${ABIS[@]}"; do
         APP_BUILD_SCRIPT="$SDL_SRC/Android.mk" \
         APP_PLATFORM="android-$ANDROID_API" \
         APP_ABI="$ABI" \
+        APP_SUPPORT_FLEXIBLE_PAGE_SIZES=true \
         NDK_OUT="$WORK_DIR/sdl-obj/$ABI" \
         NDK_LIBS_OUT="$SDL_LIBS"
 

@@ -4,6 +4,11 @@
 
 #include "platform/platform.h"
 #include "platform/shared/audio/cgb_audio.h"
+#ifdef __ANDROID__
+#include "platform/shared/android_options.h"
+#include "lib/m4a/m4a.h"
+#include <stdint.h>
+#endif
 
 static inline void GenerateAudio(struct SoundMixerState *mixer, struct MixerSource *chan, struct WaveData *wav, fixed8_24 *pcmBuffer,
                                  u16 samplesPerFrame, float sampleRateReciprocal);
@@ -232,6 +237,11 @@ static inline void GenerateAudio(struct SoundMixerState *mixer, struct MixerSour
                                  u16 samplesPerFrame, float sampleRateReciprocal)
 { /*, [[[]]]) {*/
     u8 v = chan->data.sound.envelopeVol * (mixer->masterVol + 1) / 16U;
+#ifdef __ANDROID__
+    uintptr_t track = (uintptr_t)chan->track, first = (uintptr_t)gMPlayInfo_BGM.tracks;
+    bool music = first && track >= first && track < first + gMPlayInfo_BGM.trackCount * sizeof(struct MP2KTrack);
+    v = v * AndroidOptions_ChannelVolume(music) / 100;
+#endif
     chan->data.sound.envelopeVolR = chan->rightVol * v / 256U;
     chan->data.sound.envelopeVolL = chan->leftVol * v / 256U;
 
@@ -930,7 +940,8 @@ void m4aSoundVSync(void)
             // 32768 is size expected for s16 audio
             // 32768 = 1 << 15
             // 24 - 15 = 9
-            audioBuffer[i] = sample >> 9;
+            s32 output = sample >> 9;
+            audioBuffer[i] = MAX(-32768, MIN(output, 32767));
         }
 
         Platform_QueueAudio(audioBuffer, samplesPerFrame * sizeof(s16));

@@ -12,7 +12,7 @@ mkdir -p "$WORK"
 read -r -a SDL_FLAGS <<< "$(sdl2-config --cflags)"
 read -r -a SDL_LIBS <<< "$(sdl2-config --libs)"
 FLAGS=(-g -fno-omit-frame-pointer -fno-pie -no-pie)
-if [[ "$ANDROID_BACKEND" == 1 ]]; then FLAGS+=(-D__ANDROID__=1); fi
+if [[ "$ANDROID_BACKEND" == 1 ]]; then FLAGS+=(-D__ANDROID__=1 -DSA_ANDROID_HOST_TEST=1); fi
 if [[ "$BITS" == 64 ]]; then
     FLAGS+=(-fsanitize=address)
 elif [[ "$BITS" == 32 ]]; then
@@ -36,13 +36,13 @@ if [[ "$ANDROID_BACKEND" == 1 ]]; then
 fi
 # The harness lives outside Makefile's game source list, so force relinking.
 rm -f "$WORK/sa2.runtime.elf"
-make -j"$JOBS" PLATFORM=sdl CPU_ARCH=i386 GAME_NAME=sa2 OBJ_DIR="$OBJ" \
+make -j"$JOBS" PLATFORM=sdl ENABLE_DECOMP_CREDITS=0 CPU_ARCH=i386 GAME_NAME=sa2 OBJ_DIR="$OBJ" \
     ELF="$OBJ/sa2.runtime.elf" ROM="$OBJ/sa2.runtime" MAP="$OBJ/sa2.runtime.map" \
     CC1="gcc ${FLAGS[*]}" CXX="g++ ${FLAGS[*]}" CPP="gcc ${FLAGS[*]} -E" \
     AS="gcc ${FLAGS[*]} -c -x assembler" CC1FLAGS='-O1 -g -Wno-unused-value -x c -S' \
     LIBS="${SDL_LIBS[*]} -L$ROOT/libagbsyscall/$OBJ -lagbsyscall -lm $WORK/runtime-smoke.o $HOST_SHIM -Wl,--wrap=AgbMain -Wl,--wrap=VBlankIntrWait"
 gcc "${FLAGS[@]}" -O1 "${DEFINES[@]}" "${SDL_FLAGS[@]}" -DANDROID_CONTROLS_TEST=1 -DSDL_MAIN_HANDLED=1 \
-    src/platform/shared/android_controls.c src/platform/shared/android_viewport.c android/tests/controls-check.c "${SDL_LIBS[@]}" -lm -o "$WORK/controls-check"
+    src/platform/shared/android_controls.c src/platform/shared/android_viewport.c src/platform/shared/android_options.c src/platform/shared/android_touch.c android/tests/controls-check.c "${SDL_LIBS[@]}" -lm -o "$WORK/controls-check"
 read -r -a RUNNER <<< "${SA_TEST_RUNNER:-}"
 cd "$WORK"
 # LeakSanitizer cannot inspect task namespaces in managed containers. Address

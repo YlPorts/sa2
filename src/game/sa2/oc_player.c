@@ -219,7 +219,9 @@ static u8 OcPlayerFrame(Player *player)
         case CHARSTATE_GOAL_BRAKE_A:
         case CHARSTATE_GOAL_BRAKE_B:
         case CHARSTATE_GOAL_BRAKE_C:
-            return 15 + ((age / 4) % 3);
+            /* Brake into the planted pose once. Looping back to the first
+             * skid frame made the feet jump while the player slowed down. */
+            return 15 + MIN(age / 4, 2);
         case CHARSTATE_TURN_SLOW:
         case CHARSTATE_TURN_AFTER_BRAKE:
             return 17;
@@ -526,7 +528,7 @@ void OcSpecialPlayerTick(s32 speed)
 {
     /* The special stage uses its own velocity units and four rear run poses. */
     if (speed != 0) {
-        sOcSpecialRunPhase += MAX(ABS(speed) >> 7, 24);
+        sOcSpecialRunPhase = (sOcSpecialRunPhase + MIN(MAX(ABS(speed) >> 7, 24), 128)) % (4 * 256);
     }
 }
 

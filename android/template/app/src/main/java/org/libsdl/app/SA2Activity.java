@@ -11,6 +11,8 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 
 public class SA2Activity extends SDLActivity {
+    static native void nativeOptions(int[] values, boolean open);
+    private AndroidOptionsUi androidOptions;
     // SDL calls this after creating/resizing a resizable native window. Its
     // default implementation permits portrait when there is no orientation
     // hint, overriding both the manifest and onCreate's request.
@@ -23,6 +25,8 @@ public class SA2Activity extends SDLActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onCreate(savedInstanceState);
+        androidOptions = new AndroidOptionsUi(this);
+        androidOptions.attach();
         applyImmersiveMode();
         request60Hz();
     }

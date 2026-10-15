@@ -1,6 +1,7 @@
 #if defined(__ANDROID__) || defined(ANDROID_CONTROLS_TEST)
 #include "platform/shared/android_viewport.h"
 #include <stdint.h>
+#include "platform/shared/android_options.h"
 
 SDL_Rect AndroidViewport_Fit(int outputWidth, int outputHeight, int sourceWidth, int sourceHeight)
 {
@@ -23,9 +24,16 @@ SDL_Rect AndroidViewport_Game(int outputWidth, int outputHeight, int sourceWidth
 {
     if (outputWidth <= 0 || outputHeight <= 0 || sourceWidth <= 0 || sourceHeight <= 0)
         return (SDL_Rect){ 0, 0, 0, 0 };
-    // Fill the landscape screen as in earlier builds. Fit only a temporary
-    // portrait surface while Android applies the activity's fixed orientation.
-    if (outputWidth >= outputHeight) return (SDL_Rect){ 0, 0, outputWidth, outputHeight };
+    if (gAndroidOptions[SA_OPT_SCREEN] == 1) {
+        int scaleX = outputWidth / sourceWidth, scaleY = outputHeight / sourceHeight;
+        int scale = scaleX < scaleY ? scaleX : scaleY;
+        if (scale >= 1) {
+            int w = sourceWidth * scale, h = sourceHeight * scale;
+            return (SDL_Rect){ (outputWidth - w) / 2, (outputHeight - h) / 2, w, h };
+        }
+    }
+    // Preserve square pixels on both menu and gameplay viewports. Filling a
+    // 19:9 panel with a 3:2 menu must never widen a character or crop its HUD.
     return AndroidViewport_Fit(outputWidth, outputHeight, sourceWidth, sourceHeight);
 }
 #endif

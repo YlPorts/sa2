@@ -43,7 +43,7 @@ DEFINES=(-DPORTABLE=1 -DPLATFORM_SDL=1 -DPLATFORM_GBA=0 "-DCPU_ARCH_X86=$CPU_DEF
 # Unlink the previous executable as well: a debugger may still map its inode.
 # Linking/copying a fresh candidate must never silently retain an older binary.
 rm -f "$WORK/sa2.oc-runtime.elf" "$WORK/sa2.oc-runtime"
-make -j"${JOBS:-4}" PLATFORM=sdl CPU_ARCH="$ARCH" GAME_NAME=sa2 OBJ_DIR="$OBJ" \
+make -j"${JOBS:-4}" PLATFORM=sdl ENABLE_DECOMP_CREDITS=0 CPU_ARCH="$ARCH" GAME_NAME=sa2 OBJ_DIR="$OBJ" \
     ELF="$OBJ/sa2.oc-runtime.elf" ROM="$OBJ/sa2.oc-runtime" MAP="$OBJ/sa2.oc-runtime.map" \
     CC1="$CC ${FLAGS[*]}" CXX="$CXX ${FLAGS[*]}" CPP="$CC ${FLAGS[*]} -E" \
     AS="$CC ${FLAGS[*]} -c -x assembler" CC1FLAGS="$OPT -g -Wno-unused-value -x c -S" \

@@ -35,6 +35,8 @@
 #include "platform/shared/save_file.h"
 #include "platform/shared/android_controls.h"
 #include "platform/shared/android_viewport.h"
+#include "platform/shared/android_options.h"
+#include "platform/shared/android_touch.h"
 #ifdef SA1_RUNTIME_IMPORT
 #include "platform/shared/rom_assets.h"
 #endif
@@ -76,6 +78,10 @@ bool headless = false;
 #ifdef __ANDROID__
 static SDL_AudioDeviceID sAndroidAudioDevice = 0;
 static bool sAndroidSuspended = false;
+static bool sAndroidOptionsOpen = false;
+static unsigned sAndroidPresentationFrame;
+static Uint32 sAndroidFpsStart;
+static unsigned sAndroidFpsFrames, sAndroidFps;
 static SDL_GameController *sAndroidController = NULL;
 static char sAndroidStagePath[1024];
 static bool sAndroidNativeUiCrop = false;
@@ -185,6 +191,7 @@ void VramDraw(SDL_Texture *texture);
 #ifdef __ANDROID__
 static void AndroidDrawTouchControls(SDL_Renderer *renderer);
 static void AndroidClearInput(void);
+static void AndroidDrawDiagnostics(SDL_Renderer *renderer);
 #endif
 
 static void ReadSaveFile(char *path);
@@ -326,6 +333,9 @@ int main(int argc, char **argv)
 
         if (internalStoragePath != NULL
             && snprintf(savePath, sizeof(savePath), "%s/%s", internalStoragePath, SAVE_FILENAME) < (int)sizeof(savePath)) {
+            char optionsPath[1024];
+            if (snprintf(optionsPath, sizeof(optionsPath), "%s/sa-android-options.cfg", internalStoragePath) < (int)sizeof(optionsPath))
+                AndroidOptions_Load(optionsPath);
             ReadSaveFile(savePath);
             SDL_Log("SA Android save: %s", savePath);
 #if (GAME == GAME_SA2)
@@ -502,6 +512,7 @@ int main(int argc, char **argv)
     }
 #ifdef __ANDROID__
     SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+    SDL_SetTextureScaleMode(sdlTexture, gAndroidOptions[SA_OPT_FILTER] ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
     AndroidSetStartupStage(sAndroidDirectBgr555 ? "texture_bgr555_ok" : "texture_rgba_fallback");
 #endif
 
@@ -592,7 +603,7 @@ void VBlankIntrWait(void)
 #endif
 
 #ifdef __ANDROID__
-        if (sAndroidSuspended) {
+        if (sAndroidSuspended || sAndroidOptionsOpen) {
             SDL_Delay(16);
             continue;
         }
@@ -656,6 +667,12 @@ void VBlankIntrWait(void)
             continue;
         }
 #endif
+#ifdef __ANDROID__
+        if (gAndroidOptions[SA_OPT_PRESENT] == 30 && (++sAndroidPresentationFrame & 1)) {
+            frameDrawn = false;
+            continue;
+        }
+#endif
         SDL_RenderClear(sdlRenderer);
 #ifdef __ANDROID__
         int outputW = 0, outputH = 0;
@@ -670,6 +687,7 @@ void VBlankIntrWait(void)
         }
 
         AndroidDrawTouchControls(sdlRenderer);
+        if (gAndroidOptions[SA_OPT_DIAGNOSTICS]) AndroidDrawDiagnostics(sdlRenderer);
 #else
         SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 #endif
@@ -689,6 +707,13 @@ void VBlankIntrWait(void)
         SDL_RenderPresent(sdlRenderer);
 #ifdef __ANDROID__
         frameDrawn = false;
+        Uint32 now = SDL_GetTicks();
+        sAndroidFpsFrames++;
+        if (now - sAndroidFpsStart >= 1000) {
+            sAndroidFps = sAndroidFpsFrames * 1000 / (now - sAndroidFpsStart);
+            sAndroidFpsStart = now;
+            sAndroidFpsFrames = 0;
+        }
 #endif
 #if ENABLE_VRAM_VIEW
         SDL_RenderPresent(vramRenderer);
@@ -791,71 +816,11 @@ static void CloseSaveFile()
 static u16 keys;
 
 #ifdef __ANDROID__
-#define ANDROID_MAX_TOUCHES 10
-
-typedef struct AndroidTouchSlot {
-    SDL_FingerID id;
-    u16 mask;
-    bool active;
-} AndroidTouchSlot;
-
-static AndroidTouchSlot sAndroidTouches[ANDROID_MAX_TOUCHES];
-static u16 sAndroidTouchKeys;
-
 static void AndroidClearInput(void)
 {
-    memset(sAndroidTouches, 0, sizeof(sAndroidTouches));
-    sAndroidTouchKeys = 0;
+    AndroidTouch_Reset();
     keys = 0;
     REG_KEYINPUT = KEYS_MASK;
-}
-
-static u16 AndroidTouchMask(float x, float y)
-{
-    return AndroidControls_TouchMask(x, y, sAndroidOutputW, sAndroidOutputH);
-}
-
-static void AndroidRebuildTouchKeys(void)
-{
-    u16 mask = 0;
-    int i;
-
-    for (i = 0; i < ANDROID_MAX_TOUCHES; i++) {
-        if (sAndroidTouches[i].active)
-            mask |= sAndroidTouches[i].mask;
-    }
-
-    sAndroidTouchKeys = mask;
-}
-
-static void AndroidUpdateTouch(SDL_FingerID id, float x, float y, bool active)
-{
-    int i;
-    int freeSlot = -1;
-
-    for (i = 0; i < ANDROID_MAX_TOUCHES; i++) {
-        if (sAndroidTouches[i].active && sAndroidTouches[i].id == id) {
-            if (active) {
-                sAndroidTouches[i].mask = AndroidTouchMask(x, y);
-            } else {
-                sAndroidTouches[i].active = false;
-                sAndroidTouches[i].mask = 0;
-            }
-            AndroidRebuildTouchKeys();
-            return;
-        }
-
-        if (!sAndroidTouches[i].active && freeSlot < 0)
-            freeSlot = i;
-    }
-
-    if (active && freeSlot >= 0) {
-        sAndroidTouches[freeSlot].id = id;
-        sAndroidTouches[freeSlot].mask = AndroidTouchMask(x, y);
-        sAndroidTouches[freeSlot].active = true;
-    }
-
-    AndroidRebuildTouchKeys();
 }
 
 static void AndroidDestroyControlsTexture(void)
@@ -900,8 +865,8 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
     int outputW = 0;
     int outputH = 0;
 
-    if (sAndroidController != NULL && SDL_GameControllerGetAttached(sAndroidController))
-        return;
+    if (gAndroidOptions[SA_OPT_TOUCH] == 2 || (gAndroidOptions[SA_OPT_TOUCH] == 0
+        && sAndroidController != NULL && SDL_GameControllerGetAttached(sAndroidController))) return;
 
     if (SDL_GetRendererOutputSize(renderer, &outputW, &outputH) != 0 || outputW <= 0 || outputH <= 0)
         return;
@@ -912,10 +877,36 @@ static void AndroidDrawTouchControls(SDL_Renderer *renderer)
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     if (AndroidEnsureControlsTexture(renderer, outputW, outputH)) {
+        Uint8 opacity = gAndroidOptions[SA_OPT_OPACITY] * 255 / 100;
+        SDL_SetTextureAlphaMod(sAndroidControlsTexture, opacity);
+        SDL_SetTextureAlphaMod(sAndroidControlsHighlightTexture, opacity);
         SDL_RenderCopy(renderer, sAndroidControlsTexture, NULL, NULL);
-        AndroidControls_DrawHighlights(renderer, sAndroidControlsHighlightTexture, outputW, outputH, sAndroidTouchKeys);
+        AndroidControls_DrawHighlights(renderer, sAndroidControlsHighlightTexture, outputW, outputH, AndroidTouch_Peek());
     }
 
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+}
+
+static void AndroidDrawDiagnostics(SDL_Renderer *renderer)
+{
+    /* Small bitmap counter: measured SDL presentations per elapsed second. */
+    static const u16 digits[10] = { 31599, 11415, 29671, 29647, 23497, 31183, 31215, 29257, 31727, 31695 };
+    const u16 glyphs[6] = { 31140, 31524, 31183, digits[(sAndroidFps / 100) % 10],
+                           digits[(sAndroidFps / 10) % 10], digits[sAndroidFps % 10] };
+    int unit = MAX(1, sAndroidOutputH / 240);
+    int x = sAndroidOutputW / 2 - 13 * unit, y = 3 * unit;
+    SDL_Rect panel = { x - 2 * unit, y - unit, 28 * unit, 7 * unit };
+    SDL_SetRenderDrawColor(renderer, 0, 12, 32, 220);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(renderer, &panel);
+    SDL_SetRenderDrawColor(renderer, 255, 224, 64, 255);
+    for (int c = 0; c < 6; c++) for (int row = 0; row < 5; row++) for (int col = 0; col < 3; col++) {
+        if (glyphs[c] & (1 << (14 - row * 3 - col))) {
+            SDL_Rect pixel = { x + (c * 4 + col) * unit, y + row * unit, unit, unit };
+            SDL_RenderFillRect(renderer, &pixel);
+        }
+    }
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
@@ -1051,7 +1042,7 @@ void Platform_QueueAudio(const s16 *data, uint32_t bytesCount)
     }
 
 #ifdef __ANDROID__
-    if (sAndroidAudioDevice == 0 || sAndroidSuspended) {
+    if (sAndroidAudioDevice == 0 || sAndroidSuspended || sAndroidOptionsOpen) {
         return;
     }
 
@@ -1059,7 +1050,17 @@ void Platform_QueueAudio(const s16 *data, uint32_t bytesCount)
         SDL_ClearQueuedAudio(sAndroidAudioDevice);
     }
 
-    SDL_QueueAudio(sAndroidAudioDevice, data, bytesCount);
+    /* Fixed-size chunks avoid allocating every frame and preserve timing at
+     * zero volume. Music/effect gain is applied per source in the mixer. */
+    s16 mixed[2048];
+    uint32_t samples = bytesCount / sizeof(s16);
+    while (samples) {
+        uint32_t count = samples < ARRAY_COUNT(mixed) ? samples : ARRAY_COUNT(mixed);
+        for (uint32_t i = 0; i < count; i++) mixed[i] = (s32)data[i] * gAndroidOptions[SA_OPT_MASTER] / 100;
+        SDL_QueueAudio(sAndroidAudioDevice, mixed, count * sizeof(s16));
+        samples -= count;
+        data += count;
+    }
 #else
     // Reset the audio buffer if we are 10 frames out of sync
     // If this happens it suggests there was some OS level lag
@@ -1086,6 +1087,24 @@ void ProcessSDLEvents(void)
                 isRunning = false;
                 break;
 #ifdef __ANDROID__
+            case SDL_USEREVENT:
+                if (event.user.code == SA_OPTIONS_EVENT && event.user.data1) {
+                    AndroidOptionsMessage *message = event.user.data1;
+                    AndroidOptions_Apply(message->values);
+                    sAndroidOptionsOpen = message->open;
+                    SDL_free(message);
+                    AndroidClearInput();
+                    AndroidDestroyControlsTexture();
+                    SDL_SetTextureScaleMode(sdlTexture, gAndroidOptions[SA_OPT_FILTER] ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+                    lastGameTime = SDL_GetPerformanceCounter();
+                    accumulator = 0.0;
+                    newFrameRequested = FALSE;
+                    if (sAndroidAudioDevice) {
+                        SDL_ClearQueuedAudio(sAndroidAudioDevice);
+                        SDL_PauseAudioDevice(sAndroidAudioDevice, sAndroidOptionsOpen || sAndroidSuspended);
+                    }
+                }
+                break;
             case SDL_APP_WILLENTERBACKGROUND:
             case SDL_APP_DIDENTERBACKGROUND:
                 StoreSaveFile();
@@ -1109,7 +1128,7 @@ void ProcessSDLEvents(void)
                 lastGameTime = SDL_GetPerformanceCounter();
                 accumulator = 0.0;
                 if (sAndroidAudioDevice != 0) {
-                    SDL_PauseAudioDevice(sAndroidAudioDevice, 0);
+                    SDL_PauseAudioDevice(sAndroidAudioDevice, sAndroidOptionsOpen);
                 }
                 break;
             case SDL_RENDER_TARGETS_RESET:
@@ -1201,21 +1220,25 @@ void ProcessSDLEvents(void)
                 }
                 break;
             case SDL_FINGERDOWN:
-                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, true);
+                if (!sAndroidOptionsOpen) AndroidTouch_Finger(event.tfinger.touchId, event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, 1, sAndroidOutputW, sAndroidOutputH);
                 break;
             case SDL_FINGERMOTION:
-                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, true);
+                if (!sAndroidOptionsOpen) AndroidTouch_Finger(event.tfinger.touchId, event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, 2, sAndroidOutputW, sAndroidOutputH);
                 break;
             case SDL_FINGERUP:
-                AndroidUpdateTouch(event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, false);
+                AndroidTouch_Finger(event.tfinger.touchId, event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, 0, sAndroidOutputW, sAndroidOutputH);
                 break;
 #endif
             case SDL_WINDOWEVENT:
+#ifdef __ANDROID__
+                if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) AndroidClearInput();
+#endif
                 if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 #ifdef __ANDROID__
                     // Android owns the native surface size. Never resize it back
                     // to an integer multiple of the GBA viewport; doing so leaves
                     // uncovered strips and desynchronizes touch coordinates.
+                    AndroidClearInput();
                     sAndroidOutputW = event.window.data1;
                     sAndroidOutputH = event.window.data2;
                     AndroidDestroyControlsTexture();
@@ -1263,7 +1286,7 @@ u16 Platform_GetKeyInput(void)
 #endif
 
 #ifdef __ANDROID__
-    return keys | sAndroidTouchKeys | AndroidPollControllerButtons();
+    return keys | AndroidTouch_Consume() | AndroidPollControllerButtons();
 #endif
 
     return keys;
