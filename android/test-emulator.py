@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 source, out = map(Path, sys.argv[1:3])
 out.mkdir(parents=True, exist_ok=True)
-apk = next(source.rglob('*rc1.apk'))
+apk = next(source.rglob('*emulator.apk'))
 metadata = next(source.rglob('package.txt')).read_text()
 package = re.search(r"package: name='([a-zA-Z0-9_.]+)'", metadata).group(1)
 assert package.startswith('com.ylports.sonicadvance2')
@@ -47,7 +47,7 @@ def click(prefix='',description=''):
 
 def start():
     adb('shell','am','start','-n',package+'/org.libsdl.app.RomImportActivity')
-    time.sleep(3)
+    time.sleep(6)
     assert adb('shell','pidof',package).strip(), 'native process must remain alive'
 
 checks=[]
@@ -121,7 +121,17 @@ try:
 except Exception:
     try:
         capture('failure')
+        time.sleep(4)
         (out/'logcat.txt').write_text(adb('logcat','-d'))
+        (out/'crash-log.txt').write_text(adb('logcat','-b','crash','-d'))
+        try:
+            adb('root')
+            adb('wait-for-device')
+            stage=adb('shell','cat','/data/data/'+package+'/files/sa_startup_stage.txt')
+            (out/'native-startup-stage.txt').write_text(stage)
+            subprocess.run(['adb','pull','/data/tombstones',str(out/'tombstones')],check=False,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+            pass
     finally:
         (out/'report.json').write_text(json.dumps({'status':'failed','checks_completed':checks},indent=2)+'\n')
     raise

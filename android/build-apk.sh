@@ -282,4 +282,11 @@ if [[ ! -f "$APK" ]]; then
 fi
 
 cp "$APK" "$OUT_DIR/$APK_NAME"
+if [[ "${SA_EMULATOR_PACKAGE:-0}" == 1 && "$GAME" == sa2 ]]; then
+    (
+        cd "$PROJECT_DIR"
+        ./gradlew --no-daemon "$GRADLE_TASK" -PSA_GAME="$GAME" -PSA_TARGET_ABIS=x86_64
+    )
+    cp "$APK" "$OUT_DIR/SonicAdvance2-android-emulator.apk"
+fi
 echo "[android] APK: $OUT_DIR/$APK_NAME"

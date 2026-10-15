@@ -128,6 +128,7 @@ static void AndroidSetStartupError(const char *where)
 void Platform_SetStartupStage(const char *stage)
 {
     AndroidSetStartupStage(stage);
+    SDL_Log("SA Android stage: %s", stage);
     if (strcmp(stage, "create_game_stage_complete") == 0) SDL_Log("SA Android gameplay ready");
 }
 

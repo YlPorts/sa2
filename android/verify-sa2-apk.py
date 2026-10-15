@@ -5,6 +5,8 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import os
+import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -73,11 +75,18 @@ def main():
     parser.add_argument('apk', type=Path)
     parser.add_argument('--abis', default='armeabi-v7a,arm64-v8a')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--aapt', type=Path)
+    parser.add_argument('--expected-package')
     args = parser.parse_args()
     report = {'apk': args.apk.name, 'sha256': hashlib.sha256(args.apk.read_bytes()).hexdigest(),
               'size_bytes': args.apk.stat().st_size, 'abis': {}, 'physical_device_tested': False,
               'stable_release_approved': False}
     assets = expected_assets()
+    if args.expected_package:
+        assert args.aapt, 'aapt is required for package identity verification'
+        metadata = subprocess.check_output([str(args.aapt), 'dump', 'badging', str(args.apk)], text=True)
+        assert "package: name='" + args.expected_package + "'" in metadata, 'APK package identity does not match signing mode'
+        report['package'] = args.expected_package
     with zipfile.ZipFile(args.apk) as z:
         assert z.testzip() is None
         for name in ['classes.dex','AndroidManifest.xml','resources.arsc']:
