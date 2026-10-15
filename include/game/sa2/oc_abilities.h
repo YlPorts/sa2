@@ -10,6 +10,8 @@ enum OcAbilityType {
     OC_ABILITY_PAN,
     OC_ABILITY_GLITCH,
     OC_ABILITY_FLAP,
+    OC_ABILITY_BONE,
+    OC_ABILITY_WEB,
 };
 
 typedef struct {

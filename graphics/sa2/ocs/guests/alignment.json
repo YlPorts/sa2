@@ -1,0 +1,1513 @@
+{
+  "sans": {
+    "bodyHeight": 32,
+    "sources": {
+      "base": {},
+      "motion": {
+        "frames": [
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {
+            "includeComponents": [
+              0
+            ]
+          },
+          {},
+          {
+            "includeComponents": [
+              0
+            ]
+          },
+          {},
+          {},
+          {},
+          {},
+          {},
+          {}
+        ]
+      },
+      "rear": {},
+      "run": {
+        "frames": [
+          {
+            "groundY": 462
+          },
+          {
+            "groundY": 462
+          },
+          {
+            "groundY": 462
+          },
+          {
+            "groundY": 462
+          },
+          {
+            "groundY": 926
+          },
+          {
+            "groundY": 926
+          },
+          {
+            "groundY": 926
+          },
+          {
+            "groundY": 926
+          }
+        ],
+        "frameOrder": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          6,
+          7,
+          3
+        ],
+        "gaitDescription": "Authored asymmetric Sans shuffle with alternating near/far support; not a canonical mirrored eight-phase human gait.",
+        "outputLabels": [
+          "near_contact",
+          "near_compression",
+          "far_pass",
+          "far_contact",
+          "far_compression",
+          "near_pass",
+          "flight_a",
+          "flight_b"
+        ]
+      }
+    },
+    "projectile": {
+      "source": "graphics/sa2/ocs/guests/source/sans_bone.png",
+      "rectangle": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "component": 0,
+      "maxSize": [
+        8,
+        6
+      ]
+    }
+  },
+  "spiderman": {
+    "bodyHeight": 36,
+    "sources": {
+      "base": {
+        "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+        "rectangles": [
+          [
+            5,
+            35,
+            45,
+            38
+          ],
+          [
+            195,
+            37,
+            46,
+            36
+          ],
+          [
+            480,
+            36,
+            44,
+            37
+          ],
+          [
+            114,
+            149,
+            31,
+            38
+          ],
+          [
+            145,
+            148,
+            38,
+            39
+          ],
+          [
+            232,
+            154,
+            53,
+            33
+          ],
+          [
+            342,
+            150,
+            48,
+            37
+          ],
+          [
+            391,
+            151,
+            40,
+            36
+          ],
+          [
+            470,
+            147,
+            38,
+            40
+          ],
+          [
+            202,
+            746,
+            37,
+            29
+          ],
+          [
+            49,
+            479,
+            34,
+            34
+          ],
+          [
+            117,
+            475,
+            28,
+            38
+          ],
+          [
+            146,
+            476,
+            31,
+            37
+          ],
+          [
+            207,
+            480,
+            30,
+            33
+          ],
+          [
+            272,
+            485,
+            35,
+            28
+          ],
+          [
+            343,
+            481,
+            40,
+            32
+          ],
+          [
+            383,
+            477,
+            44,
+            36
+          ],
+          [
+            5,
+            35,
+            45,
+            38
+          ],
+          [
+            11,
+            1835,
+            31,
+            45
+          ],
+          [
+            83,
+            1835,
+            47,
+            37
+          ],
+          [
+            844,
+            1888,
+            46,
+            19
+          ],
+          [
+            85,
+            1661,
+            29,
+            44
+          ],
+          [
+            82,
+            1709,
+            26,
+            45
+          ],
+          [
+            105,
+            1379,
+            33,
+            41
+          ],
+          [
+            561,
+            278,
+            56,
+            40
+          ],
+          [
+            47,
+            906,
+            42,
+            30
+          ],
+          [
+            4,
+            677,
+            41,
+            36
+          ],
+          [
+            173,
+            1657,
+            24,
+            47
+          ],
+          [
+            113,
+            1708,
+            23,
+            46
+          ],
+          [
+            194,
+            415,
+            45,
+            38
+          ],
+          [
+            117,
+            475,
+            28,
+            38
+          ],
+          [
+            177,
+            479,
+            31,
+            34
+          ]
+        ],
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "poseRoles": [
+          "idle_a",
+          "idle_b",
+          "idle_c",
+          "run_a",
+          "run_b",
+          "run_c",
+          "run_d",
+          "run_e",
+          "run_f",
+          "crouch",
+          "launch",
+          "rise",
+          "human_tuck",
+          "fall",
+          "land",
+          "brake_recovery_a",
+          "brake_recovery_b",
+          "brake_settle",
+          "hurt_a",
+          "hurt_b",
+          "dead_rest",
+          "balance_compatible_a",
+          "balance_compatible_b",
+          "overhead_web_compatible_hang",
+          "push_compatible_extended_arm",
+          "crouch_slide_compatible_grind",
+          "airborne_compatible_swim",
+          "victory_crossed_arms",
+          "victory_wave",
+          "wrist_shoot",
+          "human_tuck_a",
+          "human_tuck_b"
+        ],
+        "attribution": {
+          "original_game": "Ultimate Spider-Man",
+          "original_platform": "Game Boy Advance",
+          "character": "Spider-Man (classic red and blue suit)",
+          "contributors": [
+            "Naruto[NU]",
+            "RundownAngel"
+          ],
+          "source_page": "https://spritedatabase.net/file/6088",
+          "game_page": "https://spritedatabase.net/game/1185",
+          "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+          "site_date_added": "2009-01-22",
+          "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+          "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+          "original_dimensions": [
+            1152,
+            2099
+          ],
+          "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+          "colorkeyRGB": [
+            254,
+            254,
+            254
+          ],
+          "colorkey_index_original_gif": 255,
+          "eye_lens_rgb": [
+            184,
+            216,
+            184
+          ],
+          "original_credits_retained": true
+        },
+        "scale": 1.0588235294117647,
+        "referenceBodyHeight": 34,
+        "frames": [
+          {
+            "bodyBounds": [
+              7,
+              37,
+              47,
+              70
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 25.88888888888889
+          },
+          {
+            "bodyBounds": [
+              197,
+              39,
+              238,
+              70
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 212.11111111111111
+          },
+          {
+            "bodyBounds": [
+              482,
+              38,
+              521,
+              70
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 500.8888888888889
+          },
+          {
+            "bodyBounds": [
+              116,
+              151,
+              142,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 125.44444444444444
+          },
+          {
+            "bodyBounds": [
+              147,
+              150,
+              180,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 160.22222222222223
+          },
+          {
+            "bodyBounds": [
+              234,
+              156,
+              282,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 263.27777777777777
+          },
+          {
+            "bodyBounds": [
+              344,
+              152,
+              387,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 373.27777777777777
+          },
+          {
+            "bodyBounds": [
+              393,
+              153,
+              428,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 416.6111111111111
+          },
+          {
+            "bodyBounds": [
+              472,
+              149,
+              505,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 484.27777777777777
+          },
+          {
+            "bodyBounds": [
+              204,
+              748,
+              236,
+              772
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 222.88888888888889
+          },
+          {
+            "bodyBounds": [
+              51,
+              481,
+              80,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 70.83333333333333
+          },
+          {
+            "bodyBounds": [
+              119,
+              477,
+              142,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 131.27777777777777
+          },
+          {
+            "bodyBounds": [
+              148,
+              478,
+              174,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 159.33333333333334
+          },
+          {
+            "bodyBounds": [
+              209,
+              482,
+              234,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 218.44444444444446
+          },
+          {
+            "bodyBounds": [
+              274,
+              487,
+              304,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 288.1666666666667
+          },
+          {
+            "bodyBounds": [
+              345,
+              483,
+              380,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 363.8888888888889
+          },
+          {
+            "bodyBounds": [
+              385,
+              479,
+              424,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 404.8333333333333
+          },
+          {
+            "bodyBounds": [
+              7,
+              37,
+              47,
+              70
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 25.88888888888889
+          },
+          {
+            "bodyBounds": [
+              13,
+              1837,
+              39,
+              1877
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 26.22222222222222
+          },
+          {
+            "bodyBounds": [
+              85,
+              1837,
+              127,
+              1869
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 99.16666666666667
+          },
+          {
+            "bodyBounds": [
+              846,
+              1890,
+              887,
+              1904
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 866.7777777777778
+          },
+          {
+            "bodyBounds": [
+              87,
+              1663,
+              111,
+              1702
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 102.11111111111111
+          },
+          {
+            "bodyBounds": [
+              84,
+              1711,
+              105,
+              1751
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 97.22222222222223
+          },
+          {
+            "bodyBounds": [
+              107,
+              1381,
+              135,
+              1417
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 120.22222222222223
+          },
+          {
+            "bodyBounds": [
+              563,
+              280,
+              614,
+              315
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 585.6666666666666
+          },
+          {
+            "bodyBounds": [
+              49,
+              908,
+              86,
+              933
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 71.66666666666667
+          },
+          {
+            "bodyBounds": [
+              6,
+              679,
+              42,
+              710
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 23.0
+          },
+          {
+            "bodyBounds": [
+              175,
+              1659,
+              194,
+              1701
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 184.44444444444446
+          },
+          {
+            "bodyBounds": [
+              115,
+              1710,
+              133,
+              1751
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 122.55555555555556
+          },
+          {
+            "bodyBounds": [
+              196,
+              417,
+              236,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 214.88888888888889
+          },
+          {
+            "bodyBounds": [
+              119,
+              477,
+              142,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 131.27777777777777
+          },
+          {
+            "bodyBounds": [
+              179,
+              481,
+              205,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 189.38888888888889
+          }
+        ]
+      },
+      "motion": {
+        "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+        "rectangles": [
+          [
+            114,
+            149,
+            31,
+            38
+          ],
+          [
+            145,
+            148,
+            38,
+            39
+          ],
+          [
+            232,
+            154,
+            53,
+            33
+          ],
+          [
+            342,
+            150,
+            48,
+            37
+          ],
+          [
+            391,
+            151,
+            40,
+            36
+          ],
+          [
+            470,
+            147,
+            38,
+            40
+          ],
+          [
+            566,
+            154,
+            53,
+            33
+          ],
+          [
+            675,
+            150,
+            49,
+            37
+          ],
+          [
+            117,
+            475,
+            28,
+            38
+          ],
+          [
+            146,
+            476,
+            31,
+            37
+          ],
+          [
+            207,
+            480,
+            30,
+            33
+          ],
+          [
+            272,
+            485,
+            35,
+            28
+          ],
+          [
+            5,
+            414,
+            41,
+            39
+          ],
+          [
+            47,
+            415,
+            44,
+            38
+          ],
+          [
+            194,
+            415,
+            45,
+            38
+          ],
+          [
+            265,
+            415,
+            46,
+            38
+          ],
+          [
+            194,
+            415,
+            45,
+            38
+          ],
+          [
+            265,
+            415,
+            46,
+            38
+          ],
+          [
+            47,
+            415,
+            44,
+            38
+          ],
+          [
+            5,
+            414,
+            41,
+            39
+          ],
+          [
+            272,
+            485,
+            35,
+            28
+          ],
+          [
+            173,
+            1657,
+            24,
+            47
+          ],
+          [
+            113,
+            1708,
+            23,
+            46
+          ],
+          [
+            85,
+            1661,
+            29,
+            44
+          ]
+        ],
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "poseRoles": [
+          "authored_run_loop_sample_0",
+          "authored_run_loop_sample_1",
+          "authored_run_loop_sample_2",
+          "authored_run_loop_sample_3",
+          "authored_run_loop_sample_4",
+          "authored_run_loop_sample_5",
+          "authored_run_loop_sample_6",
+          "authored_run_loop_sample_7",
+          "jump_rise",
+          "jump_tuck",
+          "jump_fall",
+          "jump_land",
+          "web_prepare_0",
+          "web_prepare_1",
+          "web_active_0",
+          "web_active_1",
+          "web_active_2",
+          "web_recover_0",
+          "web_recover_1",
+          "web_settle",
+          "victory_land",
+          "victory_crossed_arms",
+          "victory_wave",
+          "victory_settle"
+        ],
+        "attribution": {
+          "original_game": "Ultimate Spider-Man",
+          "original_platform": "Game Boy Advance",
+          "character": "Spider-Man (classic red and blue suit)",
+          "contributors": [
+            "Naruto[NU]",
+            "RundownAngel"
+          ],
+          "source_page": "https://spritedatabase.net/file/6088",
+          "game_page": "https://spritedatabase.net/game/1185",
+          "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+          "site_date_added": "2009-01-22",
+          "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+          "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+          "original_dimensions": [
+            1152,
+            2099
+          ],
+          "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+          "colorkeyRGB": [
+            254,
+            254,
+            254
+          ],
+          "colorkey_index_original_gif": 255,
+          "eye_lens_rgb": [
+            184,
+            216,
+            184
+          ],
+          "original_credits_retained": true
+        },
+        "scale": 1.0588235294117647,
+        "referenceBodyHeight": 34,
+        "frames": [
+          {
+            "bodyBounds": [
+              116,
+              151,
+              142,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 125.44444444444444
+          },
+          {
+            "bodyBounds": [
+              147,
+              150,
+              180,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 160.22222222222223
+          },
+          {
+            "bodyBounds": [
+              234,
+              156,
+              282,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 263.27777777777777
+          },
+          {
+            "bodyBounds": [
+              344,
+              152,
+              387,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 373.27777777777777
+          },
+          {
+            "bodyBounds": [
+              393,
+              153,
+              428,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 416.6111111111111
+          },
+          {
+            "bodyBounds": [
+              472,
+              149,
+              505,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 484.27777777777777
+          },
+          {
+            "bodyBounds": [
+              568,
+              156,
+              616,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 588.7777777777778
+          },
+          {
+            "bodyBounds": [
+              677,
+              152,
+              721,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 706.2777777777778
+          },
+          {
+            "bodyBounds": [
+              119,
+              477,
+              142,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 131.27777777777777
+          },
+          {
+            "bodyBounds": [
+              148,
+              478,
+              174,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 159.33333333333334
+          },
+          {
+            "bodyBounds": [
+              209,
+              482,
+              234,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 218.44444444444446
+          },
+          {
+            "bodyBounds": [
+              274,
+              487,
+              304,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 288.1666666666667
+          },
+          {
+            "bodyBounds": [
+              7,
+              416,
+              43,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 24.944444444444443
+          },
+          {
+            "bodyBounds": [
+              49,
+              417,
+              88,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 69.77777777777777
+          },
+          {
+            "bodyBounds": [
+              196,
+              417,
+              236,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 214.88888888888889
+          },
+          {
+            "bodyBounds": [
+              267,
+              417,
+              308,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 282.1111111111111
+          },
+          {
+            "bodyBounds": [
+              196,
+              417,
+              236,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 214.88888888888889
+          },
+          {
+            "bodyBounds": [
+              267,
+              417,
+              308,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 282.1111111111111
+          },
+          {
+            "bodyBounds": [
+              49,
+              417,
+              88,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 69.77777777777777
+          },
+          {
+            "bodyBounds": [
+              7,
+              416,
+              43,
+              450
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 24.944444444444443
+          },
+          {
+            "bodyBounds": [
+              274,
+              487,
+              304,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 288.1666666666667
+          },
+          {
+            "bodyBounds": [
+              175,
+              1659,
+              194,
+              1701
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 184.44444444444446
+          },
+          {
+            "bodyBounds": [
+              115,
+              1710,
+              133,
+              1751
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 122.55555555555556
+          },
+          {
+            "bodyBounds": [
+              87,
+              1663,
+              111,
+              1702
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 102.11111111111111
+          }
+        ]
+      },
+      "rear": {
+        "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+        "rectangles": [
+          [
+            114,
+            149,
+            31,
+            38
+          ],
+          [
+            145,
+            148,
+            38,
+            39
+          ],
+          [
+            232,
+            154,
+            53,
+            33
+          ],
+          [
+            342,
+            150,
+            48,
+            37
+          ],
+          [
+            592,
+            1757,
+            34,
+            47
+          ],
+          [
+            521,
+            1665,
+            40,
+            39
+          ],
+          [
+            146,
+            476,
+            31,
+            37
+          ],
+          [
+            83,
+            1835,
+            47,
+            37
+          ]
+        ],
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "poseRoles": [
+          "bonus_compatible_three_quarter_run_0",
+          "bonus_compatible_three_quarter_run_1",
+          "bonus_compatible_three_quarter_run_2",
+          "bonus_compatible_three_quarter_run_3",
+          "bonus_compatible_front_three_quarter_arms_up",
+          "bonus_compatible_side_three_quarter_settle",
+          "bonus_compatible_three_quarter_jump",
+          "bonus_compatible_three_quarter_hurt"
+        ],
+        "attribution": {
+          "original_game": "Ultimate Spider-Man",
+          "original_platform": "Game Boy Advance",
+          "character": "Spider-Man (classic red and blue suit)",
+          "contributors": [
+            "Naruto[NU]",
+            "RundownAngel"
+          ],
+          "source_page": "https://spritedatabase.net/file/6088",
+          "game_page": "https://spritedatabase.net/game/1185",
+          "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+          "site_date_added": "2009-01-22",
+          "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+          "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+          "original_dimensions": [
+            1152,
+            2099
+          ],
+          "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+          "colorkeyRGB": [
+            254,
+            254,
+            254
+          ],
+          "colorkey_index_original_gif": 255,
+          "eye_lens_rgb": [
+            184,
+            216,
+            184
+          ],
+          "original_credits_retained": true
+        },
+        "scale": 1.0588235294117647,
+        "referenceBodyHeight": 34,
+        "frames": [
+          {
+            "bodyBounds": [
+              116,
+              151,
+              142,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 125.44444444444444
+          },
+          {
+            "bodyBounds": [
+              147,
+              150,
+              180,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 160.22222222222223
+          },
+          {
+            "bodyBounds": [
+              234,
+              156,
+              282,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 263.27777777777777
+          },
+          {
+            "bodyBounds": [
+              344,
+              152,
+              387,
+              184
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 373.27777777777777
+          },
+          {
+            "bodyBounds": [
+              594,
+              1759,
+              623,
+              1801
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 610.0555555555555
+          },
+          {
+            "bodyBounds": [
+              523,
+              1667,
+              558,
+              1701
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 540.9444444444445
+          },
+          {
+            "bodyBounds": [
+              148,
+              478,
+              174,
+              510
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 159.33333333333334
+          },
+          {
+            "bodyBounds": [
+              85,
+              1837,
+              127,
+              1869
+            ],
+            "includeComponents": [
+              0
+            ],
+            "bodyAnchorX": 99.16666666666667
+          }
+        ]
+      }
+    },
+    "projectile": {
+      "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+      "rectangle": [
+        391,
+        429,
+        12,
+        12
+      ],
+      "colorkeyRGB": [
+        255,
+        0,
+        0
+      ],
+      "component": 0,
+      "maxSize": [
+        8,
+        8
+      ],
+      "paletteIndices": [
+        1,
+        2
+      ]
+    },
+    "palette": [
+      "0000",
+      "7fff",
+      "0009",
+      "0011",
+      "000d",
+      "5b56",
+      "001b",
+      "0014",
+      "4900",
+      "5540",
+      "0018",
+      "5d80",
+      "7a20",
+      "71e0",
+      "69c0"
+    ]
+  }
+}

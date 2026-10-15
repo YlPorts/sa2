@@ -5,7 +5,7 @@
 #include "constants/sa2/characters.h"
 
 /* These are presentation identities. Original character/save arrays remain five entries. */
-#define OC_CHARACTER_COUNT 5
+#define OC_CHARACTER_COUNT 7
 #define OC_SELECT_FIRST NUM_CHARACTERS
 
 enum OcCharacterId {
@@ -14,6 +14,8 @@ enum OcCharacterId {
     OC_KIRO,
     OC_YULIANA,
     OC_KURA,
+    OC_SANS,
+    OC_SPIDERMAN,
 };
 
 extern s8 gSelectedOc; /* -1 means an original character. */

@@ -42,6 +42,11 @@ typedef struct {
 
 static OcAbilities sAbilities;
 
+static bool32 OcAbilityIsProjectile(u8 kind)
+{
+    return kind == OC_ABILITY_GUN || kind == OC_ABILITY_BONE || kind == OC_ABILITY_WEB;
+}
+
 /* Streak mask; each nonzero pixel is recolored with the OC's brightest
  * neutral color, keeping the existing palette bank's fade/water treatment. */
 static const u8 ALIGNED(4) sBulletTiles[TILE_SIZE_4BPP] = {
@@ -82,25 +87,31 @@ void OcAbilitiesInit(Player *player)
     if (OcAbilitiesOwnPlayer(player)) {
         sAbilities.owner = player;
         sAbilities.oc = gSelectedOc;
-        if (gSelectedOc == OC_YULIANA) {
+        if (gSelectedOc == OC_YULIANA || gSelectedOc == OC_SANS || gSelectedOc == OC_SPIDERMAN) {
             void *tiles = VramMalloc(1);
             if (tiles != ewram_end) {
-                u8 color = 1, index;
-                s32 best = -1;
-                for (index = 1; index < PALETTE_LEN_4BPP; index++) {
-                    u16 rgb = gOcPalettes[gSelectedOc][index];
-                    s32 red = rgb & 31, green = (rgb >> 5) & 31, blue = (rgb >> 10) & 31;
-                    s32 score = red + green + blue - (MAX(red, MAX(green, blue)) - MIN(red, MIN(green, blue)));
-                    if (score > best) {
-                        best = score;
-                        color = index;
+                if (gSelectedOc == OC_YULIANA) {
+                    u8 color = 1, index;
+                    s32 best = -1;
+                    for (index = 1; index < PALETTE_LEN_4BPP; index++) {
+                        u16 rgb = gOcPalettes[gSelectedOc][index];
+                        s32 red = rgb & 31, green = (rgb >> 5) & 31, blue = (rgb >> 10) & 31;
+                        s32 score = red + green + blue - (MAX(red, MAX(green, blue)) - MIN(red, MIN(green, blue)));
+                        if (score > best) {
+                            best = score;
+                            color = index;
+                        }
                     }
+                    for (index = 0; index < sizeof(sBulletTiles); index++) {
+                        sAbilities.projectileTiles[index] = (sBulletTiles[index] & 15 ? color : 0)
+                            | (sBulletTiles[index] & 0xF0 ? color << 4 : 0);
+                    }
+                    sAbilities.projectileGraphics.src = sAbilities.projectileTiles;
+                } else {
+                    /* The guest effect tiles share their owner's palette,
+                     * including the native fade and water palette split. */
+                    sAbilities.projectileGraphics.src = gOcGuestProjectileTiles[gSelectedOc == OC_SANS ? 0 : 1];
                 }
-                for (index = 0; index < sizeof(sBulletTiles); index++) {
-                    sAbilities.projectileTiles[index] = (sBulletTiles[index] & 15 ? color : 0)
-                        | (sBulletTiles[index] & 0xF0 ? color << 4 : 0);
-                }
-                sAbilities.projectileGraphics.src = sAbilities.projectileTiles;
                 sAbilities.projectileGraphics.dest = tiles;
                 sAbilities.projectileGraphics.size = sizeof(sBulletTiles);
                 ADD_TO_GRAPHICS_QUEUE(&sAbilities.projectileGraphics);
@@ -139,6 +150,8 @@ u8 OcAbilityVisualPhase(Player *player)
     static const u8 pan[8] = { 0, 3, 6, 8, 11, 14, 17, 21 };
     static const u8 gun[8] = { 0, 2, 3, 6, 8, 10, 11, 12 };
     static const u8 flap[8] = { 0, 4, 8, 12, 16, 20, 24, 27 };
+    static const u8 bone[8] = { 0, 2, 4, 5, 7, 10, 13, 16 };
+    static const u8 web[8] = { 0, 2, 3, 4, 6, 9, 12, 15 };
     const u8 *starts;
     s32 phase;
     if (!OcAbilityActive(player)) {
@@ -149,6 +162,8 @@ u8 OcAbilityVisualPhase(Player *player)
         case OC_ABILITY_PAN: starts = pan; break;
         case OC_ABILITY_GUN: starts = gun; break;
         case OC_ABILITY_FLAP: starts = flap; break;
+        case OC_ABILITY_BONE: starts = bone; break;
+        case OC_ABILITY_WEB: starts = web; break;
         default: return OcAbilityFramePhase(player);
     }
     for (phase = 7; phase > 0; phase--) {
@@ -265,6 +280,22 @@ static void OcBeginAbility(Player *player)
             }
             sound = SE_JUMP;
             break;
+        case OC_SANS:
+            status->kind = OC_ABILITY_BONE;
+            status->activeStart = 5;
+            status->activeEnd = 5;
+            status->duration = 20;
+            status->cooldown = 28;
+            sound = 0;
+            break;
+        case OC_SPIDERMAN:
+            status->kind = OC_ABILITY_WEB;
+            status->activeStart = 4;
+            status->activeEnd = 4;
+            status->duration = 18;
+            status->cooldown = 24;
+            sound = 0;
+            break;
         default: return;
     }
     OcSuppressSpin(player);
@@ -279,16 +310,36 @@ static void OcBeginAbility(Player *player)
 static void OcFireProjectile(Player *player)
 {
     u8 index;
+    s16 qSpeed = sAbilities.status.kind == OC_ABILITY_BONE ? Q(6) : sAbilities.status.kind == OC_ABILITY_WEB ? Q(7) : Q(8);
+    /* Guest palms are anchored to the upright atlas feet. Native jump bounds
+     * can be compact without moving the projectile below that visible hand. */
+    s16 qHeight = sAbilities.status.kind == OC_ABILITY_BONE ? Q(19 - player->spriteOffsetY)
+        : sAbilities.status.kind == OC_ABILITY_WEB ? Q(16 - player->spriteOffsetY) : Q(6);
+    s16 reach = sAbilities.status.kind == OC_ABILITY_WEB ? 30 : 17;
+    s32 qY = player->qWorldY + (GRAVITY_IS_INVERTED ? qHeight : -qHeight);
     if (sAbilities.projectileGraphics.dest == NULL) {
         return;
+    }
+    if (sAbilities.status.kind == OC_ABILITY_WEB) {
+        s32 step;
+        s8 direction = sAbilities.facingLeft ? -8 : 8;
+        /* The extended wrist can reach past a narrow wall even when the
+         * native body is correctly blocked. Test every pixel from body to
+         * wrist before birthing the web, using the stage's collision layer. */
+        for (step = 0; step <= reach; step++) {
+            s32 x = I(player->qWorldX) + (sAbilities.facingLeft ? -step : step);
+            if (SA2_LABEL(sub_801E4E4)(x, I(qY), player->layer, direction, NULL, SA2_LABEL(sub_801ED24)) <= 0) {
+                return;
+            }
+        }
     }
     for (index = 0; index < OC_PROJECTILE_COUNT; index++) {
         OcProjectile *shot = &sAbilities.projectiles[index];
         if (shot->life == 0) {
-            shot->qSpeedX = sAbilities.facingLeft ? -Q(8) : Q(8);
-            shot->qX = player->qWorldX + (sAbilities.facingLeft ? -Q(17) : Q(17));
+            shot->qSpeedX = sAbilities.facingLeft ? -qSpeed : qSpeed;
+            shot->qX = player->qWorldX + (sAbilities.facingLeft ? -Q(reach) : Q(reach));
             shot->qPreviousX = shot->qX;
-            shot->qY = player->qWorldY + (GRAVITY_IS_INVERTED ? Q(6) : -Q(6));
+            shot->qY = qY;
             shot->life = 40;
             sAbilities.status.shotsFired++;
             sAbilities.status.projectiles++;
@@ -402,7 +453,7 @@ bool32 OcAbilitiesUpdate(Player *player)
     }
     status->damaging = status->kind != OC_ABILITY_FLAP
         && status->age >= status->activeStart && status->age <= status->activeEnd;
-    if (status->kind == OC_ABILITY_GUN && status->age == status->activeStart) {
+    if (OcAbilityIsProjectile(status->kind) && status->age == status->activeStart) {
         OcFireProjectile(player);
     }
     if (!(player->moveState & MOVESTATE_IN_AIR) && status->kind != OC_ABILITY_FLAP) {
@@ -473,7 +524,7 @@ void OcAbilitiesApplyHitbox(Player *player)
     OcSuppressSpin(player);
     body = &player->spriteInfoBody->s;
     body->hitboxes[1].index = HITBOX_STATE_INACTIVE;
-    if (!OcAbilityActive(player) || !sAbilities.status.damaging || sAbilities.status.kind == OC_ABILITY_GUN) {
+    if (!OcAbilityActive(player) || !sAbilities.status.damaging || OcAbilityIsProjectile(sAbilities.status.kind)) {
         return;
     }
     if (sAbilities.status.kind == OC_ABILITY_GLITCH) {
@@ -511,10 +562,12 @@ bool32 OcAbilityHitsTarget(Sprite *target, s32 x, s32 y, s16 hitbox)
     for (index = 0; index < OC_PROJECTILE_COUNT; index++) {
         OcProjectile *shot = &sAbilities.projectiles[index];
         if (shot->life != 0) {
-            s32 left = MIN(I(shot->qPreviousX), I(shot->qX)) - 3;
-            s32 right = MAX(I(shot->qPreviousX), I(shot->qX)) + 3;
+            s32 radiusX = sAbilities.oc == OC_YULIANA ? 3 : 4;
+            s32 radiusY = sAbilities.oc == OC_YULIANA ? 2 : 4;
+            s32 left = MIN(I(shot->qPreviousX), I(shot->qX)) - radiusX;
+            s32 right = MAX(I(shot->qPreviousX), I(shot->qX)) + radiusX;
             s32 yShot = I(shot->qY);
-            Rect8 swept = { 0, -2, right - left, 2 };
+            Rect8 swept = { 0, -radiusY, right - left, radiusY };
             if (HB_COLLISION(x, y, target->hitboxes[hitbox].b, left, yShot, swept)) {
                 shot->life = 0;
                 sAbilities.status.projectiles--;
@@ -523,7 +576,7 @@ bool32 OcAbilityHitsTarget(Sprite *target, s32 x, s32 y, s16 hitbox)
             }
         }
     }
-    if (OcAbilityActive(player) && sAbilities.status.damaging && sAbilities.status.kind != OC_ABILITY_GUN
+    if (OcAbilityActive(player) && sAbilities.status.damaging && !OcAbilityIsProjectile(sAbilities.status.kind)
         && HITBOX_IS_ACTIVE(player->spriteInfoBody->s.hitboxes[1])
         && HB_COLLISION(x, y, target->hitboxes[hitbox].b, I(player->qWorldX), I(player->qWorldY),
                         player->spriteInfoBody->s.hitboxes[1].b)) {

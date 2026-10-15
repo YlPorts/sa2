@@ -56,6 +56,8 @@ The action manifest also records native gait changes, distinct frame counts,
 and color approximation error for visual review. `verify.mjs` checks all three
 atlas families, including exact decoded colors, binary opacity, and clear borders.
 
+## Historical OCS3 revision
+
 The OCS3 revision is isolated from those three families. Run sheets for Jude,
 Kiro and Yuliana each have eight chronological gait poses in four columns and
 two rows. Their attacks are the bottom eight poses of separate sixteen-pose
@@ -120,3 +122,64 @@ source, source frame 5, constant source scale, body anchor and ground reference.
 The other seven Kiro poses come from the original run source and their approved
 tile hashes are checked against `kiro_run_preserved_sha256.json`. This imports
 one whole generated pose without repainting or resampling the other seven.
+
+## OCS4 guest exports
+
+`compile_guests.mjs` appends Sans and Spider-Man without regenerating the previous
+five identities. `guests/preserved_sha256.json` records all 86 existing asset files,
+including the revised Kiro pose. The historical `[3]`/`[4]` revised-array dimensions
+above describe OCS3; current revised runs have five identities (Jude, Kiro,
+Yuliana, Sans, Spider-Man), and revised abilities have six (those three, Kura,
+Sans, Spider-Man). Main/special/action arrays have seven identities in the order
+Elizabeth, Jude, Kiro, Yuliana, Kura, Sans, Spider-Man.
+
+Sans sources are transparent base32/motion24/rear8 PNG atlases plus a dedicated
+eight-pose run atlas and complete bone source. His native standing reference is
+32 pixels. The final run is an asymmetric shuffle using whole source poses in
+order `[0,1,2,4,5,6,7,3]`; it is not presented as a mirrored canonical human gait.
+Fixed source contact floors retain the authored flight lift. Base run slots and
+supplementary run slots reuse complete poses from that same sequence.
+
+Spider-Man uses full original GBA poses from **Ultimate Spider-Man**, ripped by
+**Naruto[NU] and RundownAngel**, archived from [SpriteDatabase file6088](https://spritedatabase.net/file/6088).
+The original GIF and pixel-identical whole-sheet PNG retain the credits. His
+frame-map JSON lists every complete rectangle and role. Exact source background
+colors connected to each crop boundary become transparent; eye lenses remain
+intact. All families use constant scale `36/34`, with a 36-pixel standing
+reference. The bonus-stage family honestly uses available side/front three-quarter
+poses; the original sheet has no true back-view loop.
+
+All body frames remain 64×64 at the shared feet pivot `(32,48)` with one fixed
+15-entry opaque RGB555 identity palette plus transparency. Slot1 is black;
+slot2 is white for HUD lettering. Spider-Man preserves all 14 original quantized
+costume colors and adds the original web's white. Separate projectiles are one
+8×8 4bpp tile each, ordered bone then web. Complete detached effects are excluded
+from player-body tiles; the web quantizes to existing neutral palette entries.
+No drawing, synthetic limbs, per-pose stretching or original-character replacement
+occurs. The manifest records full frame remaps, selected/excluded complete
+components, source hashes, scales, bounds and the run override.
+
+```sh
+node tools/oc_sprites/compile_guests.mjs --inspect
+node tools/oc_sprites/compile_guests.mjs --preview
+node tools/oc_sprites/verify_guests.mjs --preview
+```
+
+Inspect contact sheets and projectile previews in `../guest-verification`
+(`OC_GUEST_PREVIEW_DIR` can override it). Review GIFs use 100ms per pose; run
+playback GIFs use 24 poses over 800ms for exactly 30 pose changes per second.
+After visual review, place the printed exact preview SHA256 in an `approved.json`
+object under the `manifestSHA256` key. Then publish the reviewed result:
+
+```sh
+node tools/oc_sprites/compile_guests.mjs --emit --approval ../guest-verification/approved.json
+node tools/oc_sprites/verify_guests.mjs
+```
+
+Publication requires both complete guest identities and both projectile sources.
+A changed source or configuration invalidates approval. All output files stage
+together before the `guests/generated` directory is replaced. Verification
+checks all old hashes, source provenance, exact native PNG/4bpp/C bytes, fixed
+palettes, transparent body borders, eight distinct run frames and GIF timing.
+See [the OCS4 overview](../../README.md#android-ocs4-sans-and-spider-man) and
+[the recorded new-art prompts](GUEST_PROMPTS_V4.md).

@@ -113,3 +113,39 @@ Our policy is based off [Zig's](https://ziglang.org/code-of-conduct/)
 - [Pokemon Reverse Engineering Tools](https://github.com/pret) community for their help with the project, and tooling for GBA decompilations
 - [Kermalis](https://github.com/Kermalis) for [their tool](https://github.com/Kermalis/VGMusicStudio) which was used to dump the game midis
 - [琪姬](https://github.com/laqieer) for their exellent work [documenting](https://github.com/FireEmblemUniverse/fireemblem8u/pull/137) all the quirks of matching midis
+
+## Android OCS4: Sans and Spider-Man
+
+This fork adds Sans and classic red-and-blue Spider-Man as separate selectable identities alongside Elizabeth, Jude, Kiro, Yuliana and Kura. Original Sonic character/save arrays still have their original five entries. The existing OC artwork, including the OCS3 revisions, is retained byte for byte: `graphics/sa2/ocs/guests/preserved_sha256.json` freezes all 86 pre-existing asset files. The earlier OCS2/OCS3 tools and manifests describe those historical revisions; OCS4 exports only new guest includes.
+
+| Array | Identity order | Frames per identity |
+| --- | --- | --- |
+| Main, special-stage, supplementary actions | Elizabeth, Jude, Kiro, Yuliana, Kura, Sans, Spider-Man | 32, 8, 24 |
+| Revised runs | Jude, Kiro, Yuliana, Sans, Spider-Man | 8 |
+| Revised abilities | Jude, Kiro, Yuliana, Kura, Sans, Spider-Man | 8 |
+| Guest projectile tiles | Sans bone, Spider-Man web | One 8×8 tile each |
+
+Body tiles use a 64×64 canvas and the shared feet pivot `(32,48)`. The standing reference heights are 32 pixels for Sans and 36 for Spider-Man. One constant scale applies to each artwork source; compressed and airborne poses keep their authored proportions and vertical offsets. Every identity has one fixed RGB555 palette with transparency plus 15 opaque entries. Index 1 is black and index 2 is neutral white for the HUD and stage-introduction lettering. Spider-Man keeps all 14 quantized original costume colors; the additional white entry comes from his original web artwork.
+
+Sans has new transparent PNG artwork: the base atlas is 8×4 poses, motion is 6×4, rear is 4×2, and a separate 4×2 run atlas supplies the final eight-pose asymmetric shuffle. Its approved whole-pose order is `[0,1,2,4,5,6,7,3]`, with contact floors retained separately for the two source rows. This is an authored Sans shuffle with alternating support, rather than a claim of a mirrored human running cycle. The standalone bone source supplies the projectile. The base atlas retains its 32-frame semantic order; its six run slots and the supplementary run slots reuse complete poses from the same approved shuffle.
+
+Spider-Man uses complete original GBA frames from **Ultimate Spider-Man**, credited on the archived sheet to **Naruto[NU] and RundownAngel**. The original GIF and its pixel-identical full-sheet PNG are retained under `graphics/sa2/ocs/guests/source/`. Source: [SpriteDatabase, file 6088](https://spritedatabase.net/file/6088), [original sheet](https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif). `spiderman_original_frame_map.json` records the complete source rectangles and roles. Only exact background colors connected to crop boundaries become transparent, preserving the original enclosed eye lenses and highlights. All three families share the scale `36/34`; no limbs, poses, mirrors or painted replacement pixels are synthesized. The bonus-stage family uses available authored side/front three-quarter poses; this source contains no true back-view running loop.
+
+Detached source bones/web effects are excluded from player-body tiles and packed separately. The projectile silhouettes are complete source components fitted within one 8×8 tile. The web quantizes to the existing neutral black/white palette entries so its original gray/white effect stays readable without changing costume colors. Supplementary action slots map the motion source as run `[0..7,0..3]`, jump `[8..11]`, ability `[12,14,16,18]`, victory `[20..23]`; revised abilities retain all eight source poses `[12..19]`. The emitted manifest records every complete-frame mapping and the Sans run override.
+
+Preview and verify without modifying any production guest arrays:
+
+```sh
+node tools/oc_sprites/compile_guests.mjs --inspect
+node tools/oc_sprites/compile_guests.mjs --preview
+node tools/oc_sprites/verify_guests.mjs --preview
+```
+
+The default review directory is `../guest-verification`; set `OC_GUEST_PREVIEW_DIR` to override it. Inspect the native contact sheets, 100 ms-per-pose GIFs, projectile previews, and the run GIFs containing 24 poses over exactly 800 ms (30 pose changes per second). After review, write `approved.json` containing `{"manifestSHA256":"EXACT_REVIEWED_PREVIEW_MANIFEST_SHA256"}` and publish the exact reviewed result:
+
+```sh
+node tools/oc_sprites/compile_guests.mjs --emit --approval ../guest-verification/approved.json
+node tools/oc_sprites/verify_guests.mjs
+```
+
+Publication requires both guests' complete base/motion/bonus families and both projectile sources. A changed source or alignment/palette configuration invalidates the reviewed SHA256. All outputs stage together and replace `graphics/sa2/ocs/guests/generated/` as one directory after conversion succeeds; the old OC includes remain untouched. Verification checks source hashes, frozen asset hashes, transparent body borders, palette colors, every PNG/4bpp pixel, exact C include bytes, eight distinct running poses, and GIF timing.

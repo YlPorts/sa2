@@ -2,15 +2,15 @@
 #define GUARD_DATA_SA2_OC_SPRITE_DATA_H
 
 #include "global.h"
+#include "game/sa2/oc_characters.h"
 
-/* Character order: Elizabeth, Jude, Kiro, Yuliana, Kura. */
-#define OC_CHARACTER_COUNT 5
+/* Character order: Elizabeth, Jude, Kiro, Yuliana, Kura, Sans, Spider-Man. */
 #define OC_FRAME_COUNT 32
 #define OC_SPECIAL_FRAME_COUNT 8
 #define OC_ACTION_FRAME_COUNT 24
-#define OC_REVISED_RUN_CHARACTER_COUNT 3
+#define OC_REVISED_RUN_CHARACTER_COUNT 5
 #define OC_REVISED_RUN_FRAME_COUNT 8
-#define OC_REVISED_ATTACK_CHARACTER_COUNT 4
+#define OC_REVISED_ATTACK_CHARACTER_COUNT 6
 #define OC_REVISED_ATTACK_FRAME_COUNT 8
 #define OC_FRAME_TILE_BYTES 2048
 #define OC_FRAME_WIDTH 64
@@ -22,8 +22,11 @@ extern const u8 gOcFrameTiles[OC_CHARACTER_COUNT][OC_FRAME_COUNT][OC_FRAME_TILE_
 extern const u16 gOcPalettes[OC_CHARACTER_COUNT][16];
 extern const u8 gOcSpecialFrameTiles[OC_CHARACTER_COUNT][OC_SPECIAL_FRAME_COUNT][OC_FRAME_TILE_BYTES];
 extern const u8 gOcActionFrameTiles[OC_CHARACTER_COUNT][OC_ACTION_FRAME_COUNT][OC_FRAME_TILE_BYTES];
-/* Revised character order: Jude, Kiro, Yuliana; attacks also include Kura. */
+/* Revised runs: Jude, Kiro, Yuliana, Sans, Spider-Man.
+ * Revised attacks: Jude, Kiro, Yuliana, Kura, Sans, Spider-Man. */
 extern const u8 gOcRevisedRunTiles[OC_REVISED_RUN_CHARACTER_COUNT][OC_REVISED_RUN_FRAME_COUNT][OC_FRAME_TILE_BYTES];
 extern const u8 gOcRevisedAttackTiles[OC_REVISED_ATTACK_CHARACTER_COUNT][OC_REVISED_ATTACK_FRAME_COUNT][OC_FRAME_TILE_BYTES];
+/* One 8x8 OBJ tile each: Sans bone, Spider-Man web; guest identity palette. */
+extern const u8 gOcGuestProjectileTiles[2][32];
 
 #endif

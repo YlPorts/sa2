@@ -23,6 +23,7 @@
 #include "game/shared/stage/player.h"
 #include "game/shared/stage/water_effects.h"
 #include "game/shared/stage/entities_manager.h"
+#include "game/shared/stage/terrain_collision.h"
 #include "constants/sa2/char_states.h"
 #include "constants/sa2/interactables.h"
 #include "data/sa2/oc_sprite_data.h"
@@ -138,12 +139,21 @@ static void Capture(const char *label, unsigned number)
 
 static int RevisedRunRow(void)
 {
+    if (oc == OC_SANS) return 3;
+    if (oc == OC_SPIDERMAN) return 4;
     return oc >= OC_JUDE && oc <= OC_YULIANA ? oc - OC_JUDE : -1;
 }
 
 static int RevisedAttackRow(void)
 {
+    if (oc == OC_SANS) return 4;
+    if (oc == OC_SPIDERMAN) return 5;
     return oc == OC_KURA ? 3 : RevisedRunRow();
+}
+
+static bool ProjectileIdentity(void)
+{
+    return oc == OC_YULIANA || oc == OC_SANS || oc == OC_SPIDERMAN;
 }
 
 static unsigned ExpectedRunMask(void) { return RevisedRunRow() >= 0 ? 0xff : 0xfff; }
@@ -371,17 +381,27 @@ static void CheckOcMenuGraphics(void)
                     "selector OC preview tiles stay inside VRAM");
             for (unsigned b = 0; b < OC_FRAME_TILE_BYTES; b++) nonzero += tiles[b] != 0;
             Require(nonzero > 50, "selector OC preview has visible pixels");
+            Require(memcmp(tiles, gOcFrameTiles[oc][0], OC_FRAME_TILE_BYTES) == 0,
+                    "selector preview shows the selected identity's actual idle atlas");
             preview++;
         }
-        if (oam->split.paletteNum == 14) {
+        if (oam->split.paletteNum == 14 || oam->split.paletteNum == 13) {
             const u8 *tiles = OBJ_VRAM0 + oam->split.tileNum * TILE_SIZE_4BPP;
             unsigned nonzero = 0;
             unsigned bytes = oam->split.size == ST_OAM_SIZE_3 ? 2048
                 : oam->split.size == ST_OAM_SIZE_2 ? 512 : TILE_SIZE_4BPP;
             for (unsigned b = 0; b < bytes; b++) nonzero += tiles[b] != 0;
             Require(nonzero, "selector circle/name glyph has visible pixels");
-            if (oam->split.size == ST_OAM_SIZE_0) font++;
-            else circles++;
+            if (oam->split.size == ST_OAM_SIZE_0) {
+                Require(tiles >= OBJ_VRAM0 + 0x3600 && tiles + TILE_SIZE_4BPP <= OBJ_VRAM0 + 0x3960,
+                        "selector name glyphs use the expanded atlas below the native VRAM heap");
+                font++;
+            } else {
+                if (oam->split.size == ST_OAM_SIZE_2)
+                    Require(tiles >= OBJ_VRAM0 + 0x2800 && tiles + 512 <= OBJ_VRAM0 + 0x3600,
+                            "all seven selector circle atlases stay below the font allocation");
+                circles++;
+            }
         }
     }
     Require(preview == 1, "OC selector submits exactly one visible custom preview OAM");
@@ -389,6 +409,12 @@ static void CheckOcMenuGraphics(void)
     Require(circles, "OC selector submits visible color circles");
     Require(memcmp(&gObjPalette[15 * 16], gOcPalettes[oc], 16 * sizeof(u16)) == 0,
             "selector preview palette retains OC identity");
+    if (oc == OC_SANS || oc == OC_SPIDERMAN) {
+        unsigned palette = oc == OC_SANS ? 14 : 13;
+        unsigned color = oc == OC_SANS ? 15 : 5;
+        Require(gObjPalette[palette * 16 + color] == OcCharacterColor(oc),
+                "guest selector circle owns a valid blue/red palette slot without overflowing a bank");
+    }
 }
 
 static void DiscardGraphics(void)
@@ -469,7 +495,7 @@ void __wrap_OcAbilitiesDraw(Player *player)
         const OamData *oam = &gOamMallocBuffer[i];
         const u8 *tile = OBJ_VRAM0 + oam->split.tileNum * TILE_SIZE_4BPP;
         unsigned pixels = 0;
-        Require(oc == OC_YULIANA, "only Yuliana emits gun projectile objects");
+        Require(ProjectileIdentity(), "only projectile identities emit travelling effect objects");
         Require(oam->split.affineMode == ST_OAM_AFFINE_OFF && oam->split.objMode == ST_OAM_OBJ_NORMAL
                     && !oam->split.mosaic && oam->split.bpp == ST_OAM_4BPP
                     && oam->split.shape == ST_OAM_SQUARE && oam->split.size == ST_OAM_SIZE_0
@@ -478,6 +504,18 @@ void __wrap_OcAbilitiesDraw(Player *player)
         Require(oam->split.tileNum < OBJ_VRAM_TOTAL_SIZE / TILE_SIZE_4BPP, "gun OAM remains in allocated OBJ VRAM");
         for (unsigned b = 0; b < TILE_SIZE_4BPP; b++) pixels += tile[b] != 0;
         Require(pixels, "gun projectile has real visible tile pixels");
+        if (oc == OC_SANS || oc == OC_SPIDERMAN) {
+            unsigned whitePixels = 0;
+            Require(memcmp(tile, gOcGuestProjectileTiles[oc - OC_SANS], TILE_SIZE_4BPP) == 0,
+                    "guest effect reaches real OBJ VRAM as its authored bone/web tile");
+            for (unsigned pixel = 0; pixel < 64; pixel++) {
+                unsigned index = pixel & 1 ? tile[pixel / 2] >> 4 : tile[pixel / 2] & 15;
+                if (!index) continue;
+                u16 color = gOcPalettes[oc][index];
+                whitePixels += (color & 31) >= 24 && ((color >> 5) & 31) >= 24 && ((color >> 10) & 31) >= 24;
+            }
+            Require(whitePixels >= 4, "bone/web has visible white pixels while retaining its authored outline/shading");
+        }
         projectileDraws++;
     }
 }
@@ -491,7 +529,7 @@ bool32 __wrap_OcAbilityHitsTarget(Sprite *target, s32 x, s32 y, s16 hitbox)
         Require(status.projectiles || (status.attacking && status.damaging),
                 "real target damage comes from an active melee window or travelling projectile");
         if (target == testEnemySprite) {
-            if (status.kind != OC_ABILITY_GUN)
+            if (!ProjectileIdentity())
                 Require(!__real_OcAbilityHitsTarget(target, x + 1, y, hitbox),
                         "the same moving enemy/boss sprite cannot be damaged twice in one melee window");
             realEnemyHits++;
@@ -527,18 +565,17 @@ static void CheckFinalPalette(void)
         Capture("countdown", stageFrames);
     }
     if (!bodyTiles || !displayedBodyVisible) return;
-    if (RevisedAttackRow() >= 0) {
-        for (unsigned phase = 0; phase < 8; phase++) {
-            if (memcmp(bodyTiles, gOcRevisedAttackTiles[RevisedAttackRow()][phase], OC_FRAME_TILE_BYTES)) continue;
-            if (displayedAbility.attacking) {
-                Require(phase == displayedVisualPhase,
-                        "actual visible attack tiles follow the submitted eight-phase ability clock");
-                if (!(attackMask & (1u << phase))) Capture("ability-phase", phase);
-                attackMask |= 1u << phase;
-            }
-            RecordPhysicalFrame("revised-attack", phase);
-            return;
-        }
+    if (RevisedAttackRow() >= 0 && displayedAbility.attacking) {
+        unsigned phase = displayedVisualPhase;
+        /* Original GBA casts hold/revisit some identical authored poses. The
+         * physical upload must match the current clock phase, even when an
+         * earlier phase has the same pixels; first-match lookup is ambiguous. */
+        Require(phase < 8 && !memcmp(bodyTiles, gOcRevisedAttackTiles[RevisedAttackRow()][phase], OC_FRAME_TILE_BYTES),
+                "actual visible attack tiles follow the submitted eight-phase ability clock");
+        if (!(attackMask & (1u << phase))) Capture("ability-phase", phase);
+        attackMask |= 1u << phase;
+        RecordPhysicalFrame("revised-attack", phase);
+        return;
     }
     if (RevisedRunRow() >= 0) {
         for (unsigned phase = 0; phase < 8; phase++) {
@@ -670,7 +707,7 @@ void __wrap_AgbMain(void)
                || !strcmp(mode, "glitch-defense") || !strcmp(mode, "pause") || !strcmp(mode, "air-abilities")
                || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")
                || !strcmp(mode, "flap") || !strcmp(mode, "flap-enemy") || !strcmp(mode, "native-smoke") || !strcmp(mode, "weapon-visual")
-               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) {
+               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling") || !strcmp(mode, "guest-limits")) {
         if (!strcmp(mode, "stage-lifecycle")) {
             memcpy(initialStageHeap, gVramHeapState, sizeof(initialStageHeap));
             initialStageTasks = gNumTasks;
@@ -813,7 +850,7 @@ static void SpawnRealEnemyAt(s32 x, s32 y)
 
 static void SpawnRealEnemy(void)
 {
-    SpawnRealEnemyAt(I(gPlayer.qWorldX) + (oc == OC_YULIANA ? 120 : 45), I(gPlayer.qWorldY) - 8);
+    SpawnRealEnemyAt(I(gPlayer.qWorldX) + (ProjectileIdentity() ? 120 : 45), I(gPlayer.qWorldY) - 8);
 }
 
 static void CheckAbilities(void)
@@ -821,11 +858,12 @@ static void CheckAbilities(void)
     static bool visualFixtureReady;
     static unsigned visualFixtureTick;
     bool visualOnly = !strcmp(mode, "weapon-visual");
-    static const u8 kinds[] = { OC_ABILITY_GLITCH, OC_ABILITY_PAN, OC_ABILITY_KATANA, OC_ABILITY_GUN, OC_ABILITY_FLAP };
-    static const u8 start[] = { 3, 6, 5, 3, 2 };
-    static const u8 end[] = { 8, 13, 11, 5, 8 };
-    static const u8 duration[] = { 16, 24, 22, 14, 18 };
-    static const u8 cooldown[] = { 50, 32, 30, 22, 36 };
+    static const u8 kinds[] = { OC_ABILITY_GLITCH, OC_ABILITY_PAN, OC_ABILITY_KATANA, OC_ABILITY_GUN, OC_ABILITY_FLAP,
+                              OC_ABILITY_BONE, OC_ABILITY_WEB };
+    static const u8 start[] = { 3, 6, 5, 3, 2, 5, 4 };
+    static const u8 end[] = { 8, 13, 11, 5, 8, 5, 4 };
+    static const u8 duration[] = { 16, 24, 22, 14, 18, 20, 18 };
+    static const u8 cooldown[] = { 50, 32, 30, 22, 36, 28, 24 };
     OcAbilityStatus status;
     Require(oc != OC_KURA, "Kura uses the separate non-damaging flight regression");
     Require(gSelectedOc == oc && gPlayer.character == ExpectedBase(), "ability mode uses intended OC physical base");
@@ -899,8 +937,8 @@ static void CheckAbilities(void)
             Require(!status.attacking && !status.damaging && !status.cooldown && !status.projectiles,
                     "ability, cooldown and projectiles finish without stale state");
             Require(attackMask == ExpectedAttackMask(), "all authored ability phases reached real OBJ VRAM");
-            if (oc == OC_YULIANA)
-                Require(status.shotsFired == 2 && projectileDraws > 10, "gun fires two visible real travelling projectiles and expires them");
+            if (ProjectileIdentity())
+                Require(status.shotsFired == 2 && projectileDraws > 10, "B fires two visible real travelling projectiles and expires them");
             else Require(!status.shotsFired && !projectileDraws, "melee ability does not spawn gun objects");
             Capture("ability-end", abilityTicks);
             fprintf(stderr, "PASS: %s OC=%d kind=%u presses=2 windup=%u active=%u recovery=%u realEnemyHits=%u shots=%u projectileDraws=%u atlas=0x%x\n",
@@ -981,9 +1019,9 @@ static void CheckGlitchDefense(void)
 
 static void CheckAirAbilities(void)
 {
-    static const u8 start[] = { 3, 6, 5, 3, 2 };
-    static const u8 end[] = { 8, 13, 11, 5, 8 };
-    static const u8 duration[] = { 16, 24, 22, 14, 18 };
+    static const u8 start[] = { 3, 6, 5, 3, 2, 5, 4 };
+    static const u8 end[] = { 8, 13, 11, 5, 8, 5, 4 };
+    static const u8 duration[] = { 16, 24, 22, 14, 18, 20, 18 };
     bool doubleA = !strcmp(mode, "double-a");
     OcAbilityStatus status;
     Require(oc != OC_KURA, "Kura uses the separate non-damaging flight regression");
@@ -1021,7 +1059,7 @@ static void CheckAirAbilities(void)
         Require(abilityActiveFrames == (doubleA ? 2 : 1) * (end[oc] - start[oc] + 1) && attackMask == ExpectedAttackMask(),
                 "complete air damage window and all authored real attack poses were rendered");
         if (doubleA) Require(!status.aerialPanUsed, "landing resets second-A pan for the next real jump");
-        if (oc == OC_YULIANA) Require(status.shotsFired == 1 && projectileDraws > 20, "air gun fires and expires a real travelling projectile");
+        if (ProjectileIdentity()) Require(status.shotsFired == 1 && projectileDraws > 20, "air B fires and expires a real travelling projectile");
         fprintf(stderr, "PASS: %s OC=%d real jump/air ability/landing; attacks=%u active=%u atlas=0x%x shots=%u\n",
                 mode, oc, abilityStarts, abilityActiveFrames, attackMask, status.shotsFired);
         exit(0);
@@ -1221,6 +1259,183 @@ static void FindWaterFixture(s32 *qX, s32 *qY)
         }
     }
     Fail("find a real open submerged location in the native water stretch");
+}
+
+static int WebBirthWall(Player *player, bool left)
+{
+    s32 y = I(player->qWorldY) - (16 - player->spriteOffsetY);
+    for (s32 offset = 0; offset <= 30; offset++) {
+        s32 x = I(player->qWorldX) + (left ? -offset : offset);
+        if (SA2_LABEL(sub_801E4E4)(x, y, player->layer, left ? -8 : 8, NULL, SA2_LABEL(sub_801ED24)) <= 0)
+            return offset;
+    }
+    return -1;
+}
+
+static bool FixtureMapEntityNearby(MapData *map, s32 x, s32 y)
+{
+    if (!map) return false;
+    for (u32 ry = 0; ry < map->v_regionCount; ry++) {
+        for (u32 rx = 0; rx < map->h_regionCount; rx++) {
+            u32 offset = map->offsets[ry * map->h_regionCount + rx];
+            if (!offset) continue;
+            MapEntity *entity = (MapEntity *)((u8 *)map->offsets + offset - 8);
+            for (; (s8)entity->x != MAP_ENTITY_STATE_ARRAY_END; entity++) {
+                if ((s8)entity->x < 0) continue;
+                if (ABS(TO_WORLD_POS(entity->x, rx) - x) < 96 && ABS(TO_WORLD_POS(entity->y, ry) - y) < 96)
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+static void FindWebWallFixture(bool left, s32 *qX, s32 *qY)
+{
+    Player probe = gPlayer;
+    EntitiesManager *manager = TASK_DATA(gEntitiesManagerTask);
+    probe.spriteOffsetX = 6;
+    probe.spriteOffsetY = 14;
+    for (s32 x = 128; x < 12500; x += 8) {
+        for (s32 y = 80; y < 3000; y += 8) {
+            u8 floorRotation;
+            s32 otherFoot;
+            probe.qWorldX = Q(x);
+            probe.qWorldY = Q(y);
+            s32 floor = SA2_LABEL(sub_8029B0C)(&probe, &floorRotation, &otherFoot);
+            if (floor < 0 || floor > 3 || ABS((s8)floorRotation) > 8) continue;
+            /* A flat real floor supports the body, which remains clear on
+             * both sides. The longer authored wrist reach meets the wall. */
+            probe.qWorldY += Q(floor);
+            if (TerrainProbe(&probe, Q(0.5)) <= 8 || TerrainProbe(&probe, Q(0.25)) <= 3
+                || TerrainProbe(&probe, Q(0.75)) <= 3) continue;
+            int wall = WebBirthWall(&probe, left);
+            if (wall < 12 || wall > 28) continue;
+            if (x >= 6000 && y >= gWater.currentWaterLevel - 32) continue;
+            /* Springs, handles and enemies can naturally move or hurt the
+             * actor after teleportation. Choose quiet terrain by reading the
+             * real decompressed entity maps, rather than disabling tasks. */
+            if (FixtureMapEntityNearby(manager->interactables, x, I(probe.qWorldY))
+                || FixtureMapEntityNearby(manager->enemies, x, I(probe.qWorldY))) continue;
+            *qX = probe.qWorldX;
+            *qY = probe.qWorldY;
+            fprintf(stderr, "Initial web wall fixture from actual terrain: direction=%s x=%d y=%d wallDistance=%d; body/free-floor verified\n",
+                    left ? "left" : "right", I(*qX), I(*qY), wall);
+            return;
+        }
+    }
+    Fail("find a real grounded wall inside the web's thirty-pixel wrist reach");
+}
+
+static void CheckGuestLimits(void)
+{
+    static unsigned phase, episodeTick, goalObserved, beforeGoalProjectiles;
+    static bool underwaterShot, goalShot;
+    static s32 waterX, waterY, wallX, wallY;
+    OcAbilityStatus status;
+    Require(oc == OC_SANS || oc == OC_SPIDERMAN, "guest terrain/script checks select a new guest");
+    Require(!(gPlayer.moveState & MOVESTATE_DEAD), "real guest limit fixture keeps the player alive");
+    if (gPlayer.moveState & MOVESTATE_IGNORE_INPUT && !phase) { SetInput(0); return; }
+    abilityTicks++;
+    OcAbilityGetStatus(&gPlayer, &status);
+    if (!phase) {
+        if (abilityTicks >= 80 && !(gPlayer.moveState & MOVESTATE_IN_AIR) && ABS(gPlayer.qSpeedGround) < Q(0.125)) {
+            if (oc == OC_SPIDERMAN) {
+                FindWebWallFixture(false, &wallX, &wallY);
+                PlaceLimitFixture(wallX, wallY);
+                phase = 3;
+            } else {
+                FindWaterFixture(&waterX, &waterY);
+                PlaceLimitFixture(waterX, waterY);
+                phase = 1;
+            }
+            previousPaletteReady = false;
+            episodeTick = abilityTicks;
+        }
+        SetInput(0);
+        return;
+    }
+    unsigned elapsed = abilityTicks - episodeTick;
+    if (phase == 3 || phase == 4) {
+        bool left = phase == 4;
+        u16 input = 0;
+        if (elapsed == 3) input = left ? DPAD_LEFT : DPAD_RIGHT;
+        if (elapsed == 8) {
+            Require(!(gPlayer.moveState & (MOVESTATE_IN_AIR | MOVESTATE_IN_WATER | MOVESTATE_IGNORE_INPUT
+                        | MOVESTATE_IN_SCRIPTED | MOVESTATE_IA_OVERRIDE | MOVESTATE_GOAL_REACHED))
+                        && !!(gPlayer.moveState & MOVESTATE_FACING_LEFT) == left,
+                    "wall B uses normal grounded facing input and has no other blocking state");
+            Require(WebBirthWall(&gPlayer, left) >= 0 && WebBirthWall(&gPlayer, left) <= 30,
+                    "actual native terrain intersects the body-to-wrist web birth path");
+            input = B_BUTTON;
+        }
+        if (elapsed >= 9) {
+            Require(status.attacksStarted == (left ? 2 : 1), "wall B starts exactly one ordinary casting animation");
+            Require(!status.shotsFired && !status.projectiles,
+                    "real terrain blocks a wrist-reach web before emission and counter increments");
+        }
+        if (elapsed == 40) {
+            Require(!status.attacking && !status.damaging && !status.cooldown,
+                    "wall-blocked web still completes its normal casting animation and cooldown");
+            Capture(left ? "web-wall-left" : "web-wall-right", abilityTicks);
+            if (!left) {
+                FindWebWallFixture(true, &wallX, &wallY);
+                PlaceLimitFixture(wallX, wallY);
+                phase = 4;
+            } else {
+                FindWaterFixture(&waterX, &waterY);
+                PlaceLimitFixture(waterX, waterY);
+                phase = 1;
+            }
+            episodeTick = abilityTicks;
+        }
+        SetInput(input);
+        return;
+    }
+    if (phase == 1) {
+        if (elapsed == 6) {
+            Require(gWater.t && gWater.isActive && (gPlayer.moveState & MOVESTATE_IN_WATER),
+                    "real native water task and player physics produce guest submersion before B");
+            SetInput(B_BUTTON);
+        } else SetInput(0);
+        if (status.shotsFired) {
+            Require(status.shotsFired == 1 && status.attacksStarted == (oc == OC_SPIDERMAN ? 3 : 1),
+                    "native underwater B emits exactly one guest projectile without a forced water flag");
+            if (status.projectiles && (gPlayer.moveState & MOVESTATE_IN_WATER)) underwaterShot = true;
+        }
+        if (elapsed == 70) {
+            Require(underwaterShot && !status.attacking && !status.cooldown && !status.projectiles,
+                    "underwater guest shot is visible and expires without stale attack or cooldown");
+            Capture("underwater-shot-end", abilityTicks);
+            /* Reuse the real goal entities for an initial location fixture.
+             * Normal RIGHT/B inputs then enter the native goal script; no
+             * callbacks, scripted flags or ability state are fabricated. */
+            ApplyGoalFixture();
+            phase = 2;
+            episodeTick = abilityTicks;
+        }
+        return;
+    }
+    if (status.attacking && status.projectiles && !(gPlayer.moveState & MOVESTATE_GOAL_REACHED)) goalShot = true;
+    if (gPlayer.moveState & MOVESTATE_GOAL_REACHED) {
+        if (!goalObserved) {
+            Require(goalShot && beforeGoalProjectiles && status.shotsFired >= 2,
+                    "a launched guest projectile was still alive immediately before the native goal script");
+            goalObserved = abilityTicks;
+        }
+        SetInput(B_BUTTON | DPAD_LEFT);
+        if (abilityTicks - goalObserved == 6) {
+            Require(!status.attacking && !status.damaging && !status.projectiles,
+                    "native goal script cancels the guest attack and clears travelling projectile state");
+            Capture("goal-script-cancel", abilityTicks);
+            fprintf(stderr, "PASS: guest-limits OC=%d native water B emits one bone/web; real goal input cancels attack/projectiles; shots=%u\n",
+                    oc, status.shotsFired);
+            exit(0);
+        }
+    } else {
+        beforeGoalProjectiles = status.projectiles;
+        SetInput(DPAD_RIGHT | (elapsed % 32 == 1 ? B_BUTTON : 0));
+    }
 }
 
 static void CheckFlapLimits(void)
@@ -1561,7 +1776,7 @@ void __wrap_VBlankIntrWait(void)
                || !strcmp(mode, "stage-lifecycle") || !strcmp(mode, "glitch-defense") || !strcmp(mode, "pause") || !strcmp(mode, "air-abilities")
                || !strcmp(mode, "double-a") || !strcmp(mode, "victory") || !strcmp(mode, "native-amy") || !strcmp(mode, "route-native")
                || !strcmp(mode, "flap") || !strcmp(mode, "flap-enemy") || !strcmp(mode, "native-smoke") || !strcmp(mode, "weapon-visual")
-               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) {
+               || !strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling") || !strcmp(mode, "guest-limits")) {
         if (!strcmp(mode, "pause") && !gGameStageTask) CheckPauseQuit();
         if (gGameStageTask != NULL) {
             if (!stageWasStarted) {
@@ -1577,6 +1792,7 @@ void __wrap_VBlankIntrWait(void)
             else if (!strcmp(mode, "air-abilities") || !strcmp(mode, "double-a")) CheckAirAbilities();
             else if (!strcmp(mode, "flap") || !strcmp(mode, "flap-enemy")) CheckFlap();
             else if (!strcmp(mode, "flap-water") || !strcmp(mode, "flap-ceiling")) CheckFlapLimits();
+            else if (!strcmp(mode, "guest-limits")) CheckGuestLimits();
             else if (!strcmp(mode, "native-smoke")) CheckNativeSmoke();
             else if (!strcmp(mode, "native-amy")) CheckNativeAmy();
             else if (!strcmp(mode, "route-native")) CheckNativeRoute();

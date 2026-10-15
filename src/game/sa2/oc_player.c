@@ -44,16 +44,37 @@ static u32 sOcSpecialRunPhase;
 #define OC_REVISED_RUN_FIRST (OC_FRAME_COUNT + OC_ACTION_FRAME_COUNT)
 #define OC_REVISED_ATTACK_FIRST (OC_REVISED_RUN_FIRST + OC_REVISED_RUN_FRAME_COUNT)
 
-/* These revisions are isolated from Elizabeth and the legacy jump/victory
- * atlases. Kura shares only the revised ability atlas, keeping her run intact. */
+/* Elizabeth retains her legacy gait. Kura shares only the revised ability
+ * atlas. The two guests have separate gait and ability indices after them. */
 static bool32 OcPlayerUsesRevisedRun(void)
 {
-    return sOcPlayer.oc == OC_JUDE || sOcPlayer.oc == OC_KIRO || sOcPlayer.oc == OC_YULIANA;
+    return sOcPlayer.oc == OC_JUDE || sOcPlayer.oc == OC_KIRO || sOcPlayer.oc == OC_YULIANA || sOcPlayer.oc == OC_SANS
+        || sOcPlayer.oc == OC_SPIDERMAN;
 }
 
-static u8 OcPlayerRevisedIndex(void)
+static u8 OcPlayerRevisedRunIndex(void)
 {
-    return sOcPlayer.oc == OC_JUDE ? 0 : sOcPlayer.oc == OC_KIRO ? 1 : sOcPlayer.oc == OC_YULIANA ? 2 : 3;
+    switch (sOcPlayer.oc) {
+        case OC_JUDE: return 0;
+        case OC_KIRO: return 1;
+        case OC_YULIANA: return 2;
+        case OC_SANS: return 3;
+        case OC_SPIDERMAN: return 4;
+        default: return 0;
+    }
+}
+
+static u8 OcPlayerRevisedAttackIndex(void)
+{
+    switch (sOcPlayer.oc) {
+        case OC_JUDE: return 0;
+        case OC_KIRO: return 1;
+        case OC_YULIANA: return 2;
+        case OC_KURA: return 3;
+        case OC_SANS: return 4;
+        case OC_SPIDERMAN: return 5;
+        default: return 0;
+    }
 }
 
 static bool32 OcPlayerIsVictoryState(u8 state)
@@ -475,9 +496,9 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
         } else if (frame < OC_REVISED_RUN_FIRST) {
             sprite->graphics.src = gOcActionFrameTiles[sOcPlayer.oc][frame - OC_FRAME_COUNT];
         } else if (frame < OC_REVISED_ATTACK_FIRST) {
-            sprite->graphics.src = gOcRevisedRunTiles[OcPlayerRevisedIndex()][frame - OC_REVISED_RUN_FIRST];
+            sprite->graphics.src = gOcRevisedRunTiles[OcPlayerRevisedRunIndex()][frame - OC_REVISED_RUN_FIRST];
         } else {
-            sprite->graphics.src = gOcRevisedAttackTiles[OcPlayerRevisedIndex()][frame - OC_REVISED_ATTACK_FIRST];
+            sprite->graphics.src = gOcRevisedAttackTiles[OcPlayerRevisedAttackIndex()][frame - OC_REVISED_ATTACK_FIRST];
         }
         ADD_TO_GRAPHICS_QUEUE(&sprite->graphics);
     }

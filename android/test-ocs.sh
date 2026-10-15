@@ -59,6 +59,26 @@ if [[ -n "${SA_OC_ONLY_MODE:-}" ]]; then
     SA_OC_MODE="$SA_OC_ONLY_MODE" "${RUNNER[@]}" ./sa2.oc-runtime
     exit 0
 fi
+if [[ "${SA_OC_GUEST_FOCUSED:-0}" == 1 ]]; then
+    # 26 real-engine cases: retain all originals, boot all existing identities,
+    # then exercise only the two new guests' selector/ability/lifecycle paths.
+    export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
+    for ENTRY in 0 1 2 3 4; do
+        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    for ENTRY in 5 6 7 8 9 10 11; do
+        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    for ENTRY in 10 11; do
+        for MODE in select abilities air-abilities guest-limits pause victory; do
+            SA_OC_MODE="$MODE" SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        done
+    done
+    SA_OC_MODE=lifecycle "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 "${RUNNER[@]}" ./sa2.oc-runtime
+    printf 'Guest integration checks passed (26 cases). Framebuffer captures: %s\n' "$CAPTURES"
+    exit 0
+fi
 if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     # Recheck the changed animation/ability paths, with actual VBlank traces.
     # Menu, pause and real-goal fixtures are already covered by the OCS2 suite.
@@ -81,7 +101,7 @@ if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     printf 'OC revised animation/ability checks passed. Framebuffer captures: %s\n' "$CAPTURES"
     exit 0
 fi
-for ENTRY in ${SA_OC_TEST_ENTRIES:-0 1 2 3 4 5 6 7 8 9}; do
+for ENTRY in ${SA_OC_TEST_ENTRIES:-0 1 2 3 4 5 6 7 8 9 10 11}; do
     SA_OC_MODE=select SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
 done
 SA_OC_MODE=locked SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
@@ -93,7 +113,7 @@ SA_OC_MODE=glitch-defense SA_OC_ENTRY=5 "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=double-a SA_OC_ENTRY=6 "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=native-amy SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=special SA_OC_ENTRY=0 "${RUNNER[@]}" ./sa2.oc-runtime
-for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9}; do
+for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9 10 11}; do
     SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
     if [[ "$ENTRY" == 9 ]]; then
         SA_OC_MODE=flap SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime

@@ -33,16 +33,21 @@ extern void Platform_SetNativeUiCrop(bool8 enabled);
 
 #define OC_MENU_ENTRIES (NUM_CHARACTERS + OC_CHARACTER_COUNT)
 #define OC_MENU_SCROLL_FRAMES 12
+#define OC_MENU_NAME_PALETTE 13
 #define OC_MENU_UI_PALETTE 14
 #define OC_MENU_PREVIEW_PALETTE 15
 /* The original selector's heap starts at OBJ+0x3A00. Its single-player cross-box
- * is unused, leaving this area for five circles and a small pixel font. */
+ * is unused, leaving this area for seven circles and a small pixel font. */
 #define OC_MENU_CIRCLE_TILES (OBJ_VRAM0 + 0x2800)
-#define OC_MENU_FONT_TILES (OBJ_VRAM0 + 0x3200)
+#define OC_MENU_FONT_TILES (OBJ_VRAM0 + 0x3600)
+#define OC_MENU_FONT_GLYPHS 27
+/* Keep the first six circles in palette 14. The remaining circles share the
+ * sidebar's palette 13, whose color slots 4..15 are unused by its text. */
+#define OC_MENU_CIRCLES_PER_PALETTE ((PALETTE_LEN_4BPP - 4) / 2)
 
-_Static_assert(0x2800 + OC_CHARACTER_COUNT * 512 <= 0x3200, "OC circles must stay below the font tiles");
-_Static_assert(0x3200 + 26 * 32 <= 0x3A00, "OC font must stay below the original selector heap");
-_Static_assert(4 + OC_CHARACTER_COUNT * 2 <= PALETTE_LEN_4BPP, "OC circle shades must fit one palette");
+_Static_assert(0x2800 + OC_CHARACTER_COUNT * 512 <= 0x3600, "OC circles must stay below the font tiles");
+_Static_assert(0x3600 + OC_MENU_FONT_GLYPHS * 32 <= 0x3A00, "OC font must stay below the original selector heap");
+_Static_assert(OC_CHARACTER_COUNT <= OC_MENU_CIRCLES_PER_PALETTE * 2, "OC circle shades must fit both UI palettes");
 
 enum OcMenuPhase { OC_MENU_IN, OC_MENU_READY, OC_MENU_CONFIRM, OC_MENU_BACK };
 
@@ -79,9 +84,10 @@ typedef struct {
 s8 gSelectedOc = -1;
 static char sOcStoragePath[2048];
 
-static const char *const sOcNames[OC_CHARACTER_COUNT] = { "ELIZABETH", "JUDE", "KIRO", "YULIANA", "KURA" };
+static const char *const sOcNames[OC_CHARACTER_COUNT] = { "ELIZABETH", "JUDE", "KIRO", "YULIANA", "KURA", "SANS", "SPIDER-MAN" };
 static const u16 sOcColors[OC_CHARACTER_COUNT] = {
     RGB16(24, 25, 27), RGB16(29, 23, 5), RGB16(15, 17, 7), RGB16(5, 11, 8), RGB16(22, 7, 27),
+    RGB16(5, 17, 31), RGB16(29, 4, 6),
 };
 static const u8 sSilhouettes[NUM_CHARACTERS] = { 8, 4, 7, 6, 5 };
 static const u8 sCharacterVariants[NUM_CHARACTERS] = { 0, 2, 4, 6, 8 };
@@ -94,7 +100,7 @@ static const u16 sCharacterVoices[NUM_CHARACTERS] = {
 
 /* Seven rows of a five-pixel alphabet. Native 8x8 OBJ tiles retain hard pixel
  * edges and the selector's shadowed text treatment at every display scale. */
-static const u8 sFont[26][7] = {
+static const u8 sFont[OC_MENU_FONT_GLYPHS][7] = {
     {14,17,17,31,17,17,17}, {30,17,17,30,17,17,30}, {14,17,16,16,16,17,14},
     {30,17,17,17,17,17,30}, {31,16,16,30,16,16,31}, {31,16,16,30,16,16,16},
     {14,17,16,23,17,17,15}, {17,17,17,31,17,17,17}, {14,4,4,4,4,4,14},
@@ -104,12 +110,25 @@ static const u8 sFont[26][7] = {
     {15,16,16,14,1,1,30}, {31,4,4,4,4,4,4}, {17,17,17,17,17,17,14},
     {17,17,17,17,17,10,4}, {17,17,17,21,21,21,10}, {17,17,10,4,10,17,17},
     {17,17,10,4,4,4,4}, {31,1,2,4,8,16,31},
+    {0,0,0,14,0,0,0}, /* Hyphen, used by Spider-Man. */
 };
 
 static void Task_OcCharacterSelect(void);
 static void DestroyOcMenu(Task *task);
 static void RenderOcMenu(OcMenu *menu);
 static void RefreshSelection(OcMenu *menu, bool8 chosen);
+
+static u8 FontGlyph(u8 character)
+{
+    if (character >= 'A' && character <= 'Z')
+        return character - 'A';
+    return character == '-' ? 26 : 255;
+}
+
+static u8 CirclePalette(u8 oc)
+{
+    return oc < OC_MENU_CIRCLES_PER_PALETTE ? OC_MENU_UI_PALETTE : OC_MENU_NAME_PALETTE;
+}
 
 const char *OcCharacterName(u8 oc) { return oc < OC_CHARACTER_COUNT ? sOcNames[oc] : ""; }
 u16 OcCharacterColor(u8 oc) { return oc < OC_CHARACTER_COUNT ? sOcColors[oc] : 0; }
@@ -229,6 +248,12 @@ void OcBuildIdentityIcon(u8 *tiles, u8 oc)
         for (x = 0; x < 16; x++) {
             unsigned sourceX = oc == OC_KURA ? 20 + x * 28 / 16 : 22 + x * 24 / 16;
             unsigned sourceY = oc == OC_KURA ? 11 + y * 24 / 16 : 12 + y * 20 / 16;
+            if (oc == OC_SPIDERMAN) {
+                /* His original GBA idle pose leans forward. Center the mask
+                 * and retain its native eye-lens pixels in the 1-up icon. */
+                sourceX = 30 + x;
+                sourceY = 10 + y;
+            }
             unsigned offset = ((sourceY / 8) * 8 + sourceX / 8) * 32 + (sourceY & 7) * 4 + (sourceX & 7) / 2;
             u8 packed = gOcFrameTiles[oc][0][offset];
             u8 index = (sourceX & 1) ? packed >> 4 : packed & 15;
@@ -246,7 +271,9 @@ u8 OcBuildIdentityName(u8 *tiles, u8 oc)
     length = strlen(sOcNames[oc]);
     memset(tiles, 0, length * 32);
     for (c = 0; c < length; c++) {
-        unsigned glyph = sOcNames[oc][c] - 'A';
+        u8 glyph = FontGlyph(sOcNames[oc][c]);
+        if (glyph == 255)
+            continue;
         for (y = 0; y < 7; y++)
             for (x = 0; x < 5; x++)
                 if (sFont[glyph][y] & (1 << (4 - x)))
@@ -262,6 +289,7 @@ u8 OcBuildIdentityName(u8 *tiles, u8 oc)
 static void GenerateCircle(u8 *tiles, u8 oc, unsigned size, bool8 active)
 {
     unsigned x, y;
+    u8 outline = CirclePalette(oc) == OC_MENU_NAME_PALETTE ? 2 : 1;
     s32 center = (s32)size - 1;
     s32 radius = (s32)size - 3;
     memset(tiles, 0, size * size / 2);
@@ -273,13 +301,13 @@ static void GenerateCircle(u8 *tiles, u8 oc, unsigned size, bool8 active)
             if (distance > radius * radius)
                 continue;
             if (distance > (radius - 2) * (radius - 2))
-                pixel = 1;
+                pixel = outline;
             else if (active && distance > (radius - 8) * (radius - 8))
                 pixel = 3;
             else if (distance > (radius - (active ? 10 : 4)) * (radius - (active ? 10 : 4)))
-                pixel = 1;
+                pixel = outline;
             else
-                pixel = 4 + oc * 2 + ((x + y < size) ? 1 : 0);
+                pixel = 4 + (oc % OC_MENU_CIRCLES_PER_PALETTE) * 2 + ((x + y < size) ? 1 : 0);
             SetTilePixel(tiles, size, x, y, pixel);
         }
     }
@@ -291,8 +319,8 @@ static void GenerateMenuTiles(void)
     u8 *font = OC_MENU_FONT_TILES;
     for (c = 0; c < OC_CHARACTER_COUNT; c++)
         GenerateCircle(OC_MENU_CIRCLE_TILES + c * 512, c, 32, FALSE);
-    memset(font, 0, 26 * 32);
-    for (c = 0; c < 26; c++) {
+    memset(font, 0, OC_MENU_FONT_GLYPHS * 32);
+    for (c = 0; c < OC_MENU_FONT_GLYPHS; c++) {
         for (y = 0; y < 7; y++) {
             for (x = 0; x < 5; x++) {
                 if (sFont[c][y] & (1 << (4 - x)))
@@ -340,9 +368,9 @@ static void RenderNativeTile(const void *tiles, s16 x, s16 y, u8 size, u8 palett
 static void RenderName(const char *text, s16 x, s16 y, u8 palette)
 {
     while (*text) {
-        u8 c = *text++;
-        if (c >= 'A' && c <= 'Z')
-            RenderNativeTile(OC_MENU_FONT_TILES + (c - 'A') * 32, x, y, 0, palette, 2);
+        u8 glyph = FontGlyph(*text++);
+        if (glyph != 255)
+            RenderNativeTile(OC_MENU_FONT_TILES + glyph * 32, x, y, 0, palette, 2);
         x += 7;
     }
 }
@@ -623,12 +651,13 @@ static void RenderOcMenu(OcMenu *menu)
             menu->blobs[i].y = y;
             DisplaySprite(&menu->blobs[i]);
         } else {
-            RenderNativeTile(OC_MENU_CIRCLE_TILES + (i - OC_SELECT_FIRST) * 512, x - 16, y - 16, 2, OC_MENU_UI_PALETTE, 4);
+            u8 oc = i - OC_SELECT_FIRST;
+            RenderNativeTile(OC_MENU_CIRCLE_TILES + oc * 512, x - 16, y - 16, 2, CirclePalette(oc), 4);
         }
     }
     if (menu->scrollFrame == OC_MENU_SCROLL_FRAMES) {
         if (menu->selection >= OC_SELECT_FIRST) {
-            RenderNativeTile(menu->activeBlob.graphics.dest, 69, 47, 3, OC_MENU_UI_PALETTE, 3);
+            RenderNativeTile(menu->activeBlob.graphics.dest, 69, 47, 3, CirclePalette(menu->selection - OC_SELECT_FIRST), 3);
         } else {
             s = &menu->activeBlob;
             s->x = 101;
@@ -647,7 +676,7 @@ static void RenderOcMenu(OcMenu *menu)
         u8 oc = menu->selection - OC_SELECT_FIRST;
         s16 nameWidth = strlen(sOcNames[oc]) * 7;
         RenderOcPreview(menu, slide);
-        RenderName(sOcNames[oc], 32, 75, 13);
+        RenderName(sOcNames[oc], 32, 75, OC_MENU_NAME_PALETTE);
         RenderName(sOcNames[oc], 173 - nameWidth / 2 + slide, 143, OC_MENU_UI_PALETTE);
         for (i = 0; i < 16; i++)
             SET_PALETTE_COLOR_OBJ(OC_MENU_PREVIEW_PALETTE, i, gOcPalettes[oc][i]);
@@ -690,14 +719,17 @@ static void RenderOcMenu(OcMenu *menu)
     SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 1, RGB16(3, 4, 7));
     SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 2, RGB_WHITE);
     SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 3, RGB16(31, 26 + ((menu->pulse >> 3) & 3), 6));
-    SET_PALETTE_COLOR_OBJ(13, 0, 0);
-    SET_PALETTE_COLOR_OBJ(13, 1, RGB_WHITE);
-    SET_PALETTE_COLOR_OBJ(13, 2, RGB16(3, 4, 7));
+    SET_PALETTE_COLOR_OBJ(OC_MENU_NAME_PALETTE, 0, 0);
+    SET_PALETTE_COLOR_OBJ(OC_MENU_NAME_PALETTE, 1, RGB_WHITE);
+    SET_PALETTE_COLOR_OBJ(OC_MENU_NAME_PALETTE, 2, RGB16(3, 4, 7));
+    SET_PALETTE_COLOR_OBJ(OC_MENU_NAME_PALETTE, 3, RGB16(31, 26 + ((menu->pulse >> 3) & 3), 6));
     for (i = 0; i < OC_CHARACTER_COUNT; i++) {
         u16 color = sOcColors[i];
         u8 r = color & 31, g = (color >> 5) & 31, b = (color >> 10) & 31;
-        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 4 + i * 2, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
-        SET_PALETTE_COLOR_OBJ(OC_MENU_UI_PALETTE, 5 + i * 2, color);
+        u8 palette = CirclePalette(i);
+        u8 shadeIndex = 4 + (i % OC_MENU_CIRCLES_PER_PALETTE) * 2;
+        SET_PALETTE_COLOR_OBJ(palette, shadeIndex, RGB16(r * 3 / 4, g * 3 / 4, b * 3 / 4));
+        SET_PALETTE_COLOR_OBJ(palette, shadeIndex + 1, color);
     }
     gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
 }

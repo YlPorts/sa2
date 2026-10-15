@@ -2,6 +2,7 @@
 
 const u8 ALIGNED(4) gOcFrameTiles[OC_CHARACTER_COUNT][OC_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/frame_tiles.inc"
+#include "../../../graphics/sa2/ocs/guests/generated/frame_tiles.inc"
 };
 
 const u16 gOcPalettes[OC_CHARACTER_COUNT][16] = {
@@ -10,20 +11,29 @@ const u16 gOcPalettes[OC_CHARACTER_COUNT][16] = {
     { 0x0000, 0x0000, 0x7bde, 0x2e7e, 0x196a, 0x0859, 0x1086, 0x157c, 0x1090, 0x5ef9, 0x1ce8, 0x535e, 0x3a12, 0x0c4a, 0x1108, 0x0843 }, /* kiro */
     { 0x0000, 0x0000, 0x7bde, 0x29ce, 0x1cc7, 0x42ff, 0x0c75, 0x0c63, 0x19bb, 0x5274, 0x2129, 0x673a, 0x1935, 0x2a5e, 0x1485, 0x256c }, /* yuliana */
     { 0x0000, 0x0000, 0x739e, 0x2477, 0x6260, 0x71f1, 0x367d, 0x20c7, 0x3d80, 0x573e, 0x552b, 0x1064, 0x184f, 0x3df2, 0x6eb8, 0x2197 }, /* kura */
+#include "../../../graphics/sa2/ocs/guests/generated/palettes.inc"
 };
 
 const u8 ALIGNED(4) gOcSpecialFrameTiles[OC_CHARACTER_COUNT][OC_SPECIAL_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/special_tiles.inc"
+#include "../../../graphics/sa2/ocs/guests/generated/special_tiles.inc"
 };
 
 const u8 ALIGNED(4) gOcActionFrameTiles[OC_CHARACTER_COUNT][OC_ACTION_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/action_tiles.inc"
+#include "../../../graphics/sa2/ocs/guests/generated/action_tiles.inc"
 };
 
 const u8 ALIGNED(4) gOcRevisedRunTiles[OC_REVISED_RUN_CHARACTER_COUNT][OC_REVISED_RUN_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/revised_run_tiles.inc"
+#include "../../../graphics/sa2/ocs/guests/generated/revised_run_tiles.inc"
 };
 
 const u8 ALIGNED(4) gOcRevisedAttackTiles[OC_REVISED_ATTACK_CHARACTER_COUNT][OC_REVISED_ATTACK_FRAME_COUNT][OC_FRAME_TILE_BYTES] = {
 #include "../../../graphics/sa2/ocs/revised_attack_tiles.inc"
+#include "../../../graphics/sa2/ocs/guests/generated/revised_attack_tiles.inc"
+};
+
+const u8 ALIGNED(4) gOcGuestProjectileTiles[2][32] = {
+#include "../../../graphics/sa2/ocs/guests/generated/projectile_tiles.inc"
 };

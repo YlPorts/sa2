@@ -1,0 +1,1093 @@
+{
+  "status": "proposed_complete_frame_mapping_pending_codec_and_root_review",
+  "attribution": {
+    "original_game": "Ultimate Spider-Man",
+    "original_platform": "Game Boy Advance",
+    "character": "Spider-Man (classic red and blue suit)",
+    "contributors": [
+      "Naruto[NU]",
+      "RundownAngel"
+    ],
+    "source_page": "https://spritedatabase.net/file/6088",
+    "game_page": "https://spritedatabase.net/game/1185",
+    "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+    "site_date_added": "2009-01-22",
+    "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+    "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+    "original_dimensions": [
+      1152,
+      2099
+    ],
+    "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+    "colorkeyRGB": [
+      254,
+      254,
+      254
+    ],
+    "colorkey_index_original_gif": 255,
+    "eye_lens_rgb": [
+      184,
+      216,
+      184
+    ],
+    "original_credits_retained": true
+  },
+  "common_native_scale_proposal": {
+    "numerator": 36,
+    "denominator": 34,
+    "apply_same_scale_to_all_families": true,
+    "reference_idle_native_height": 34,
+    "target_idle_native_height": 36,
+    "native_canvas": [
+      64,
+      64
+    ],
+    "feet_pivot": [
+      32,
+      48
+    ]
+  },
+  "source_view_audit": "Source is a side-scroller. No true back-view loop was observed in the complete source; bonus family honestly uses authored side/front-three-quarter poses. No front-to-back flips, synthetic poses, raster painting or limb reconstruction.",
+  "authored_run_loop_sampling": {
+    "source_total_row_figures": 16,
+    "lead_in_frames": 2,
+    "source_bracketed_loop_frames": 14,
+    "ordered_source_row_indices": [
+      3,
+      4,
+      6,
+      8,
+      9,
+      11,
+      13,
+      15
+    ],
+    "operation": "eight ordered samples of the original complete loop; no generated gait or pose assembly"
+  },
+  "families": {
+    "base": {
+      "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+      "rectangles": [
+        [
+          5,
+          35,
+          45,
+          38
+        ],
+        [
+          195,
+          37,
+          46,
+          36
+        ],
+        [
+          480,
+          36,
+          44,
+          37
+        ],
+        [
+          114,
+          149,
+          31,
+          38
+        ],
+        [
+          145,
+          148,
+          38,
+          39
+        ],
+        [
+          232,
+          154,
+          53,
+          33
+        ],
+        [
+          342,
+          150,
+          48,
+          37
+        ],
+        [
+          391,
+          151,
+          40,
+          36
+        ],
+        [
+          470,
+          147,
+          38,
+          40
+        ],
+        [
+          202,
+          746,
+          37,
+          29
+        ],
+        [
+          49,
+          479,
+          34,
+          34
+        ],
+        [
+          117,
+          475,
+          28,
+          38
+        ],
+        [
+          146,
+          476,
+          31,
+          37
+        ],
+        [
+          207,
+          480,
+          30,
+          33
+        ],
+        [
+          272,
+          485,
+          35,
+          28
+        ],
+        [
+          343,
+          481,
+          40,
+          32
+        ],
+        [
+          383,
+          477,
+          44,
+          36
+        ],
+        [
+          5,
+          35,
+          45,
+          38
+        ],
+        [
+          11,
+          1835,
+          31,
+          45
+        ],
+        [
+          83,
+          1835,
+          47,
+          37
+        ],
+        [
+          844,
+          1888,
+          46,
+          19
+        ],
+        [
+          85,
+          1661,
+          29,
+          44
+        ],
+        [
+          82,
+          1709,
+          26,
+          45
+        ],
+        [
+          105,
+          1379,
+          33,
+          41
+        ],
+        [
+          561,
+          278,
+          56,
+          40
+        ],
+        [
+          47,
+          906,
+          42,
+          30
+        ],
+        [
+          4,
+          677,
+          41,
+          36
+        ],
+        [
+          173,
+          1657,
+          24,
+          47
+        ],
+        [
+          113,
+          1708,
+          23,
+          46
+        ],
+        [
+          194,
+          415,
+          45,
+          38
+        ],
+        [
+          117,
+          475,
+          28,
+          38
+        ],
+        [
+          177,
+          479,
+          31,
+          34
+        ]
+      ],
+      "bodyBoundingBoxes": [
+        [
+          7,
+          37,
+          41,
+          34
+        ],
+        [
+          197,
+          39,
+          42,
+          32
+        ],
+        [
+          482,
+          38,
+          40,
+          33
+        ],
+        [
+          116,
+          151,
+          27,
+          34
+        ],
+        [
+          147,
+          150,
+          34,
+          35
+        ],
+        [
+          234,
+          156,
+          49,
+          29
+        ],
+        [
+          344,
+          152,
+          44,
+          33
+        ],
+        [
+          393,
+          153,
+          36,
+          32
+        ],
+        [
+          472,
+          149,
+          34,
+          36
+        ],
+        [
+          204,
+          748,
+          33,
+          25
+        ],
+        [
+          51,
+          481,
+          30,
+          30
+        ],
+        [
+          119,
+          477,
+          24,
+          34
+        ],
+        [
+          148,
+          478,
+          27,
+          33
+        ],
+        [
+          209,
+          482,
+          26,
+          29
+        ],
+        [
+          274,
+          487,
+          31,
+          24
+        ],
+        [
+          345,
+          483,
+          36,
+          28
+        ],
+        [
+          385,
+          479,
+          40,
+          32
+        ],
+        [
+          7,
+          37,
+          41,
+          34
+        ],
+        [
+          13,
+          1837,
+          27,
+          41
+        ],
+        [
+          85,
+          1837,
+          43,
+          33
+        ],
+        [
+          846,
+          1890,
+          42,
+          15
+        ],
+        [
+          87,
+          1663,
+          25,
+          40
+        ],
+        [
+          84,
+          1711,
+          22,
+          41
+        ],
+        [
+          107,
+          1381,
+          29,
+          37
+        ],
+        [
+          563,
+          280,
+          52,
+          36
+        ],
+        [
+          49,
+          908,
+          38,
+          26
+        ],
+        [
+          6,
+          679,
+          37,
+          32
+        ],
+        [
+          175,
+          1659,
+          20,
+          43
+        ],
+        [
+          115,
+          1710,
+          19,
+          42
+        ],
+        [
+          196,
+          417,
+          41,
+          34
+        ],
+        [
+          119,
+          477,
+          24,
+          34
+        ],
+        [
+          179,
+          481,
+          27,
+          30
+        ]
+      ],
+      "colorkeyRGB": [
+        254,
+        254,
+        254
+      ],
+      "poseRoles": [
+        "idle_a",
+        "idle_b",
+        "idle_c",
+        "run_a",
+        "run_b",
+        "run_c",
+        "run_d",
+        "run_e",
+        "run_f",
+        "crouch",
+        "launch",
+        "rise",
+        "human_tuck",
+        "fall",
+        "land",
+        "brake_recovery_a",
+        "brake_recovery_b",
+        "brake_settle",
+        "hurt_a",
+        "hurt_b",
+        "dead_rest",
+        "balance_compatible_a",
+        "balance_compatible_b",
+        "overhead_web_compatible_hang",
+        "push_compatible_extended_arm",
+        "crouch_slide_compatible_grind",
+        "airborne_compatible_swim",
+        "victory_crossed_arms",
+        "victory_wave",
+        "wrist_shoot",
+        "human_tuck_a",
+        "human_tuck_b"
+      ],
+      "attribution": {
+        "original_game": "Ultimate Spider-Man",
+        "original_platform": "Game Boy Advance",
+        "character": "Spider-Man (classic red and blue suit)",
+        "contributors": [
+          "Naruto[NU]",
+          "RundownAngel"
+        ],
+        "source_page": "https://spritedatabase.net/file/6088",
+        "game_page": "https://spritedatabase.net/game/1185",
+        "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+        "site_date_added": "2009-01-22",
+        "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+        "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+        "original_dimensions": [
+          1152,
+          2099
+        ],
+        "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "colorkey_index_original_gif": 255,
+        "eye_lens_rgb": [
+          184,
+          216,
+          184
+        ],
+        "original_credits_retained": true
+      },
+      "rearViewClaim": null,
+      "whole_frame_crop_only": true,
+      "source_crop_padding_note": "2px key-colored source margins around every complete original body; final native canvas has clear margins as well."
+    },
+    "motion": {
+      "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+      "rectangles": [
+        [
+          114,
+          149,
+          31,
+          38
+        ],
+        [
+          145,
+          148,
+          38,
+          39
+        ],
+        [
+          232,
+          154,
+          53,
+          33
+        ],
+        [
+          342,
+          150,
+          48,
+          37
+        ],
+        [
+          391,
+          151,
+          40,
+          36
+        ],
+        [
+          470,
+          147,
+          38,
+          40
+        ],
+        [
+          566,
+          154,
+          53,
+          33
+        ],
+        [
+          675,
+          150,
+          49,
+          37
+        ],
+        [
+          117,
+          475,
+          28,
+          38
+        ],
+        [
+          146,
+          476,
+          31,
+          37
+        ],
+        [
+          207,
+          480,
+          30,
+          33
+        ],
+        [
+          272,
+          485,
+          35,
+          28
+        ],
+        [
+          5,
+          414,
+          41,
+          39
+        ],
+        [
+          47,
+          415,
+          44,
+          38
+        ],
+        [
+          194,
+          415,
+          45,
+          38
+        ],
+        [
+          265,
+          415,
+          46,
+          38
+        ],
+        [
+          194,
+          415,
+          45,
+          38
+        ],
+        [
+          265,
+          415,
+          46,
+          38
+        ],
+        [
+          47,
+          415,
+          44,
+          38
+        ],
+        [
+          5,
+          414,
+          41,
+          39
+        ],
+        [
+          272,
+          485,
+          35,
+          28
+        ],
+        [
+          173,
+          1657,
+          24,
+          47
+        ],
+        [
+          113,
+          1708,
+          23,
+          46
+        ],
+        [
+          85,
+          1661,
+          29,
+          44
+        ]
+      ],
+      "bodyBoundingBoxes": [
+        [
+          116,
+          151,
+          27,
+          34
+        ],
+        [
+          147,
+          150,
+          34,
+          35
+        ],
+        [
+          234,
+          156,
+          49,
+          29
+        ],
+        [
+          344,
+          152,
+          44,
+          33
+        ],
+        [
+          393,
+          153,
+          36,
+          32
+        ],
+        [
+          472,
+          149,
+          34,
+          36
+        ],
+        [
+          568,
+          156,
+          49,
+          29
+        ],
+        [
+          677,
+          152,
+          45,
+          33
+        ],
+        [
+          119,
+          477,
+          24,
+          34
+        ],
+        [
+          148,
+          478,
+          27,
+          33
+        ],
+        [
+          209,
+          482,
+          26,
+          29
+        ],
+        [
+          274,
+          487,
+          31,
+          24
+        ],
+        [
+          7,
+          416,
+          37,
+          35
+        ],
+        [
+          49,
+          417,
+          40,
+          34
+        ],
+        [
+          196,
+          417,
+          41,
+          34
+        ],
+        [
+          267,
+          417,
+          42,
+          34
+        ],
+        [
+          196,
+          417,
+          41,
+          34
+        ],
+        [
+          267,
+          417,
+          42,
+          34
+        ],
+        [
+          49,
+          417,
+          40,
+          34
+        ],
+        [
+          7,
+          416,
+          37,
+          35
+        ],
+        [
+          274,
+          487,
+          31,
+          24
+        ],
+        [
+          175,
+          1659,
+          20,
+          43
+        ],
+        [
+          115,
+          1710,
+          19,
+          42
+        ],
+        [
+          87,
+          1663,
+          25,
+          40
+        ]
+      ],
+      "colorkeyRGB": [
+        254,
+        254,
+        254
+      ],
+      "poseRoles": [
+        "authored_run_loop_sample_0",
+        "authored_run_loop_sample_1",
+        "authored_run_loop_sample_2",
+        "authored_run_loop_sample_3",
+        "authored_run_loop_sample_4",
+        "authored_run_loop_sample_5",
+        "authored_run_loop_sample_6",
+        "authored_run_loop_sample_7",
+        "jump_rise",
+        "jump_tuck",
+        "jump_fall",
+        "jump_land",
+        "web_prepare_0",
+        "web_prepare_1",
+        "web_active_0",
+        "web_active_1",
+        "web_active_2",
+        "web_recover_0",
+        "web_recover_1",
+        "web_settle",
+        "victory_land",
+        "victory_crossed_arms",
+        "victory_wave",
+        "victory_settle"
+      ],
+      "attribution": {
+        "original_game": "Ultimate Spider-Man",
+        "original_platform": "Game Boy Advance",
+        "character": "Spider-Man (classic red and blue suit)",
+        "contributors": [
+          "Naruto[NU]",
+          "RundownAngel"
+        ],
+        "source_page": "https://spritedatabase.net/file/6088",
+        "game_page": "https://spritedatabase.net/game/1185",
+        "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+        "site_date_added": "2009-01-22",
+        "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+        "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+        "original_dimensions": [
+          1152,
+          2099
+        ],
+        "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "colorkey_index_original_gif": 255,
+        "eye_lens_rgb": [
+          184,
+          216,
+          184
+        ],
+        "original_credits_retained": true
+      },
+      "rearViewClaim": null,
+      "whole_frame_crop_only": true,
+      "source_crop_padding_note": "2px key-colored source margins around every complete original body; final native canvas has clear margins as well."
+    },
+    "rear": {
+      "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+      "rectangles": [
+        [
+          114,
+          149,
+          31,
+          38
+        ],
+        [
+          145,
+          148,
+          38,
+          39
+        ],
+        [
+          232,
+          154,
+          53,
+          33
+        ],
+        [
+          342,
+          150,
+          48,
+          37
+        ],
+        [
+          592,
+          1757,
+          34,
+          47
+        ],
+        [
+          521,
+          1665,
+          40,
+          39
+        ],
+        [
+          146,
+          476,
+          31,
+          37
+        ],
+        [
+          83,
+          1835,
+          47,
+          37
+        ]
+      ],
+      "bodyBoundingBoxes": [
+        [
+          116,
+          151,
+          27,
+          34
+        ],
+        [
+          147,
+          150,
+          34,
+          35
+        ],
+        [
+          234,
+          156,
+          49,
+          29
+        ],
+        [
+          344,
+          152,
+          44,
+          33
+        ],
+        [
+          594,
+          1759,
+          30,
+          43
+        ],
+        [
+          523,
+          1667,
+          36,
+          35
+        ],
+        [
+          148,
+          478,
+          27,
+          33
+        ],
+        [
+          85,
+          1837,
+          43,
+          33
+        ]
+      ],
+      "colorkeyRGB": [
+        254,
+        254,
+        254
+      ],
+      "poseRoles": [
+        "bonus_compatible_three_quarter_run_0",
+        "bonus_compatible_three_quarter_run_1",
+        "bonus_compatible_three_quarter_run_2",
+        "bonus_compatible_three_quarter_run_3",
+        "bonus_compatible_front_three_quarter_arms_up",
+        "bonus_compatible_side_three_quarter_settle",
+        "bonus_compatible_three_quarter_jump",
+        "bonus_compatible_three_quarter_hurt"
+      ],
+      "attribution": {
+        "original_game": "Ultimate Spider-Man",
+        "original_platform": "Game Boy Advance",
+        "character": "Spider-Man (classic red and blue suit)",
+        "contributors": [
+          "Naruto[NU]",
+          "RundownAngel"
+        ],
+        "source_page": "https://spritedatabase.net/file/6088",
+        "game_page": "https://spritedatabase.net/game/1185",
+        "original_download_url": "https://spritedatabase.net/files/gba/1185/Sprite/UltimateSpiderman.gif",
+        "site_date_added": "2009-01-22",
+        "original_gif_sha256": "0fc827f3df0ce3a253848046ab5b734492ce7fd4d2c3f72c2e1b0fbdea6fa8fc",
+        "archived_png_sha256": "a6a5891dedd4d2bb09ceb8431fde7af374c43c0c0e9159a6a3bcd30862392d70",
+        "original_dimensions": [
+          1152,
+          2099
+        ],
+        "lossless_whole_sheet_transcode_verified_by": "guest_compile",
+        "colorkeyRGB": [
+          254,
+          254,
+          254
+        ],
+        "colorkey_index_original_gif": 255,
+        "eye_lens_rgb": [
+          184,
+          216,
+          184
+        ],
+        "original_credits_retained": true
+      },
+      "rearViewClaim": "compatible authored three-quarter poses, not true back sprites",
+      "whole_frame_crop_only": true,
+      "source_crop_padding_note": "2px key-colored source margins around every complete original body; final native canvas has clear margins as well."
+    }
+  },
+  "web_projectile_source": {
+    "source": "graphics/sa2/ocs/guests/source/spiderman_ultimate_gba_original.png",
+    "whole_original_glyph_box": [
+      393,
+      431,
+      8,
+      8
+    ],
+    "background_colorkeyRGB": [
+      255,
+      0,
+      0
+    ],
+    "body_and_projectile_are_separate_native_sprites": true,
+    "notes": "Use original complete white/gray web glyph from red sample tile. It is7\u00d78 source pixels and can be centered in8\u00d78 native glyph without synthetic drawing. Preserve whole glyph; shader/palette adaptation belongs to codec/renderer.",
+    "padded_complete_glyph_rectangle": [
+      391,
+      429,
+      12,
+      12
+    ],
+    "native_glyph_note": "Complete original connected white/gray web glyph is exactly8\u00d78, including ALL gray outskirts, and fits native8\u00d78 without resizing, cropping or painting. Padded source crop12\u00d712 has completely red-key border.",
+    "whole_glyph_border_key_check_passed": true
+  },
+  "created_utc": "2026-09-30T06:52:45.434571+00:00",
+  "authored_attack_mapping": {
+    "source_webbing_row_indices": [
+      0,
+      1,
+      4,
+      5,
+      4,
+      5,
+      1,
+      0
+    ],
+    "notes": "Uses original clean prep and extended-wrist shooting/settle bodies, with deliberate held shooting poses. Original gray effects touching other source bodies are avoided by selecting clean complete poses; projectile is a separate original glyph. No raster erasing or sprite reconstruction."
+  },
+  "source_checks": {
+    "all64_original_body_crop_borders_key_colored": true,
+    "all64_full_body_bounding_boxes_retained": true,
+    "source_png_unchanged": true,
+    "union_opaque_RGB_colors": 14,
+    "raster_painting_erasing_performed": false
+  }
+}

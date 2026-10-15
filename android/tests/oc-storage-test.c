@@ -18,7 +18,7 @@ int main(void) {
     FILE *file;
     char temporaryDirectory[] = "/tmp/sa2-oc-storage-XXXXXX";
     char missingPath[256];
-    assert(NUM_CHARACTERS == 5 && OC_CHARACTER_COUNT == 5 && OC_SELECT_FIRST == 5);
+    assert(NUM_CHARACTERS == 5 && OC_CHARACTER_COUNT == 7 && OC_SELECT_FIRST == 5);
     assert(OcBaseCharacter(OC_JUDE) == CHARACTER_AMY);
     assert(OcBaseCharacter(OC_ELIZABETH) == CHARACTER_SONIC);
     assert(OcBaseCharacter(OC_KIRO) == CHARACTER_SONIC);
@@ -49,7 +49,27 @@ int main(void) {
     OcSetSelection(-1);
     OcSelectionSetStoragePath(storagePath);
     assert(gSelectedOc == OC_KURA);
-    corrupt((const unsigned char *)"OCS1\5", 5);
+    for (int guest = OC_SANS; guest <= OC_SPIDERMAN; guest++) {
+        OcSetSelection(guest);
+        assert(OcSaveSelection());
+        OcSetSelection(-1);
+        OcSelectionSetStoragePath(storagePath);
+        assert(gSelectedOc == guest);
+        assert(OcBaseCharacter(guest) == CHARACTER_SONIC);
+    }
+    assert(strcmp(OcCharacterName(OC_SANS), "SANS") == 0);
+    assert(strcmp(OcCharacterName(OC_SPIDERMAN), "SPIDER-MAN") == 0);
+    /* The real stage-intro buffer contains a 128-byte icon, name tiles and
+     * padding. Spider-Man must fit and have a visible, safely indexed dash. */
+    unsigned char nameBuffer[16 * 32];
+    memset(nameBuffer, 0xA5, sizeof(nameBuffer));
+    assert(OcBuildIdentityName(nameBuffer + 128, OC_SPIDERMAN) == 10);
+    for (int i = 0; i < 128; i++) assert(nameBuffer[i] == 0xA5);
+    for (int i = 448; i < 512; i++) assert(nameBuffer[i] == 0xA5);
+    int dashPixels = 0;
+    for (int i = 128 + 6 * 32; i < 128 + 7 * 32; i++) dashPixels += nameBuffer[i] != 0;
+    assert(dashPixels > 0);
+    corrupt((const unsigned char *)"OCS1\7", 5);
     OcSelectionSetStoragePath(storagePath);
     assert(gSelectedOc == -1);
     corrupt((const unsigned char *)"OCS1\2x", 6);
