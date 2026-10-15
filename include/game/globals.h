@@ -185,7 +185,7 @@ extern bool8 gBoostEffectTasksCreated;
 #if PORTABLE
 /* Native compilers vectorize this array's initialization using its declared
  * alignment. The definition must agree even in non-matching portable builds. */
-extern Task *ALIGNED(16) gMultiplayerPlayerTasks[4];
+extern Task *gMultiplayerPlayerTasks[4] ALIGNED(16);
 #else
 extern Task *gMultiplayerPlayerTasks[4];
 #endif

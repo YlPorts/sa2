@@ -151,7 +151,9 @@ s8 ALIGNED(4) gMultiplayerCurrentLevel = 0;
 u8 ALIGNED(4) gMultiplayerUnlockedCharacters = 0;
 #endif
 
-#if PORTABLE || !defined(NON_MATCHING)
+#if PORTABLE
+Task *gMultiplayerPlayerTasks[MULTI_SIO_PLAYERS_MAX] ALIGNED(16) = {};
+#elif !defined(NON_MATCHING)
 Task *ALIGNED(16) gMultiplayerPlayerTasks[MULTI_SIO_PLAYERS_MAX] = {};
 #else
 Task *ALIGNED(4) gMultiplayerPlayerTasks[MULTI_SIO_PLAYERS_MAX] = {};
