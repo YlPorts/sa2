@@ -48,6 +48,7 @@ static unsigned frames, stageFrames, playFrames, menuFrames, movesLeft;
 static unsigned drawCount, paletteChecks, rightDraws, leftDraws, slopeDraws;
 static unsigned invulnerableFrames, invulnerableVisible, invulnerableHidden;
 static unsigned specialDraws, specialLeft, specialRight, specialJump;
+static unsigned selectorIdleMask;
 static unsigned finalPaletteChecks, countdownPaletteChecks, hiddenPaletteChecks;
 static unsigned runMask, jumpMask, attackMask, projectileDraws, realEnemyHits;
 static unsigned runCadenceChecks, maxRunTransitions;
@@ -385,8 +386,14 @@ static void CheckOcMenuGraphics(void)
                     "selector OC preview tiles stay inside VRAM");
             for (unsigned b = 0; b < OC_FRAME_TILE_BYTES; b++) nonzero += tiles[b] != 0;
             Require(nonzero > 50, "selector OC preview has visible pixels");
-            Require(memcmp(tiles, gOcFrameTiles[oc][0], OC_FRAME_TILE_BYTES) == 0,
-                    "selector preview shows the selected identity's actual idle atlas");
+            bool ownPose = false;
+            for (unsigned phase = 0; phase < 3; phase++) {
+                if (!memcmp(tiles, gOcFrameTiles[oc][phase], OC_FRAME_TILE_BYTES)) {
+                    selectorIdleMask |= 1u << phase;
+                    ownPose = true;
+                }
+            }
+            Require(ownPose, "selector preview shows this identity's real idle/breath/blink atlas");
             preview++;
         }
         if (oam->split.paletteNum == 14 || oam->split.paletteNum == 13) {
@@ -750,6 +757,18 @@ static void DriveMenu(void)
             SetInput(DPAD_RIGHT);
             movesLeft--;
         } else SetInput(0);
+        return;
+    }
+    if (!strcmp(mode, "select-idle")) {
+        static unsigned idleTicks;
+        SetInput(0);
+        if (++idleTicks > 20) CheckOcMenuGraphics();
+        if (idleTicks >= 380) {
+            Require(selectorIdleMask == 7, "selected character displays every idle/breath/blink frame in real VRAM");
+            Capture("animated-selector", menuFrames);
+            fprintf(stderr, "PASS: animated selector OC=%d 380 idle ticks, three real atlas poses, no confirmation\n", oc);
+            exit(0);
+        }
         return;
     }
     if (cycle != 16) { SetInput(0); return; }

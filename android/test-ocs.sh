@@ -51,12 +51,22 @@ make -j"${JOBS:-4}" PLATFORM=sdl ENABLE_DECOMP_CREDITS=0 CPU_ARCH="$ARCH" GAME_N
 cd "$WORK"
 export HEADLESS=true ASAN_OPTIONS=detect_leaks=0
 export SA_OC_CAPTURE_DIR="$CAPTURES"
+# A clean engine shutdown is not a completed test unless the harness reached
+# its explicit success marker. Preserve each case's exact output for CI.
+RunCase() {
+    "$@" > "$WORK/last-case.log" 2>&1
+    cat "$WORK/last-case.log"
+    if ! grep -q '^PASS:' "$WORK/last-case.log"; then
+        echo 'FAIL: engine returned without completing the requested test case' >&2
+        return 1
+    fi
+}
 if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
 fi
 if [[ "${SA_OC_BUILD_ONLY:-0}" == 1 ]]; then exit 0; fi
 if [[ -n "${SA_OC_ONLY_MODE:-}" ]]; then
-    SA_OC_MODE="$SA_OC_ONLY_MODE" "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE="$SA_OC_ONLY_MODE" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     exit 0
 fi
 if [[ "${SA_OC_GUEST_FOCUSED:-0}" == 1 ]]; then
@@ -64,18 +74,18 @@ if [[ "${SA_OC_GUEST_FOCUSED:-0}" == 1 ]]; then
     # then exercise only the two new guests' selector/ability/lifecycle paths.
     export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
     for ENTRY in 0 1 2 3 4; do
-        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     done
     for ENTRY in 5 6 7 8 9 10 11; do
-        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     done
     for ENTRY in 10 11; do
         for MODE in select abilities air-abilities guest-limits pause victory; do
-            SA_OC_MODE="$MODE" SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+            SA_OC_MODE="$MODE" SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
         done
     done
-    SA_OC_MODE=lifecycle "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=lifecycle RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     printf 'Guest integration checks passed (26 cases). Framebuffer captures: %s\n' "$CAPTURES"
     exit 0
 fi
@@ -83,47 +93,53 @@ if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     # Recheck the changed animation/ability paths, with actual VBlank traces.
     # Menu, pause and real-goal fixtures are already covered by the OCS2 suite.
     for ENTRY in 0 1 2 3; do
-        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     done
-    SA_OC_MODE=native-amy SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=native-amy SA_OC_ENTRY=4 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     for ENTRY in 5 6 7 8 9; do
-        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     done
     for ENTRY in 6 7 8; do
-        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     done
-    SA_OC_MODE=double-a SA_OC_ENTRY=6 "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=flap SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=flap-enemy SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=flap-water SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=flap-ceiling SA_OC_ENTRY=9 SA_OC_LEVEL=1 "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=double-a SA_OC_ENTRY=6 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap SA_OC_ENTRY=9 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-enemy SA_OC_ENTRY=9 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-water SA_OC_ENTRY=9 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=flap-ceiling SA_OC_ENTRY=9 SA_OC_LEVEL=1 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     printf 'OC revised animation/ability checks passed. Framebuffer captures: %s\n' "$CAPTURES"
     exit 0
 fi
 for ENTRY in ${SA_OC_TEST_ENTRIES:-0 1 2 3 4 5 6 7 8 9 10 11}; do
-    SA_OC_MODE=select SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=select SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 done
-SA_OC_MODE=locked SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=cancel SA_OC_ENTRY=9 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=lifecycle "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=multiplayer "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=glitch-defense SA_OC_ENTRY=5 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=double-a SA_OC_ENTRY=6 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=native-amy SA_OC_ENTRY=4 "${RUNNER[@]}" ./sa2.oc-runtime
-SA_OC_MODE=special SA_OC_ENTRY=0 "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=locked SA_OC_ENTRY=4 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=cancel SA_OC_ENTRY=9 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=lifecycle RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=multiplayer RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=glitch-defense SA_OC_ENTRY=5 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=double-a SA_OC_ENTRY=6 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=native-amy SA_OC_ENTRY=4 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+for ENTRY in 0 1 2 3 4; do
+    SA_OC_MODE=native-smoke SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+done
+for ZONE in 0 1 2 3 4 5 6; do
+    SA_OC_MODE=special SA_OC_ENTRY=0 SA_OC_LEVEL="$((ZONE * 4))" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+done
 for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9 10 11}; do
-    SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=select-idle SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=boot SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     if [[ "$ENTRY" == 9 ]]; then
-        SA_OC_MODE=flap SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-        SA_OC_MODE=flap-enemy SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=flap SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=flap-enemy SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     else
-        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=abilities SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+        SA_OC_MODE=air-abilities SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     fi
-    SA_OC_MODE=pause SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=special SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
-    SA_OC_MODE=victory SA_OC_ENTRY="$ENTRY" "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=pause SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=special SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    SA_OC_MODE=victory SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 done
 printf 'OC integration checks passed. Framebuffer captures: %s\n' "$CAPTURES"

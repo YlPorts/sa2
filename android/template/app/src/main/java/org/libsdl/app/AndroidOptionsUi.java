@@ -33,6 +33,7 @@ final class AndroidOptionsUi {
     private final SharedPreferences prefs;
     private int[] values = defaults();
     private Dialog dialog;
+    private int[] editingBefore;
 
     AndroidOptionsUi(SA2Activity activity) {
         this.activity=activity;
@@ -109,7 +110,7 @@ final class AndroidOptionsUi {
     private void open(){
         if(dialog!=null&&dialog.isShowing())return;
         send(true);dialog=new Dialog(activity);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setOnDismissListener(d->{persist();send(false);dialog=null;});showMenu();dialog.show();
+        dialog.setOnDismissListener(d->{if(editingBefore!=null){values=editingBefore;editingBefore=null;}persist();send(false);dialog=null;});showMenu();dialog.show();
         Window w=dialog.getWindow();if(w!=null){w.setLayout(-1,-1);w.setBackgroundDrawableResource(android.R.color.transparent);
             w.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
             if(Build.VERSION.SDK_INT>=28){WindowManager.LayoutParams a=w.getAttributes();a.layoutInDisplayCutoutMode=1;w.setAttributes(a);}
@@ -142,11 +143,11 @@ final class AndroidOptionsUi {
     }
 
     private void showEditor(){
-        int[] before=values.clone();FrameLayout root=new FrameLayout(activity);root.setBackgroundColor(0xee052546);
+        int[] before=values.clone();editingBefore=before;FrameLayout root=new FrameLayout(activity);root.setBackgroundColor(0xee052546);
         ControlEditor canvas=new ControlEditor();root.addView(canvas,new FrameLayout.LayoutParams(-1,-1));
         LinearLayout tools=new LinearLayout(activity);tools.setOrientation(LinearLayout.HORIZONTAL);
-        tools.addView(button("Guardar",()->{changed();showMenu();}));
-        tools.addView(button("Cancelar",()->{values=before;showMenu();}));
+        tools.addView(button("Guardar",()->{editingBefore=null;changed();showMenu();}));
+        tools.addView(button("Cancelar",()->{values=before;editingBefore=null;showMenu();}));
         tools.addView(button("Restaurar",()->{for(int i=LAYOUT;i<COUNT;i++)values[i]=defaults()[i];canvas.invalidate();}));
         tools.addView(label("Arrastra · Toca dos veces para cambiar tamaño",12));
         FrameLayout.LayoutParams bar=new FrameLayout.LayoutParams(-1,-2,Gravity.TOP);root.addView(tools,bar);

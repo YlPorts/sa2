@@ -129,6 +129,9 @@ compiler_for_abi() {
         armeabi-v7a)
             echo "$TOOLBIN/armv7a-linux-androideabi${ANDROID_API}-clang"
             ;;
+        x86_64)
+            echo "$TOOLBIN/x86_64-linux-android${ANDROID_API}-clang"
+            ;;
         *)
             return 1
             ;;
@@ -142,6 +145,9 @@ cxx_for_abi() {
             ;;
         armeabi-v7a)
             echo "$TOOLBIN/armv7a-linux-androideabi${ANDROID_API}-clang++"
+            ;;
+        x86_64)
+            echo "$TOOLBIN/x86_64-linux-android${ANDROID_API}-clang++"
             ;;
         *)
             return 1
@@ -171,11 +177,13 @@ for ABI in "${ABIS[@]}"; do
     echo "[android] Building $GAME native game library for $ABI"
     rm -rf "$ROOT/build/android/$ABI/$GAME" "$ROOT/libagbsyscall/build/android/$ABI"
 
+    CPU=arm
+    if [[ "$ABI" == x86_64 ]]; then CPU=i386; fi
     make -C "$ROOT" -j"$JOBS" \
         PLATFORM=android \
         GAME_NAME="$GAME" \
         SA1_RUNTIME_IMPORT="$SA1_RUNTIME_IMPORT" \
-        CPU_ARCH=arm \
+        CPU_ARCH="$CPU" \
         ANDROID_ABI="$ABI" \
         ANDROID_API="$ANDROID_API" \
         SDL_ANDROID_ROOT="$SDL_SRC" \

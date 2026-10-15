@@ -675,6 +675,21 @@ static void RenderOcMenu(OcMenu *menu)
     if (menu->selection >= OC_SELECT_FIRST) {
         u8 oc = menu->selection - OC_SELECT_FIRST;
         s16 nameWidth = strlen(sOcNames[oc]) * 7;
+        const u8 *preview;
+        if (menu->phase == OC_MENU_CONFIRM) {
+            preview = gOcActionFrameTiles[oc][20 + MIN(menu->frame / 8, 3)];
+        } else {
+            unsigned age = menu->frame % 180;
+            preview = gOcFrameTiles[oc][age >= 174 ? 1 : (age % 48 >= 24 ? 2 : 0)];
+        }
+        /* Reuse the character's real atlas and feet anchor. Only a changed
+         * pose queues a transfer, so selection breathes/blinks without VRAM
+         * churn or replacing the OC with an original-character animation. */
+        if (menu->character.graphics.src != preview) {
+            menu->character.graphics.src = preview;
+            menu->character.graphics.size = OC_FRAME_TILE_BYTES;
+            ADD_TO_GRAPHICS_QUEUE(&menu->character.graphics);
+        }
         RenderOcPreview(menu, slide);
         RenderName(sOcNames[oc], 32, 75, OC_MENU_NAME_PALETTE);
         RenderName(sOcNames[oc], 173 - nameWidth / 2 + slide, 143, OC_MENU_UI_PALETTE);

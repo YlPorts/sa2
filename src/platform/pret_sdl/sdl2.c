@@ -128,6 +128,7 @@ static void AndroidSetStartupError(const char *where)
 void Platform_SetStartupStage(const char *stage)
 {
     AndroidSetStartupStage(stage);
+    if (strcmp(stage, "create_game_stage_complete") == 0) SDL_Log("SA Android gameplay ready");
 }
 
 void Platform_SetNativeUiCrop(bool8 enabled)
@@ -336,6 +337,7 @@ int main(int argc, char **argv)
             char optionsPath[1024];
             if (snprintf(optionsPath, sizeof(optionsPath), "%s/sa-android-options.cfg", internalStoragePath) < (int)sizeof(optionsPath))
                 AndroidOptions_Load(optionsPath);
+            SDL_Log("SA Android options loaded screen=%d opacity=%d", gAndroidOptions[SA_OPT_SCREEN], gAndroidOptions[SA_OPT_OPACITY]);
             ReadSaveFile(savePath);
             SDL_Log("SA Android save: %s", savePath);
 #if (GAME == GAME_SA2)
@@ -1092,6 +1094,8 @@ void ProcessSDLEvents(void)
                     AndroidOptionsMessage *message = event.user.data1;
                     AndroidOptions_Apply(message->values);
                     sAndroidOptionsOpen = message->open;
+                    SDL_Log("SA Android options applied open=%d screen=%d opacity=%d", sAndroidOptionsOpen,
+                            gAndroidOptions[SA_OPT_SCREEN], gAndroidOptions[SA_OPT_OPACITY]);
                     SDL_free(message);
                     AndroidClearInput();
                     AndroidDestroyControlsTexture();
