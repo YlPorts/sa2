@@ -26,10 +26,19 @@ def capture(name):
     return struct.unpack_from('>II',data,16)
 
 def hierarchy():
-    adb('shell','uiautomator','dump','/sdcard/sa2-test-ui.xml')
-    text = adb('shell','cat','/sdcard/sa2-test-ui.xml')
-    (out/'last-ui.xml').write_text(text)
-    return ET.fromstring(text)
+    last_error=None
+    for attempt in range(3):
+        try:
+            result=adb('shell','uiautomator','dump','--compressed','/sdcard/sa2-test-ui.xml')
+            (out/'last-ui-dump.txt').write_text(result)
+            text=adb('shell','cat','/sdcard/sa2-test-ui.xml')
+            root=ET.fromstring(text)
+            (out/'last-ui.xml').write_text(text)
+            return root
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ET.ParseError) as error:
+            last_error=error
+            time.sleep(.5)
+    raise AssertionError('Android accessibility hierarchy unavailable after retries: '+str(last_error))
 
 def find(prefix='', description=''):
     for attempt in range(5):
@@ -110,16 +119,20 @@ try:
     capture('07-persisted-settings')
     click('Continuar jugando')
     time.sleep(.7)
-    # Advance the original screens through actual Android touch targets. No
-    # test shortcuts or synthetic stage-entry code is present in this APK.
+    # Complete the original first-run profile with normal direction/A/Start
+    # input, then keep the original title's default single-player selection.
+    # No test shortcuts or synthetic stage-entry code is present in this APK.
     ready=False
-    # The original first-run profile needs a nonblank name, then Start twice.
-    # Leave END and its blank bottom grid row before choosing a valid letter;
-    # recover when a preceding Start selected END while the name was empty.
-    left=(round(base*.22-base*.105*.85),round(height-base*.25))
     start_button=(round(width*.5+base*.1),round(height-base*.07))
-    up=(round(base*.22),round(height-base*.25-base*.105*.85))
-    inputs=[start_button,up,up,left,left,(tx,ty),start_button,start_button]
+    right=(round(base*.22+base*.105*.85),round(height-base*.25))
+    boot_log=adb('logcat','-d').rsplit('SA Android stage: before_engine_init',1)[-1]
+    if 'SA Android stage: before_new_profile' in boot_log:
+        for point,delay in [((tx,ty),1.0),(right,.3),((tx,ty),.3),(start_button,.3),(start_button,1.0)]:
+            adb('shell','input','tap',str(point[0]),str(point[1]))
+            time.sleep(delay)
+        capture('07b-original-profile-created')
+        checks.append('original first-run language/name profile completed through actual touch controls')
+    inputs=[start_button,(tx,ty)]
     for n in range(100):
         if 'SA Android gameplay ready' in adb('logcat','-d'):
             ready=True
@@ -134,6 +147,13 @@ try:
     adb('shell','input','tap',str(tx),str(ty))
     capture('08-native-gameplay')
     checks.append('original menus reach the real native level through touch; directional and jump targets exercised')
+    adb('shell','am','force-stop',package)
+    start()
+    fresh_log=adb('logcat','-d').rsplit('SA Android stage: before_engine_init',1)[-1]
+    assert 'SA Android stage: before_load_save' in fresh_log, 'original game profile must reload from real persisted save sectors'
+    assert 'SA Android stage: before_new_profile' not in fresh_log, 'restart must not ask for a new profile again'
+    capture('09-original-save-reloaded')
+    checks.append('real original game profile survives force-stop and native save reload')
     log=adb('logcat','-d')
     assert 'SA Android options loaded screen=1' in log, 'native startup must reload persisted configuration'
     assert 'SA Android options applied open=1 screen=1' in log, 'Java settings reach the native game thread'
