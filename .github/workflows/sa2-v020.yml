@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_candidate:
-        description: 'Publish RC1 as a prerelease after all verification jobs pass'
+        description: 'Publish RC2 as a prerelease after all verification jobs pass'
         required: false
         type: boolean
         default: false
@@ -103,7 +103,9 @@ jobs:
           else
             # A separate installable candidate never replaces the user's signed
             # beta or touches its private saves with an unrelated CI key.
-            echo 'SA_PACKAGE_SUFFIX=.preview' >> "$GITHUB_ENV"
+            # RC1's temporary CI key is unavailable. Preserve that installed
+            # app and its private saves instead of requiring an uninstall.
+            echo 'SA_PACKAGE_SUFFIX=.preview.rc2' >> "$GITHUB_ENV"
           fi
       - name: Build ARM32 and ARM64 candidate
         env:
@@ -111,25 +113,33 @@ jobs:
           JOBS: '4'
           SA_EMULATOR_PACKAGE: '1'
         run: bash android/build-apk.sh sa2 > apk-build.log 2>&1
+      - name: Execute the actual ARM64 audio binary and reproduce the reported RC1 crash
+        run: |
+          python3 -m pip install 'unicorn==2.1.4'
+          mkdir -p android/out
+          curl --fail --location --retry 3 'https://github.com/YlPorts/sa2/releases/download/v0.2.0-ocs4-rc1/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk' -o "$RUNNER_TEMP/rc1.apk"
+          echo 'fa41cd674c0a0dd04b477638fff9d7ca06119e9938c2df28829f90fb6a05f9f2  '"$RUNNER_TEMP/rc1.apk" | sha256sum --check
+          python3 android/test-arm64-audio.py "$RUNNER_TEMP/rc1.apk" --expect-rc1-crash --output android/out/rc1-arm64-crash-reproduced.json
+          python3 android/test-arm64-audio.py android/out/SonicAdvance2-android-release.apk --output android/out/arm64-audio-report.json
       - name: Verify packaged payload and certificate
         run: |
-          cp android/out/SonicAdvance2-android-release.apk android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk
-          python3 android/verify-sa2-apk.py android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk --abis armeabi-v7a,arm64-v8a --output android/out/apk-validation.json --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --expected-package "com.ylports.sonicadvance2${SA_PACKAGE_SUFFIX:-}"
+          cp android/out/SonicAdvance2-android-release.apk android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk
+          python3 android/verify-sa2-apk.py android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk --abis armeabi-v7a,arm64-v8a --output android/out/apk-validation.json --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --expected-package "com.ylports.sonicadvance2${SA_PACKAGE_SUFFIX:-}"
           python3 android/verify-sa2-apk.py android/out/SonicAdvance2-android-emulator.apk --abis x86_64 --output android/out/emulator-apk-validation.json --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --expected-package "com.ylports.sonicadvance2${SA_PACKAGE_SUFFIX:-}"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/signature.txt
-          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/zip-alignment.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/package.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk > android/out/signature.txt
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk > android/out/zip-alignment.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk > android/out/package.txt
           if [[ -n "${SA_SIGNING_KEYSTORE:-}" ]]; then
             grep -q '15767e621886f4c420af89c6f9767d1857b5fe830782095177a0166400a14e76' android/out/signature.txt
           fi
-          sha256sum android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/SHA256SUMS
+          sha256sum android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk > android/out/SHA256SUMS
           tar -czf android/out/native-symbols.tar.gz build/android/*/sa2/sa2.android.elf build/android/*/sa2/sa2.android.map
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: SonicAdvance2-v0.2.0-OCS4-candidate
           path: |
-            android/out/*rc1.apk
+            android/out/*rc2.apk
             android/out/*emulator.apk
             android/out/*.json
             android/out/*.txt
@@ -176,7 +186,7 @@ jobs:
   publish-candidate:
     # No stable release is created by this workflow. Publication requires an
     # explicit opt-in and the exact commit must pass all three verification jobs.
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_candidate) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-rc1]')) }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_candidate) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-rc2]')) }}
     needs: [apk, regressions, android-emulator]
     permissions:
       contents: write
@@ -199,28 +209,28 @@ jobs:
           import hashlib, json, os, pathlib, shutil
           source=pathlib.Path('candidate-input')
           target=pathlib.Path('publish'); target.mkdir()
-          for name in ['SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk', 'apk-validation.json', 'signature.txt', 'zip-alignment.txt']:
+          for name in ['SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk', 'apk-validation.json', 'signature.txt', 'zip-alignment.txt']:
               shutil.copy2(next(source.rglob(name)), target/name)
           report=next(pathlib.Path('emulator-report').rglob('report.json'))
           assert json.loads(report.read_text())['status']=='passed'
           shutil.copy2(report, target/'android36-emulator-report.json')
-          apk=target/'SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk'
+          apk=target/'SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk'
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
           validation=json.loads((target/'apk-validation.json').read_text())
           assert validation['sha256']==digest
           assert set(validation['abis'])=={'armeabi-v7a','arm64-v8a'}
           (target/'SHA256SUMS').write_text(digest+'  '+apk.name+'\n')
-          notes=pathlib.Path('docs/RELEASE_v0.2.0-rc1.md').read_text()
+          notes=pathlib.Path('docs/RELEASE_v0.2.0-rc2.md').read_text()
           notes+='\nVerificación de este commit, registros y capturas: '+os.environ['VALIDATION_URL']+'\n'
           pathlib.Path('release-notes.md').write_text(notes)
           PY
-      - name: Publish RC1 without overwriting an earlier release
+      - name: Publish RC2 without overwriting an earlier release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if gh release view v0.2.0-ocs4-rc1 >/dev/null 2>&1; then
-            echo 'RC1 already exists; preserve the existing release and use a new candidate version.' >&2
+          if gh release view v0.2.0-ocs4-rc2 >/dev/null 2>&1; then
+            echo 'RC2 already exists; preserve the existing release and use a new candidate version.' >&2
             exit 1
           fi
-          gh release create v0.2.0-ocs4-rc1 publish/* --target "$GITHUB_SHA" --prerelease --latest=false --title 'Sonic Advance 2 Android v0.2.0 OCS4 — RC1 de prueba' --notes-file release-notes.md
+          gh release create v0.2.0-ocs4-rc2 publish/* --target "$GITHUB_SHA" --prerelease --latest=false --title 'Sonic Advance 2 Android v0.2.0 OCS4 — RC2 de prueba' --notes-file release-notes.md

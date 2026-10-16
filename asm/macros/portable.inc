@@ -23,13 +23,13 @@
 
 // Used for cross platform aligning of labels
 .macro mAlignWord
-#if defined(__APPLE__) && (defined(__aarch64__) || defined(__x86_64__))
-    .align 3       // Align to 8 bytes on macOS (2^3 = 8)
-#elif defined(__aarch64__) || defined(__x86_64__)
-    .align 8       // Align to 8 bytes on other platforms
-#elif defined(PLATFORM_GBA)
-    .align 2       // Align to 4 bytes on GBA
+// .align uses bytes on x86 ELF but powers of two on ARM/AArch64. Using
+// .align 8 here inserted 256-byte gaps into ARM64 C arrays (not 8 bytes),
+// leaving the second music-player pointer null at the C array stride.
+// .balign has the same byte-based meaning on every supported target.
+#if defined(__aarch64__) || defined(__x86_64__)
+    .balign 8
 #else
-    .align 4       // Default alignment to 4 bytes
+    .balign 4
 #endif
 .endm

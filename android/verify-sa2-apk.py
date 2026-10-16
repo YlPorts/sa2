@@ -8,6 +8,7 @@ import struct
 import os
 import subprocess
 import zipfile
+from native_audio_check import NativeElf, verify_audio_tables
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -113,6 +114,7 @@ def main():
             assert struct.unpack_from('<H',data,18)[0] == {'armeabi-v7a':40,'arm64-v8a':183,'x86_64':62}[abi]
             addresses = {}
             syms = symbols(data, addresses)
+            audio_abi = verify_audio_tables(NativeElf(data))
             assert addresses['gMultiplayerPlayerTasks'] % 16 == 0, 'native task array must agree with vectorized compiler alignment'
             assert b'Game decompiled by:' not in data, 'PC intro remains in Android payload'
             assert not any(n.startswith('__wrap_') for n in syms), 'test harness must not ship'
@@ -122,7 +124,7 @@ def main():
                 assert syms.get(name) == expected, f'{abi}: packaged atlas mismatch: {name}'
                 checks[name] = {'bytes':len(expected),'sha256':hashlib.sha256(expected).hexdigest()}
             report['abis'][abi] = {'seven_characters_byte_verified':True,'pc_intro_absent':True,
-                                  'elf_load_alignments':alignments,'assets':checks}
+                                  'elf_load_alignments':alignments,'audio_abi':audio_abi,'assets':checks}
     args.output.write_text(json.dumps(report,indent=2)+'\n')
     print('PASS: APK integrity, native architectures, no PC intro/harness, JNI settings and seven exact OC atlas/palette payloads')
 

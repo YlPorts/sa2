@@ -1,6 +1,36 @@
-# Android v0.2.0 OCS4 — candidata RC1
+# Android v0.2.0 OCS4 — candidata RC2
 
 Esta es una candidata de prueba, no la versión estable v0.2.0.
+
+## Cierre ARM64 de RC1 y corrección RC2
+
+El informe físico del Galaxy A15 identifica el build
+`327d17e6d670bd37ca654530034a333a52a84977`, idéntico al ARM64 publicado en RC1.
+Se reprodujo con las instrucciones reales de esa APK en Unicorn: escritura nula
+en `0x20`, PC `0x6a4340`, `m4aSoundInit+572`, línea 100 de `src/lib/m4a/m4a.c`.
+El segundo reproductor se lee a 24 bytes del primero, pero `mAlignWord` usaba
+`.align 8`, que en ARM64 añade alineación a 256 bytes. El espacio intermedio
+contiene cero. En x86_64 `.align 8` significa ocho bytes y por eso la prueba de
+Android x86 no detectaba este fallo. Se sustituye por `.balign 8`/`.balign 4`,
+con significado en bytes consistente y el mismo formato GBA/ARM32 anterior.
+
+`android/native_audio_check.py` inspecciona los punteros reubicados de las
+bibliotecas realmente empaquetadas. Exige las cuatro entradas de reproductor,
+507 canciones, 807 referencias de pistas y 2.364 instrumentos en cada ABI.
+El comprobador rechaza el ARM64 original de RC1 y acepta sus ARM32/x86_64.
+
+`android/test-arm64-audio.py` ejecuta las instrucciones NDK reales en Unicorn;
+solo proporciona las operaciones de memoria importadas de libc. El workflow
+exige reproducir el fallo exacto en la APK RC1 de hash conocido y después
+inicializar/mezclar con la nueva APK ARM64. No se usa una recompilación x86
+para esta prueba ni se incluye el harness en la APK. Esto no prueba la salida
+Android de audio, la GPU Mali ni el rendimiento en el teléfono físico.
+
+La clave temporal CI de RC1 no está disponible. Sin la firma original, RC2 usa
+`com.ylports.sonicadvance2.preview.rc2` y la etiqueta "Sonic Advance 2 RC2" para
+instalarse junto a RC1 y Beta 5, conservando sus partidas privadas. No requiere
+desinstalar ninguna aplicación anterior ni importa automáticamente su progreso.
+RC1 sigue conservada como versión anterior con un cierre ARM64 conocido.
 
 ## Continuidad y recursos
 
