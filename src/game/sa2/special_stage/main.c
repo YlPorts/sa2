@@ -59,6 +59,10 @@ void sub_806C158(void);
 
 void CreateSpecialStage(s16 selectedCharacter, s16 level)
 {
+#ifdef __ANDROID__
+    extern void Platform_SetNativeUiCrop(bool8 enabled);
+    Platform_SetNativeUiCrop(FALSE);
+#endif
     Task *t;
     struct SpecialStage *stage;
 
@@ -378,6 +382,11 @@ void Task_FadeToResultScreen(void)
     gBgScrollRegs[1][0] = 0;
     gBgScrollRegs[1][1] = 0;
     gDispCnt = 0x1240;
+#ifdef __ANDROID__
+    extern void Platform_SetNativeUiCrop(bool8 enabled);
+    Platform_SetNativeUiCrop(TRUE);
+    player->unk8.x = 120;
+#endif
 
     if (player->state == 13) {
         stage->animFrame = 0;

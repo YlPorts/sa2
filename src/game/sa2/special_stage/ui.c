@@ -10,6 +10,21 @@
 #include "constants/sa2/animations.h"
 #include "constants/sa2/songs.h"
 #include "constants/sa2/text.h"
+#if PORTABLE
+#include "game/sa2/oc_characters.h"
+#endif
+
+#ifdef __ANDROID__
+#define SP_RESULTS_WIDTH 240
+#define SP_RESULTS_HEIGHT 160
+#define SP_RESULTS_CENTER_X 120
+#define SP_RESULTS_CENTER_Y 80
+#else
+#define SP_RESULTS_WIDTH DISPLAY_WIDTH
+#define SP_RESULTS_HEIGHT DISPLAY_HEIGHT
+#define SP_RESULTS_CENTER_X DISPLAY_CENTER_X
+#define SP_RESULTS_CENTER_Y DISPLAY_CENTER_Y
+#endif
 
 void RenderTime(void);
 void RenderRingCounters(void);
@@ -342,49 +357,53 @@ static void HandlePaused(struct SpecialStageUI *ui)
     m4aSongNumStart(SE_PAUSE_SCREEN);
 }
 
-#define SomeMacro807028C(i) ({ ((i)*8) + DISPLAY_WIDTH + 16; })
+#define SomeMacro807028C(i) ({ ((i)*8) + SP_RESULTS_WIDTH + 16; })
 
 static void SpecialStageResultsScreenCreateUI(struct SpecialStageResultsScreen *resultsScreen)
 {
     const struct UNK_80DF670 *sprite;
     struct SpecialStage *stage = resultsScreen->stage;
-    s16 a = DISPLAY_CENTER_X - 72, b = DISPLAY_CENTER_X - 72, c = DISPLAY_CENTER_X - 72;
-    s16 d = DISPLAY_CENTER_X + 38, e = DISPLAY_CENTER_X + 38, f = DISPLAY_CENTER_X + 38;
+    s16 a = SP_RESULTS_CENTER_X - 72, b = SP_RESULTS_CENTER_X - 72, c = SP_RESULTS_CENTER_X - 72;
+    s16 d = SP_RESULTS_CENTER_X + 38, e = SP_RESULTS_CENTER_X + 38, f = SP_RESULTS_CENTER_X + 38;
     s16 i;
 
     u8 chaosEmeralds = LOADED_SAVE->chaosEmeralds[stage->character];
     u8 character = stage->character;
+#if PORTABLE
+    resultsScreen->ocIdentity = gSelectedOc >= 0 && gSelectedOc < OC_CHARACTER_COUNT ? gSelectedOc : -1;
+    resultsScreen->ocNameLength = 0;
+#endif
 
     gSpecialStageVramPointer = stage->screenVram;
     gSpecialStageSubMenuVramPointer = NULL;
 
     if (stage->targetReached) {
-        sub_806CA88(&resultsScreen->unk4, 1, 0x28, SA2_ANIM_SP_STAGE_NOTIFS, 0, DISPLAY_WIDTH + 16 + a, DISPLAY_CENTER_Y - 48, 0, 1, 0);
+        sub_806CA88(&resultsScreen->unk4, 1, 0x28, SA2_ANIM_SP_STAGE_NOTIFS, 0, SP_RESULTS_WIDTH + 16 + a, SP_RESULTS_CENTER_Y - 48, 0, 1, 0);
         sub_806CA88(&resultsScreen->unk34, 1, gUnknown_080DF880[character].size, gUnknown_080DF880[character].anim, 0,
-                    DISPLAY_WIDTH + 16 + a, DISPLAY_CENTER_Y - 56, 0, gUnknown_080DF880[character].variant, 0);
+                    SP_RESULTS_WIDTH + 16 + a, SP_RESULTS_CENTER_Y - 56, 0, gUnknown_080DF880[character].variant, 0);
     } else {
-        sub_806CA88(&resultsScreen->unk4, 1, 0x20, SA2_ANIM_SP_STAGE_NOTIFS, 0, DISPLAY_WIDTH + 16 + a, DISPLAY_CENTER_Y - 48, 0, 0, 0);
+        sub_806CA88(&resultsScreen->unk4, 1, 0x20, SA2_ANIM_SP_STAGE_NOTIFS, 0, SP_RESULTS_WIDTH + 16 + a, SP_RESULTS_CENTER_Y - 48, 0, 0, 0);
     }
 
-    sub_806CA88(&resultsScreen->unk1B4, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, DISPLAY_WIDTH + 16 + a, DISPLAY_CENTER_Y - 8, 0, 0, 0);
-    sub_806CA88(&resultsScreen->unk1E4, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, DISPLAY_WIDTH + 16 + b, DISPLAY_CENTER_Y + 12, 0, 1,
+    sub_806CA88(&resultsScreen->unk1B4, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, SP_RESULTS_WIDTH + 16 + a, SP_RESULTS_CENTER_Y - 8, 0, 0, 0);
+    sub_806CA88(&resultsScreen->unk1E4, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, SP_RESULTS_WIDTH + 16 + b, SP_RESULTS_CENTER_Y + 12, 0, 1,
                 0);
-    sub_806CA88(&resultsScreen->unk214, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, DISPLAY_WIDTH + 16 + c, DISPLAY_CENTER_Y + 32, 0, 2,
+    sub_806CA88(&resultsScreen->unk214, 1, 0x16, SA2_ANIM_SP_STAGE_SCORE_BONUSES, 0, SP_RESULTS_WIDTH + 16 + c, SP_RESULTS_CENTER_Y + 32, 0, 2,
                 0);
 
     for (i = 0; i < 5; i++) {
         sub_806CA88(&resultsScreen->unk244[i], 1, sValueSprites[0].size, sValueSprites[0].anim, 0, d + SomeMacro807028C(i),
-                    DISPLAY_CENTER_Y + 8, 0, sValueSprites[0].variant, 0);
+                    SP_RESULTS_CENTER_Y + 8, 0, sValueSprites[0].variant, 0);
     }
 
     for (i = 0; i < 5; i++) {
         sub_806CA88(&resultsScreen->unk334[i], 1, sValueSprites[0].size, sValueSprites[0].anim, 0, e + SomeMacro807028C(i),
-                    DISPLAY_CENTER_Y + 28, 0, sValueSprites[0].variant, 0);
+                    SP_RESULTS_CENTER_Y + 28, 0, sValueSprites[0].variant, 0);
     }
 
     for (i = 0; i < 5; i++) {
         sub_806CA88(&resultsScreen->unk424[i], 1, sValueSprites[0].size, sValueSprites[0].anim, 0, f + SomeMacro807028C(i),
-                    DISPLAY_CENTER_Y + 48, 0, sValueSprites[0].variant, 0);
+                    SP_RESULTS_CENTER_Y + 48, 0, sValueSprites[0].variant, 0);
     }
 
     for (i = 0; i < NUM_COURSE_ZONES; i++) {
@@ -394,17 +413,65 @@ static void SpecialStageResultsScreenCreateUI(struct SpecialStageResultsScreen *
             sprite = &sChaosEmeraldUnlockedSprites[7];
         }
 
-        sub_806CA88(&resultsScreen->chaosEmerald[i], 1, 9, sprite->anim, 0, i * 24 + DISPLAY_WIDTH + 52, DISPLAY_CENTER_Y - 28, 0,
+        sub_806CA88(&resultsScreen->chaosEmerald[i], 1, 9, sprite->anim, 0, i * 24 + SP_RESULTS_WIDTH + 52, SP_RESULTS_CENTER_Y - 28, 0,
                     sprite->variant, 0);
     }
 
     resultsScreen->animFrame = 0;
-    resultsScreen->unk516 = DISPLAY_WIDTH + 16;
-    resultsScreen->unk518 = DISPLAY_WIDTH + 16;
-    resultsScreen->unk51A = DISPLAY_WIDTH + 16;
-    resultsScreen->unk51C = DISPLAY_WIDTH + 16;
-    resultsScreen->unk51E = DISPLAY_WIDTH + 16;
+    resultsScreen->unk516 = SP_RESULTS_WIDTH + 16;
+    resultsScreen->unk518 = SP_RESULTS_WIDTH + 16;
+    resultsScreen->unk51A = SP_RESULTS_WIDTH + 16;
+    resultsScreen->unk51C = SP_RESULTS_WIDTH + 16;
+    resultsScreen->unk51E = SP_RESULTS_WIDTH + 16;
+#if PORTABLE
+    if (stage->targetReached && resultsScreen->ocIdentity >= 0) {
+        GraphicsData name = resultsScreen->unk34.graphics;
+        resultsScreen->ocNameLength = OcBuildIdentityName(resultsScreen->ocNameTiles, resultsScreen->ocIdentity);
+        /* Even Amy's native name allocation has 18 tiles; all seven OC names
+         * fit in ten. Retain the real UI allocation and slide transition. */
+        name.src = resultsScreen->ocNameTiles;
+        name.size = resultsScreen->ocNameLength * TILE_SIZE_4BPP;
+        ADD_TO_GRAPHICS_QUEUE(&name);
+    }
+#endif
 }
+
+#if PORTABLE
+static void RenderOcBonusName(struct SpecialStageResultsScreen *results)
+{
+    const Sprite *message = &results->unk4;
+    s16 x = message->x - results->ocNameLength * 7 - 4;
+    s16 y = message->y + 1;
+    u16 base = GET_TILE_NUM_COMMON(results->unk34.graphics.dest, TILE_SIZE_4BPP);
+    for (unsigned i = 0; i < results->ocNameLength; i++) {
+        s16 glyphX = x + i * 7;
+        if (glyphX <= -8 || glyphX >= SP_RESULTS_WIDTH || y <= -8 || y >= SP_RESULTS_HEIGHT) continue;
+        OamData *oam = OamMalloc(SPRITE_OAM_ORDER(0));
+        if (oam == (OamData *)iwram_end) break;
+#if EXTENDED_OAM
+        oam->split.x = glyphX;
+        oam->split.y = y;
+        oam->split.affineMode = 0;
+        oam->split.objMode = 0;
+        oam->split.mosaic = 0;
+        oam->split.bpp = 0;
+        oam->split.shape = 0;
+        oam->split.matrixNum = 0;
+        oam->split.size = 0;
+        oam->split.tileNum = base + i;
+        oam->split.priority = 0;
+        oam->split.paletteNum = 15;
+#else
+        oam->all.attr0 = y & 255;
+        oam->all.attr1 = glyphX & 511;
+        oam->all.attr2 = (base + i) | (15 << 12);
+#endif
+    }
+    gObjPalette[15 * 16 + 1] = RGB16(0, 0, 0);
+    gObjPalette[15 * 16 + 2] = RGB16(4, 12, 31);
+    gFlags |= FLAGS_UPDATE_SPRITE_PALETTES;
+}
+#endif
 
 void Task_ResultsScreenSequencePart1(void)
 {
@@ -450,11 +517,11 @@ void sub_807061C(s16 a)
     s = &resultsScreen->unk4;
 
     if (stage->targetReached) {
-        s->x = resultsScreen->unk516 + DISPLAY_CENTER_X - 44;
+        s->x = resultsScreen->unk516 + SP_RESULTS_CENTER_X - 44;
         s = &resultsScreen->unk34;
-        s->x = resultsScreen->unk516 + DISPLAY_CENTER_X - 116;
+        s->x = resultsScreen->unk516 + SP_RESULTS_CENTER_X - 116;
     } else {
-        s->x = resultsScreen->unk516 + DISPLAY_CENTER_X - 72;
+        s->x = resultsScreen->unk516 + SP_RESULTS_CENTER_X - 72;
     }
 }
 
@@ -469,7 +536,7 @@ void sub_8070680(s16 a)
     for (i = 0; i < 7; i++) {
         Sprite *s = &resultsScreen->chaosEmerald[i];
         s32 x = (i * 24);
-        s32 base = resultsScreen->unk518 + DISPLAY_CENTER_X - 84;
+        s32 base = resultsScreen->unk518 + SP_RESULTS_CENTER_X - 84;
         x += base;
         s->x = x;
     }
@@ -485,14 +552,14 @@ void sub_80706D8(s16 a)
 
     resultsScreen->unk51A = (11 - a) * 22;
     s = &resultsScreen->unk1B4;
-    s->x = resultsScreen->unk51A + DISPLAY_CENTER_X - 72;
+    s->x = resultsScreen->unk51A + SP_RESULTS_CENTER_X - 72;
 
     for (i = 0; i < 5; i++) {
         s32 temp2, temp;
 
         s = &resultsScreen->unk244[i];
         temp2 = (i * 8);
-        temp = resultsScreen->unk51A + DISPLAY_CENTER_X + 38;
+        temp = resultsScreen->unk51A + SP_RESULTS_CENTER_X + 38;
         s->x = temp2 + temp;
     }
 }
@@ -507,12 +574,12 @@ void sub_8070740(s16 a)
 
     resultsScreen->unk51C = (11 - a) * 22;
     s = &resultsScreen->unk1E4;
-    s->x = resultsScreen->unk51C + DISPLAY_CENTER_X - 72;
+    s->x = resultsScreen->unk51C + SP_RESULTS_CENTER_X - 72;
 
     for (i = 0; i < 5; i++) {
         s = &resultsScreen->unk334[i];
         temp2 = (i * 8);
-        temp = resultsScreen->unk51C + DISPLAY_CENTER_X + 38;
+        temp = resultsScreen->unk51C + SP_RESULTS_CENTER_X + 38;
         s->x = temp2 + temp;
     }
 }
@@ -527,12 +594,12 @@ void sub_80707A8(s16 xPos)
 
     resultsScreen->unk51E = (11 - xPos) * 22;
     s = &resultsScreen->unk214;
-    s->x = resultsScreen->unk51E + DISPLAY_CENTER_X - 72;
+    s->x = resultsScreen->unk51E + SP_RESULTS_CENTER_X - 72;
 
     for (i = 0; i < 5; i++) {
         s = &resultsScreen->unk424[i];
         temp2 = (i * 8);
-        temp = resultsScreen->unk51E + DISPLAY_CENTER_X + 38;
+        temp = resultsScreen->unk51E + SP_RESULTS_CENTER_X + 38;
         s->x = temp2 + temp;
     }
 }
@@ -603,6 +670,11 @@ static void RenderScoresAnim(void)
     DisplaySprite(&resultsScreen->unk4);
 
     if (stage->targetReached) {
+#if PORTABLE
+        if (resultsScreen->ocIdentity >= 0)
+            RenderOcBonusName(resultsScreen);
+        else
+#endif
         DisplaySprite(&resultsScreen->unk34);
     }
 

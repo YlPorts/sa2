@@ -23,6 +23,7 @@
 #include "game/sa2/special_stage/player.h"
 #include "game/sa2/special_stage/utils.h"
 #include "game/sa2/special_stage/world.h"
+#include "game/sa2/special_stage/ui.h"
 #include "game/shared/stage/stage.h"
 #include "game/shared/stage/player.h"
 #include "game/shared/stage/water_effects.h"
@@ -1890,6 +1891,16 @@ void __wrap_VBlankIntrWait(void)
             exit(0);
         }
         struct SpecialStage *stage = TASK_DATA(specialStageTask);
+        if (oc >= 0 && success && stage->worldTask == NULL && stage->uiTask && specialResultTicks > 300) {
+            struct SpecialStageResultsScreen *ui = TASK_DATA(stage->uiTask);
+            u8 expectedName[10 * TILE_SIZE_4BPP];
+            u8 length = OcBuildIdentityName(expectedName, oc);
+            if (ui->animFrame > 2) {
+                Require(ui->ocIdentity == oc && ui->ocNameLength == length, "bonus result keeps the OC's real name identity");
+                Require(memcmp(ui->unk34.graphics.dest, expectedName, length * TILE_SIZE_4BPP) == 0,
+                        "actual bonus result VRAM contains the OC name, not the native base character name");
+            }
+        }
         if (frames == 300) {
             Require(stage->state == 5, "ending fixture begins in the real active bonus, without replacing its tasks");
             /* Test fixture only: set the ring count at/just below the target

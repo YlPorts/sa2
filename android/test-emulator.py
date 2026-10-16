@@ -33,11 +33,20 @@ def hierarchy():
 
 def find(prefix='', description=''):
     for attempt in range(5):
-        for node in hierarchy().iter('node'):
+        nodes=list(hierarchy().iter('node'))
+        for node in nodes:
             if ((prefix and node.get('text','').startswith(prefix)) or
                 (description and node.get('content-desc','') == description)):
                 x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
                 if x2>x1 and y2>y1: return ((x1+x2)//2,(y1+y2)//2)
+        # Android's own first-use immersive tutorial covers the app on a fresh
+        # system image. Acknowledge the observed system dialog like a user.
+        for node in nodes:
+            if node.get('package')=='com.android.systemui' and node.get('text')=='Got it':
+                x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
+                adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
+                print('Acknowledged Android fullscreen tutorial',flush=True)
+                break
         time.sleep(.4)
     raise AssertionError('Android UI target unavailable: '+prefix+description)
 

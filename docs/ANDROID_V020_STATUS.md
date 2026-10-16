@@ -25,6 +25,10 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
   y confirmación. Las transferencias de VRAM se producen al cambiar de pose.
 - Los resultados del bonus usan las cuatro poses de victoria propias de cada
   OC, con su cadencia y el mismo pivote de pies. Se conserva su arte anterior.
+- El bonus muestra el nombre del OC seleccionado junto al mensaje de esmeralda,
+  usando el mismo alfabeto de identidad del resto de la interfaz OC. Los cinco
+  nombres originales conservan sus gráficos. En Android el panel y sus
+  contadores utilizan su encuadre original 240×160; el mundo 3D mantiene el suyo.
 - El título, la presentación original y la creación de perfil se muestran en
   240×160, evitando la repetición lateral de gráficos diseñados para GBA. Los
   buffers HBlank conservan espacio para todas las filas del renderer portátil.
@@ -96,6 +100,11 @@ muestren resultados, concedan la esmeralda cuando corresponda, escriban y
 recarguen el guardado y vuelvan al nivel. Verifica las cuatro poses de victoria
 por OC. Esto prueba las condiciones de salida; no es una partida completa
 recogiendo naturalmente todos los anillos.
+
+Una segunda compilación ejecuta 24 finales con las rutas `__ANDROID__` activas:
+los doce personajes, objetivo cumplido/sin cumplir y las siete zonas. Verifica
+además el nombre OC en la VRAM real. Conserva capturas del panel original y del
+regreso a la escena ampliada. Son pruebas de host con ASan, sin GPU Android.
 
 La prueba de almacenamiento del motor escribe dos generaciones, recarga el
 progreso y las esmeraldas, invalida la cabecera más reciente y comprueba la

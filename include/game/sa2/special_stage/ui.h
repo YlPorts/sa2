@@ -47,6 +47,11 @@ struct SpecialStageResultsScreen {
     u16 unk51A;
     u16 unk51C;
     u16 unk51E;
+#if PORTABLE
+    s8 ocIdentity;
+    u8 ocNameLength;
+    u8 ocNameTiles[10 * TILE_SIZE_4BPP] ALIGNED(4);
+#endif
 }; /* size 0x520 */
 
 Task *CreateSpecialStageUI(struct SpecialStage *);

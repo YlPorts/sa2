@@ -3,10 +3,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 ARCH="${SA_OC_ARCH:-i386}"
+ANDROID_BACKEND="${SA_OC_ANDROID_BACKEND:-0}"
 if [[ "$ARCH" == arm ]]; then
     OBJ="${SA_OC_OBJ:-build/oc-runtime-arm}"
 else
     OBJ="${SA_OC_OBJ:-build/oc-runtime64}"
+    if [[ "$ANDROID_BACKEND" == 1 ]]; then OBJ="${SA_OC_OBJ:-build/oc-runtime-android64}"; fi
 fi
 WORK="$ROOT/$OBJ"
 CAPTURES="${SA_OC_CAPTURE_DIR:-$WORK/captures}"
@@ -33,12 +35,18 @@ if [[ "$ARCH" == arm ]]; then
     RUNNER=(qemu-arm -cpu cortex-a15 -L /usr/arm-linux-gnueabihf)
 else
     FLAGS=(-g -fno-omit-frame-pointer -fno-pie -no-pie -fsanitize=address)
+    if [[ "$ANDROID_BACKEND" == 1 ]]; then FLAGS+=(-D__ANDROID__=1 -DSA_ANDROID_HOST_TEST=1); fi
     CC=gcc
     CXX=g++
     OPT=-O1
     CPU_DEFINE=1
 fi
 DEFINES=(-DPORTABLE=1 -DPLATFORM_SDL=1 -DPLATFORM_GBA=0 "-DCPU_ARCH_X86=$CPU_DEFINE" -DGAME=GAME_SA2 -Iinclude)
+HOST_SHIM=""
+if [[ "$ANDROID_BACKEND" == 1 ]]; then
+    "$CC" "${FLAGS[@]}" "${SDL_FLAGS[@]}" -c android/tests/android-host-shim.c -o "$WORK/android-host-shim.o"
+    HOST_SHIM="$WORK/android-host-shim.o"
+fi
 "$CC" "${FLAGS[@]}" "$OPT" "${DEFINES[@]}" "${SDL_FLAGS[@]}" -c android/tests/oc-runtime-smoke.c -o "$WORK/oc-runtime-smoke.o"
 # Unlink the previous executable as well: a debugger may still map its inode.
 # Linking/copying a fresh candidate must never silently retain an older binary.
@@ -47,7 +55,7 @@ make -j"${JOBS:-4}" PLATFORM=sdl ENABLE_DECOMP_CREDITS=0 CPU_ARCH="$ARCH" GAME_N
     ELF="$OBJ/sa2.oc-runtime.elf" ROM="$OBJ/sa2.oc-runtime" MAP="$OBJ/sa2.oc-runtime.map" \
     CC1="$CC ${FLAGS[*]}" CXX="$CXX ${FLAGS[*]}" CPP="$CC ${FLAGS[*]} -E" \
     AS="$CC ${FLAGS[*]} -c -x assembler" CC1FLAGS="$OPT -g -Wno-unused-value -x c -S" \
-    LIBS="${SDL_LIBS[*]} -L$ROOT/libagbsyscall/$OBJ -lagbsyscall -lm $WORK/oc-runtime-smoke.o -Wl,--wrap=AgbMain -Wl,--wrap=VBlankIntrWait -Wl,--wrap=CreateCharacterSelectionScreen -Wl,--wrap=OcPlayerDraw -Wl,--wrap=OcSpecialPlayerDraw -Wl,--wrap=OcAbilitiesDraw -Wl,--wrap=OcAbilityHitsTarget -Wl,--wrap=TaskDestroy"
+    LIBS="${SDL_LIBS[*]} -L$ROOT/libagbsyscall/$OBJ -lagbsyscall -lm $WORK/oc-runtime-smoke.o $HOST_SHIM -Wl,--wrap=AgbMain -Wl,--wrap=VBlankIntrWait -Wl,--wrap=CreateCharacterSelectionScreen -Wl,--wrap=OcPlayerDraw -Wl,--wrap=OcSpecialPlayerDraw -Wl,--wrap=OcAbilitiesDraw -Wl,--wrap=OcAbilityHitsTarget -Wl,--wrap=TaskDestroy"
 cd "$WORK"
 export HEADLESS=true ASAN_OPTIONS=detect_leaks=0
 export SA_OC_CAPTURE_DIR="$CAPTURES"
@@ -67,6 +75,15 @@ if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
 fi
 if [[ "${SA_OC_BUILD_ONLY:-0}" == 1 ]]; then exit 0; fi
+if [[ "${SA_OC_ANDROID_BONUS_MATRIX:-0}" == 1 ]]; then
+    for ENTRY in 0 1 2 3 4 5 6 7 8 9 10 11; do
+        for SUCCESS in 0 1; do
+            SA_OC_MODE=special-result SA_OC_ENTRY="$ENTRY" SA_OC_LEVEL="$(((ENTRY >= 5 ? ENTRY - 5 : ENTRY) % 7 * 4))" SA_OC_SPECIAL_SUCCESS="$SUCCESS" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+        done
+    done
+    printf 'Android bonus layout and return matrix passed (24 cases).\n'
+    exit 0
+fi
 if [[ -n "${SA_OC_ONLY_MODE:-}" ]]; then
     SA_OC_MODE="$SA_OC_ONLY_MODE" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     exit 0

@@ -12,6 +12,8 @@ Cambios de esta candidata:
 - Selección OC con respiración, parpadeo y animación de confirmación reales.
 - Victoria animada de los siete OC en resultados del bonus, con sus propios
   fotogramas existentes. Título y presentación original en encuadre 240×160.
+- Nombres OC correctos en el resultado del bonus y panel Android 240×160 con
+  los contadores dentro del fondo original.
 - Frenada OC sin reinicios bruscos y corrección de la búsqueda de perspectiva
   de los Special Stages. Se conserva el motor 3D del juego.
 - Controles editables y persistentes; corrección de toques rápidos y contactos
