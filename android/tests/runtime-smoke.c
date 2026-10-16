@@ -44,6 +44,13 @@ static void SetInput(u16 pressed)
 
 void __wrap_AgbMain(void)
 {
+    if (getenv("SA_TEST_RECREATE")) {
+        frames = 0;
+        __real_AgbMain();
+        if (frames < 10) abort();
+        fprintf(stderr, "Passed: native SDL_QUIT returned through the real engine after %u frames\n", frames);
+        return;
+    }
     targetFrames = getenv("SA_TEST_FRAMES") ? atoi(getenv("SA_TEST_FRAMES")) : 1200;
     if (getenv("SA_TEST_BOOT")) {
         __real_AgbMain();
@@ -68,6 +75,14 @@ void __wrap_AgbMain(void)
 
 void __wrap_VBlankIntrWait(void)
 {
+    if (getenv("SA_TEST_RECREATE")) {
+        if (++frames == 10) {
+            SDL_Event event = { .type = SDL_QUIT };
+            SDL_PushEvent(&event);
+        }
+        __real_VBlankIntrWait();
+        return;
+    }
     if (headless) gpsp_draw_frame(gameImage);
     __real_VBlankIntrWait();
     if (frames == 300 && getenv("SA_TEST_CAPTURE")) {

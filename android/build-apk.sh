@@ -117,6 +117,7 @@ SDL_SENSOR_ANDROID="$SDL_SRC/src/sensor/android/SDL_androidsensor.c"
 if grep -q "ALooper_pollAll" "$SDL_SENSOR_ANDROID"; then
     sed -i 's/ALooper_pollAll/ALooper_pollOnce/g' "$SDL_SENSOR_ANDROID"
 fi
+python3 "$ANDROID_DIR/patch-sdl-android.py" "$SDL_SRC"
 
 echo "[android] Building host preprocessing tools"
 make -C "$ROOT" -j"$JOBS" tools

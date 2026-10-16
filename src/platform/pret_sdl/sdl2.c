@@ -74,6 +74,7 @@ bool isRunning = true;
 bool paused = false;
 bool stepOneFrame = false;
 bool headless = false;
+bool newFrameRequested = FALSE;
 
 #ifdef __ANDROID__
 static SDL_AudioDeviceID sAndroidAudioDevice = 0;
@@ -193,12 +194,14 @@ void VramDraw(SDL_Texture *texture);
 #ifdef __ANDROID__
 static void AndroidDrawTouchControls(SDL_Renderer *renderer);
 static void AndroidClearInput(void);
+static void AndroidDestroyControlsTexture(void);
 static void AndroidDrawDiagnostics(SDL_Renderer *renderer);
 #endif
 
 static void ReadSaveFile(char *path);
 static void StoreSaveFile(void);
 static void CloseSaveFile(void);
+static void ShutdownSdl(void);
 
 u16 Platform_GetKeyInput(void);
 
@@ -247,6 +250,24 @@ int setupPspCallbacks(void)
 
 int main(int argc, char **argv)
 {
+#ifdef __ANDROID__
+    // SDL can call main again after Android recreates the activity. Never kill
+    // the Java process on SDL_QUIT; return through AgbMain and release SDL.
+    isRunning = true;
+    newFrameRequested = FALSE;
+    paused = false;
+    stepOneFrame = false;
+    speedUp = false;
+    timeScale = 1.0;
+    memset(REG_BASE, 0, IO_SIZE);
+    memset(DMAList, 0, sizeof(DMAList));
+    sAndroidSuspended = false;
+    sAndroidOptionsOpen = false;
+    sAndroidNativeUiCrop = false;
+    AndroidClearInput();
+    accumulator = 0.0;
+    lastGameTime = SDL_GetPerformanceCounter();
+#endif
 #ifdef SA1_RUNTIME_IMPORT
     char romPath[1024];
     char importError[192];
@@ -542,8 +563,20 @@ int main(int argc, char **argv)
 #ifdef __ANDROID__
     sAndroidAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
     if (sAndroidAudioDevice == 0) {
+        // Some Android drivers reject AAudio's requested stream attributes.
+        // Keep the same format/rate and try SDL's other real Android backends.
+        const char *fallbacks[] = { "openslES", "android" };
+        for (unsigned i = 0; i < ARRAY_COUNT(fallbacks) && !sAndroidAudioDevice; i++) {
+            SDL_Log("SA Android audio fallback from %s: %s", SDL_GetCurrentAudioDriver(), SDL_GetError());
+            SDL_AudioQuit();
+            if (SDL_AudioInit(fallbacks[i]) == 0)
+                sAndroidAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
+        }
+    }
+    if (sAndroidAudioDevice == 0) {
         SDL_Log("Failed to open Android audio: %s", SDL_GetError());
     } else {
+        SDL_Log("SA Android audio ready driver=%s", SDL_GetCurrentAudioDriver());
         SDL_PauseAudioDevice(sAndroidAudioDevice, 0);
     }
 #else
@@ -573,12 +606,15 @@ int main(int argc, char **argv)
     AgbMain();
 #ifdef __ANDROID__
     AndroidSetStartupStage("game_returned");
+    ShutdownSdl();
 #endif
 
     return 0;
 }
 
-bool newFrameRequested = FALSE;
+#ifdef __ANDROID__
+bool8 Platform_IsRunning(void) { return isRunning ? TRUE : FALSE; }
+#endif
 
 // called every gba frame. we process sdl events and render as many times
 // as vsync needs, then return when a new game frame is needed.
@@ -726,6 +762,24 @@ void VBlankIntrWait(void)
 #endif
     }
 
+#ifdef __ANDROID__
+    // EngineMainLoop observes Platform_IsRunning and unwinds to SDL_main.
+    return;
+#else
+    ShutdownSdl();
+#ifdef __PSP__
+    sceKernelExitGame();
+#endif
+    exit(0);
+#endif
+#undef HANDLE_VBLANK_INTRS
+}
+
+static void ShutdownSdl(void)
+{
+#ifdef __ANDROID__
+    for (int i = 0; i < DMA_COUNT; i++) DmaStop(i);
+#endif
     StoreSaveFile();
     CloseSaveFile();
 
@@ -738,15 +792,16 @@ void VBlankIntrWait(void)
         SDL_CloseAudioDevice(sAndroidAudioDevice);
         sAndroidAudioDevice = 0;
     }
+    AndroidDestroyControlsTexture();
 #endif
 
+    SDL_DestroyTexture(sdlTexture);
+    SDL_DestroyRenderer(sdlRenderer);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
-#ifdef __PSP__
-    sceKernelExitGame();
-#endif
-    exit(0);
-#undef HANDLE_VBLANK_INTRS
+    sdlTexture = NULL;
+    sdlRenderer = NULL;
+    sdlWindow = NULL;
 }
 
 static void ReadSaveFile(char *path)
@@ -815,6 +870,7 @@ static void CloseSaveFile()
 {
     if (sSaveFile != NULL) {
         fclose(sSaveFile);
+        sSaveFile = NULL;
     }
 }
 

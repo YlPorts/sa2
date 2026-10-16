@@ -13,6 +13,7 @@
 
 #ifdef __ANDROID__
 extern void Platform_SetStartupStage(const char *stage);
+extern bool8 Platform_IsRunning(void);
 #define CORE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
 static bool8 sAndroidFirstMainLoop = TRUE;
 #else
@@ -260,6 +261,9 @@ void EngineInit(void)
     u16 errorIdentifying;
 
     CORE_STARTUP_STAGE("engine_init_enter");
+#ifdef __ANDROID__
+    sAndroidFirstMainLoop = TRUE;
+#endif
 
 #if (ENGINE == ENGINE_3)
     REG_IME = 0;
@@ -634,6 +638,8 @@ void EngineMainLoop(void)
 #endif
         VBlankIntrWait();
 #ifdef __ANDROID__
+        if (!Platform_IsRunning())
+            return;
         if (sAndroidFirstMainLoop)
             CORE_STARTUP_STAGE("after_vblank_wait");
 #endif

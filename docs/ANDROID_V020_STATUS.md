@@ -46,7 +46,22 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
 - El port x86 de `CpuFastSet` deja de exigir alineación SIMD de 16 bytes donde
   la API GBA permite cuatro. Una prueba de la rutina anterior reproduce SIGSEGV;
   la rutina corregida verifica copias, rellenos, redondeo BIOS y límites.
-- Compilación ARM32 y ARM64 para el teléfono, con alineación ELF de 16 KB.
+- Corregido un cierre real de Android 36 en `GameInit`: el array de tareas
+  multijugador tenía una alineación menor que la asumida por el compilador
+  nativo. La declaración, definición y biblioteca empaquetada ahora coinciden
+  en 16 bytes. La traza nativa identificó la instrucción que fallaba.
+- La biblioteca de llamadas GBA termina de generarse antes de enlazar el juego;
+  se evita leer su archivo mientras una compilación paralela lo reescribe.
+- Android devuelve el control a SDL al recibir el cierre de su actividad,
+  guarda y libera recursos sin `exit(0)`. Puede reiniciar el motor en el mismo
+  proceso al recrearse la actividad. El backend host prueba dos ciclos reales.
+- Si AAudio rechaza abrir el dispositivo, se prueban OpenSL ES y AudioTrack
+  manteniendo formato, frecuencia y lógica del juego. La integración Android
+  comprueba que se haya abierto un backend de audio real.
+- Se adapta el registro de receptores USB/Bluetooth de SDL 2.30.3 a API 33+,
+  siguiendo la corrección upstream de SDL2. AGP 8.5.2 y Gradle 8.7 permiten
+  empaquetar las bibliotecas nativas sin comprimir con alineación de 16 KB.
+- Compilación ARM32 y ARM64 para el teléfono, con alineación ELF de 16 KB en ARM64.
   Se compila un paquete x86_64 separado para las pruebas de emulador Android.
 
 ## Verificaciones
@@ -72,6 +87,8 @@ preservación de los recursos anteriores.
 `SA_RUNTIME_ANDROID_BACKEND=1 bash android/test-runtime.sh` ejecuta arranque,
 menús y 1.200 fotogramas de nivel con el backend Android en host, vídeo/audio
 dummy y AddressSanitizer. No representa un dispositivo Android físico.
+También envía `SDL_QUIT`, exige que el motor devuelva el control y repite la
+inicialización/limpieza en el mismo proceso, sin terminarlo.
 
 El workflow `sa2-v020.yml` añade instalación y pruebas de la APK x86_64 en un
 emulador Android 36: captura arranque, Ajustes, editor táctil, reanudación,
@@ -82,6 +99,13 @@ artefactos; el estado aprobado/fallido procede de `report.json` de cada ejecuci�
 identificador esperado y los bytes de cada atlas/paleta/proyectil en la
 biblioteca realmente empaquetada. Rechaza la intro del port y símbolos del
 harness. La firma se comprueba con `apksigner`.
+La alineación ZIP se verifica con `zipalign -P 16`; los segmentos ELF de las
+bibliotecas de 64 bits también se inspeccionan en la APK real.
+
+La publicación RC1 exige que pasen compilación, regresiones y emulador en el
+mismo commit. Se activa explícitamente con la opción `publish_candidate` al
+ejecutar el workflow o con `[publish-rc1]` en el mensaje del commit. Siempre
+se publica como prerelease y se rechaza sobrescribir una RC1 existente.
 
 ## Firma e instalación
 

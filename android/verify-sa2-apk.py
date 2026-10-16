@@ -11,6 +11,14 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
 
+def load_alignments(data):
+    """Android's 16 KB page-size requirement applies to 64-bit libraries."""
+    bits=data[4]
+    offset=struct.unpack_from('<I' if bits==1 else '<Q',data,28 if bits==1 else 32)[0]
+    size,count=struct.unpack_from('<HH',data,42 if bits==1 else 54)
+    return [struct.unpack_from('<I' if bits==1 else '<Q',data,offset+i*size+(28 if bits==1 else 48))[0]
+            for i in range(count) if struct.unpack_from('<I',data,offset+i*size)[0]==1]
+
 def symbols(data, addresses=None):
     assert data[:4] == b'\x7fELF' and data[5] == 1, 'little-endian ELF required'
     bits = data[4]
@@ -96,6 +104,12 @@ def main():
         for abi in args.abis.split(','):
             data = z.read(f'lib/{abi}/libmain.so')
             assert z.getinfo(f'lib/{abi}/libSDL2.so').file_size > 0
+            alignments = {}
+            for library in ['libmain.so','libSDL2.so']:
+                alignments[library] = load_alignments(z.read(f'lib/{abi}/{library}'))
+                assert alignments[library], 'ELF must contain loadable segments'
+                if abi in ('arm64-v8a','x86_64'):
+                    assert all(n >= 16384 for n in alignments[library]), f'{abi}/{library}: 16 KB page alignment required'
             assert struct.unpack_from('<H',data,18)[0] == {'armeabi-v7a':40,'arm64-v8a':183,'x86_64':62}[abi]
             addresses = {}
             syms = symbols(data, addresses)
@@ -107,7 +121,8 @@ def main():
             for name, expected in assets.items():
                 assert syms.get(name) == expected, f'{abi}: packaged atlas mismatch: {name}'
                 checks[name] = {'bytes':len(expected),'sha256':hashlib.sha256(expected).hexdigest()}
-            report['abis'][abi] = {'seven_characters_byte_verified':True,'pc_intro_absent':True,'assets':checks}
+            report['abis'][abi] = {'seven_characters_byte_verified':True,'pc_intro_absent':True,
+                                  'elf_load_alignments':alignments,'assets':checks}
     args.output.write_text(json.dumps(report,indent=2)+'\n')
     print('PASS: APK integrity, native architectures, no PC intro/harness, JNI settings and seven exact OC atlas/palette payloads')
 

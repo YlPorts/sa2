@@ -2,6 +2,12 @@ name: Sonic Advance 2 v0.2.0 validation
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_candidate:
+        description: 'Publish RC1 as a prerelease after all verification jobs pass'
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [android-v0.2.0-ocs4]
 
@@ -108,6 +114,7 @@ jobs:
           python3 android/verify-sa2-apk.py android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk --abis armeabi-v7a,arm64-v8a --output android/out/apk-validation.json --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --expected-package "com.ylports.sonicadvance2${SA_PACKAGE_SUFFIX:-}"
           python3 android/verify-sa2-apk.py android/out/SonicAdvance2-android-emulator.apk --abis x86_64 --output android/out/emulator-apk-validation.json --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --expected-package "com.ylports.sonicadvance2${SA_PACKAGE_SUFFIX:-}"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/signature.txt
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/zip-alignment.txt
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk > android/out/package.txt
           if [[ -n "${SA_SIGNING_KEYSTORE:-}" ]]; then
             grep -q '15767e621886f4c420af89c6f9767d1857b5fe830782095177a0166400a14e76' android/out/signature.txt
@@ -162,3 +169,55 @@ jobs:
         with:
           name: sa2-v020-android36-emulator
           path: emulator-evidence
+
+  publish-candidate:
+    # No stable release is created by this workflow. Publication requires an
+    # explicit opt-in and the exact commit must pass all three verification jobs.
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_candidate) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-rc1]')) }}
+    needs: [apk, regressions, android-emulator]
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: SonicAdvance2-v0.2.0-OCS4-candidate
+          path: candidate-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: sa2-v020-android36-emulator
+          path: emulator-report
+      - name: Prepare verified candidate and evidence
+        env:
+          VALIDATION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, shutil
+          source=pathlib.Path('candidate-input')
+          target=pathlib.Path('publish'); target.mkdir()
+          for name in ['SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk', 'apk-validation.json', 'signature.txt', 'zip-alignment.txt']:
+              shutil.copy2(next(source.rglob(name)), target/name)
+          report=next(pathlib.Path('emulator-report').rglob('report.json'))
+          assert json.loads(report.read_text())['status']=='passed'
+          shutil.copy2(report, target/'android36-emulator-report.json')
+          apk=target/'SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk'
+          digest=hashlib.sha256(apk.read_bytes()).hexdigest()
+          validation=json.loads((target/'apk-validation.json').read_text())
+          assert validation['sha256']==digest
+          assert set(validation['abis'])=={'armeabi-v7a','arm64-v8a'}
+          (target/'SHA256SUMS').write_text(digest+'  '+apk.name+'\n')
+          notes=pathlib.Path('docs/RELEASE_v0.2.0-rc1.md').read_text()
+          notes+='\nVerificación de este commit, registros y capturas: '+os.environ['VALIDATION_URL']+'\n'
+          pathlib.Path('release-notes.md').write_text(notes)
+          PY
+      - name: Publish RC1 without overwriting an earlier release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view v0.2.0-ocs4-rc1 >/dev/null 2>&1; then
+            echo 'RC1 already exists; preserve the existing release and use a new candidate version.' >&2
+            exit 1
+          fi
+          gh release create v0.2.0-ocs4-rc1 publish/* --target "$GITHUB_SHA" --prerelease --latest=false --title 'Sonic Advance 2 Android v0.2.0 OCS4 — RC1 de prueba' --notes-file release-notes.md

@@ -61,6 +61,15 @@ try:
     width,height=capture('01-original-startup')
     assert width>height, 'landscape orientation'
     checks.append('Android36 native x86_64 boot and landscape')
+    original_pid=adb('shell','pidof',package).strip()
+    adb('shell','settings','put','system','font_scale','1.1')
+    time.sleep(4)
+    assert adb('shell','pidof',package).strip()==original_pid, 'configuration recreation must not exit the Android process'
+    adb('shell','settings','put','system','font_scale','1.0')
+    time.sleep(4)
+    assert adb('shell','pidof',package).strip()==original_pid, 'activity must recreate and restart native SDL cleanly'
+    capture('01b-recreated-activity')
+    checks.append('Android configuration recreation keeps the same process and restarts the real native engine')
     click(description='Ajustes de Android')
     find('SONIC ADVANCE 2')
     capture('02-settings')
@@ -112,6 +121,7 @@ try:
     assert 'SA Android options loaded screen=1' in log, 'native startup must reload persisted configuration'
     assert 'SA Android options applied open=1 screen=1' in log, 'Java settings reach the native game thread'
     assert 'SA Android options applied open=0 screen=1' in log, 'closing settings resumes the native game thread'
+    assert 'SA Android audio ready driver=' in log, 'a real Android audio backend must open successfully'
     assert not re.search(r'Process: '+re.escape(package)+r', PID:',log), 'Android Java exception'
     assert ('>>> '+package+' <<<') not in log, 'Android native crash'
     checks.append('configuration survives force-stop/relaunch and native startup reload')
