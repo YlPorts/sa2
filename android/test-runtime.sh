@@ -35,7 +35,7 @@ if [[ "$ANDROID_BACKEND" == 1 ]]; then
     HOST_SHIM="$WORK/android-host-shim.o"
 fi
 # The harness lives outside Makefile's game source list, so force relinking.
-rm -f "$WORK/sa2.runtime.elf"
+rm -f "$WORK/sa2.runtime.elf" "$WORK/sa2.runtime"
 make -j"$JOBS" PLATFORM=sdl ENABLE_DECOMP_CREDITS=0 CPU_ARCH=i386 GAME_NAME=sa2 OBJ_DIR="$OBJ" \
     ELF="$OBJ/sa2.runtime.elf" ROM="$OBJ/sa2.runtime" MAP="$OBJ/sa2.runtime.map" \
     CC1="gcc ${FLAGS[*]}" CXX="g++ ${FLAGS[*]}" CPP="gcc ${FLAGS[*]} -E" \

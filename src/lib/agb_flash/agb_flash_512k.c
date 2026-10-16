@@ -18,7 +18,11 @@ u16 IdentifyFlash(void)
     const struct FlashSetupInfo *const *setupInfo;
 
 #if PORTABLE
+#if (GAME == GAME_SA2)
+    return IdentifyFlashPortable();
+#else
     result = 1;
+#endif
 #else
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 

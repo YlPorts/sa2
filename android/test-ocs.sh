@@ -54,8 +54,10 @@ export SA_OC_CAPTURE_DIR="$CAPTURES"
 # A clean engine shutdown is not a completed test unless the harness reached
 # its explicit success marker. Preserve each case's exact output for CI.
 RunCase() {
-    "$@" > "$WORK/last-case.log" 2>&1
+    local result=0
+    "$@" > "$WORK/last-case.log" 2>&1 || result=$?
     cat "$WORK/last-case.log"
+    if [[ "$result" != 0 ]]; then return "$result"; fi
     if ! grep -q '^PASS:' "$WORK/last-case.log"; then
         echo 'FAIL: engine returned without completing the requested test case' >&2
         return 1
@@ -118,6 +120,7 @@ SA_OC_MODE=locked SA_OC_ENTRY=4 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=cancel SA_OC_ENTRY=9 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=lifecycle RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=multiplayer RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+SA_OC_MODE=save-format RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=stage-lifecycle SA_OC_ENTRY=5 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=glitch-defense SA_OC_ENTRY=5 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 SA_OC_MODE=double-a SA_OC_ENTRY=6 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
@@ -127,6 +130,14 @@ for ENTRY in 0 1 2 3 4; do
 done
 for ZONE in 0 1 2 3 4 5 6; do
     SA_OC_MODE=special SA_OC_ENTRY=0 SA_OC_LEVEL="$((ZONE * 4))" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    for SUCCESS in 0 1; do
+        SA_OC_MODE=special-result SA_OC_ENTRY=0 SA_OC_LEVEL="$((ZONE * 4))" SA_OC_SPECIAL_SUCCESS="$SUCCESS" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+done
+for ENTRY in 1 2 3 4; do
+    for SUCCESS in 0 1; do
+        SA_OC_MODE=special-result SA_OC_ENTRY="$ENTRY" SA_OC_SPECIAL_SUCCESS="$SUCCESS" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    done
 done
 for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9 10 11}; do
     SA_OC_MODE=select-idle SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
@@ -140,6 +151,9 @@ for ENTRY in ${SA_OC_STAGE_ENTRIES:-5 6 7 8 9 10 11}; do
     fi
     SA_OC_MODE=pause SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
     SA_OC_MODE=special SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    for SUCCESS in 0 1; do
+        SA_OC_MODE=special-result SA_OC_ENTRY="$ENTRY" SA_OC_LEVEL="$(((ENTRY - 5) * 4))" SA_OC_SPECIAL_SUCCESS="$SUCCESS" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    done
     SA_OC_MODE=victory SA_OC_ENTRY="$ENTRY" RunCase "${RUNNER[@]}" ./sa2.oc-runtime
 done
 printf 'OC integration checks passed. Framebuffer captures: %s\n' "$CAPTURES"

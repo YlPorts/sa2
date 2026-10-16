@@ -43,6 +43,19 @@
 #include "constants/sa2/text.h"
 #include "constants/sa2/tilemaps.h"
 
+#ifdef __ANDROID__
+/* The original title/intro is composed for 240x160. Keep full physical-height
+ * HBlank buffers because the portable renderer still visits every scanline. */
+enum { TITLE_DMA_ROWS = DISPLAY_HEIGHT };
+#undef DISPLAY_WIDTH
+#undef DISPLAY_HEIGHT
+#define DISPLAY_WIDTH 240
+#define DISPLAY_HEIGHT 160
+extern void Platform_SetNativeUiCrop(bool8 enabled);
+#else
+#define TITLE_DMA_ROWS DISPLAY_HEIGHT
+#endif
+
 typedef struct {
     // Possibly an array of ui elements?
     Background unk0;
@@ -64,9 +77,9 @@ typedef struct {
     BgPaletteEffectState bgEffect;
 
     // Something to do with the wave effects
-    u16 wavesTransformPA[DISPLAY_HEIGHT];
-    BgAffineReg wavesAffineBuf[DISPLAY_HEIGHT];
-    u16 wavesTransformY[DISPLAY_HEIGHT];
+    u16 wavesTransformPA[TITLE_DMA_ROWS];
+    BgAffineReg wavesAffineBuf[TITLE_DMA_ROWS];
+    u16 wavesTransformY[TITLE_DMA_ROWS];
 
     u16 unkF34;
     u16 unkF36;
@@ -294,6 +307,9 @@ static const u16 sLensFlareStartPositions[][2] = {
 
 void CreateTitleScreen(void)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     Task *t;
     TitleScreen *titleScreen;
     ScreenFade *fade;
@@ -359,6 +375,9 @@ void CreateTitleScreen(void)
 
 static void CreateTitleScreenWithoutIntro(TitleScreen *titleScreen)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     ScreenFade *fade;
     Background *bg0, *config40;
 

@@ -35,6 +35,8 @@ typedef struct {
 
 static OcPlayerRenderer sOcPlayer;
 static u32 sOcSpecialRunPhase;
+static u32 sOcSpecialTicks, sOcSpecialStateStart;
+static u16 sOcSpecialState;
 
 /* Extended art keeps the original atlas stable. The action atlas contains
  * twelve gait phases, four upright jumps, four ability phases and four cheers. */
@@ -83,11 +85,10 @@ static bool32 OcPlayerIsVictoryState(u8 state)
         || state == CHARSTATE_ACT_CLEAR_TIME_ATTACK_OR_BOSS;
 }
 
-static u8 OcPlayerVictoryFrame(void)
+static u8 OcVictoryActionFrame(s8 oc, u32 age)
 {
-    u32 age = sOcPlayer.victoryAge;
     u8 phase;
-    switch (sOcPlayer.oc) {
+    switch (oc) {
         case OC_KIRO:
             /* Light once, take the first puff, then keep the smoke loop. */
             phase = age < 20 ? 0 : age < 40 ? 1 : 2 + (((age - 40) / 28) & 1);
@@ -103,7 +104,12 @@ static u8 OcPlayerVictoryFrame(void)
             phase = (age / 20) % 4;
             break;
     }
-    return OC_ACTION_FRAME(20 + phase);
+    return 20 + phase;
+}
+
+static u8 OcPlayerVictoryFrame(void)
+{
+    return OC_ACTION_FRAME(OcVictoryActionFrame(sOcPlayer.oc, sOcPlayer.victoryAge));
 }
 
 static u8 OcPlayerJumpFrame(Player *player)
@@ -522,10 +528,16 @@ bool32 OcPlayerDraw(Player *player, PlayerSpriteInfo *body)
     return TRUE;
 }
 
-void OcSpecialPlayerInit(void) { sOcSpecialRunPhase = 0; }
+void OcSpecialPlayerInit(void)
+{
+    sOcSpecialRunPhase = 0;
+    sOcSpecialTicks = sOcSpecialStateStart = 0;
+    sOcSpecialState = 0xFFFF;
+}
 
 void OcSpecialPlayerTick(s32 speed)
 {
+    sOcSpecialTicks++;
     /* The special stage uses its own velocity units and four rear run poses. */
     if (speed != 0) {
         sOcSpecialRunPhase = (sOcSpecialRunPhase + MIN(MAX(ABS(speed) >> 7, 24), 128)) % (4 * 256);
@@ -537,12 +549,17 @@ bool32 OcSpecialPlayerDraw(Sprite *nativeBody, u16 state, u16 input)
     Sprite sprite;
     SpriteOffset dimensions;
     u8 frame;
+    const u8 *tiles;
 
     if (gSelectedOc < 0 || gSelectedOc >= OC_CHARACTER_COUNT) {
         return FALSE;
     }
     if (nativeBody->dimensions == (void *)-1) {
         return TRUE;
+    }
+    if (state != sOcSpecialState) {
+        sOcSpecialState = state;
+        sOcSpecialStateStart = sOcSpecialTicks;
     }
     if (state == 6 || state == 10 || state == 14) {
         frame = 7;
@@ -566,7 +583,15 @@ bool32 OcSpecialPlayerDraw(Sprite *nativeBody, u16 state, u16 input)
     dimensions.offsetY = 48;
     sprite.dimensions = &dimensions;
     sprite.frameFlags &= ~(SPRITE_FLAG_MASK_X_FLIP | SPRITE_FLAG_MASK_Y_FLIP);
-    sprite.graphics.src = gOcSpecialFrameTiles[gSelectedOc][frame];
+    tiles = gOcSpecialFrameTiles[gSelectedOc][frame];
+    if (state == 16) {
+        /* The result screen faces the player. Reuse each OC's actual four
+         * celebration poses and cadence, keeping the same 64x64 feet pivot.
+         * Tick is suspended by the real bonus pause state. */
+        u8 action = OcVictoryActionFrame(gSelectedOc, sOcSpecialTicks - sOcSpecialStateStart);
+        tiles = gOcActionFrameTiles[gSelectedOc][action];
+    }
+    sprite.graphics.src = tiles;
     sprite.graphics.size = 64 * TILE_SIZE_4BPP;
     /* The native script still updates before this draw, so copy even if the
      * rear pose did not change: it can have queued new body tiles this frame. */

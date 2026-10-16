@@ -1256,6 +1256,9 @@ void CreateTimeAttackLevelSelectScreen(bool16 isBossView, s16 selectedCharacter,
 
 void CreateNewProfileScreen(void)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     Task *t;
     struct LanguageScreen *languageScreen;
 
@@ -1285,6 +1288,9 @@ void CreateNewProfileScreen(void)
 
 void CreateNewProfileNameScreen(s16 mode)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(TRUE);
+#endif
     Task *t = TaskCreate(Task_ProfileNameScreenFadeIn, sizeof(struct ProfileNameScreen), 0x2000, TASK_x0004, NULL);
     struct ProfileNameScreen *profileNameScreen = TASK_DATA(t);
     s16 i;

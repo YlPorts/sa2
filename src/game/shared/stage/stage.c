@@ -17,6 +17,7 @@
 
 #ifdef __ANDROID__
 extern void Platform_SetStartupStage(const char *stage);
+extern void Platform_SetNativeUiCrop(bool8 enabled);
 #define STAGE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
 #else
 #define STAGE_STARTUP_STAGE(name) ((void)0)
@@ -278,6 +279,9 @@ void GameStageStart(void)
 
 void CreateGameStage(void)
 {
+#ifdef __ANDROID__
+    Platform_SetNativeUiCrop(FALSE);
+#endif
     STAGE_STARTUP_STAGE("create_game_stage_enter");
     u8 i;
     u32 j;

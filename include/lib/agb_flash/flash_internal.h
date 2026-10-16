@@ -102,6 +102,9 @@ u16 ProgramFlashSector_AT(u16 sectorNum, void *src);
 
 // agb_flash_1m
 u16 IdentifyFlash(void);
+#if PORTABLE && (GAME == GAME_SA2)
+u16 IdentifyFlashPortable(void);
+#endif
 
 /* Manufacturers and chips */
 #define MANUFACTURER_ATMEL   0x1F

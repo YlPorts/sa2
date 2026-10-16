@@ -68,7 +68,8 @@ try:
     adb('shell','settings','put','system','font_scale','1.0')
     time.sleep(4)
     assert adb('shell','pidof',package).strip()==original_pid, 'activity must recreate and restart native SDL cleanly'
-    capture('01b-recreated-activity')
+    recreated_width,recreated_height=capture('01b-recreated-activity')
+    assert recreated_width>recreated_height, 'recreated game activity stays visible in landscape'
     checks.append('Android configuration recreation keeps the same process and restarts the real native engine')
     click(description='Ajustes de Android')
     find('SONIC ADVANCE 2')
@@ -103,11 +104,18 @@ try:
     # Advance the original screens through actual Android touch targets. No
     # test shortcuts or synthetic stage-entry code is present in this APK.
     ready=False
-    for n in range(40):
+    # The original first-run profile needs a nonblank name, then Start twice.
+    # Leave END and its blank bottom grid row before choosing a valid letter;
+    # recover when a preceding Start selected END while the name was empty.
+    left=(round(base*.22-base*.105*.85),round(height-base*.25))
+    start_button=(round(width*.5+base*.1),round(height-base*.07))
+    up=(round(base*.22),round(height-base*.25-base*.105*.85))
+    inputs=[start_button,up,up,left,left,(tx,ty),start_button,start_button]
+    for n in range(100):
         if 'SA Android gameplay ready' in adb('logcat','-d'):
             ready=True
             break
-        x,y=(round(width*.5+base*.1),round(height-base*.07)) if n%2==0 else (tx,ty)
+        x,y=inputs[n%len(inputs)]
         adb('shell','input','tap',str(x),str(y))
         time.sleep(.3)
     assert ready, 'real Android touch input must reach the original game stage'

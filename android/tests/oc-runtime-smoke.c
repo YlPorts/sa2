@@ -9,6 +9,7 @@
 #include "core.h"
 #include "task.h"
 #include "flags.h"
+#include "lib/agb_flash/flash_internal.h"
 #include "malloc_vram.h"
 #include "game/game.h"
 #include "game/globals.h"
@@ -48,6 +49,8 @@ static unsigned frames, stageFrames, playFrames, menuFrames, movesLeft;
 static unsigned drawCount, paletteChecks, rightDraws, leftDraws, slopeDraws;
 static unsigned invulnerableFrames, invulnerableVisible, invulnerableHidden;
 static unsigned specialDraws, specialLeft, specialRight, specialJump;
+static unsigned specialVictoryMask, specialResultTicks;
+static bool specialResultFixture;
 static unsigned selectorIdleMask;
 static unsigned finalPaletteChecks, countdownPaletteChecks, hiddenPaletteChecks;
 static unsigned runMask, jumpMask, attackMask, projectileDraws, realEnemyHits;
@@ -642,6 +645,12 @@ bool32 __wrap_OcSpecialPlayerDraw(Sprite *body, u16 state, u16 input)
         Require(oam->split.x == OamExpectedX(body->x - 32) && oam->split.y == OamExpectedY(body->y - 48),
                 "special stage OC feet retain native position");
         specialDraws++;
+        if (state == 16) {
+            GraphicsData *queued = gVramGraphicsCopyQueue[(gVramGraphicsCopyQueueIndex + 31) % 32];
+            for (unsigned i = 0; i < 4; i++) {
+                if (queued->src == gOcActionFrameTiles[gSelectedOc][20+i]) specialVictoryMask |= 1 << i;
+            }
+        }
         if (input & DPAD_LEFT) specialLeft++;
         if (input & DPAD_RIGHT) specialRight++;
         if (state == 4 || state == 5 || state == 7 || state == 9 || state == 12 || state == 15)
@@ -676,6 +685,52 @@ static void CheckMenuLifecycle(void)
     fprintf(stderr, "PASS: 24 selector create/destroy cycles, identical VRAM heap and task count\n");
 }
 
+static void CheckPortableSave(void)
+{
+    Require(!(gFlags & FLAGS_NO_FLASH_MEMORY) && gFlash != NULL, "native flash backend is identified successfully");
+    LOADED_SAVE->score = 1234;
+    LOADED_SAVE->chaosEmeralds[CHARACTER_SONIC] = 1;
+    LOADED_SAVE->unlockedLevels[CHARACTER_SONIC] = 8;
+    Require(WriteSaveGame(), "first real engine save succeeds");
+    LOADED_SAVE->score = 5678;
+    LOADED_SAVE->chaosEmeralds[CHARACTER_SONIC] = 3;
+    Require(WriteSaveGame(), "next save rotates to a different sector");
+    LOADED_SAVE->score = 0;
+    Require(LoadSaveGame() && LOADED_SAVE->score == 5678 && LOADED_SAVE->chaosEmeralds[0] == 3,
+            "the newest native save reloads score and emeralds");
+    unsigned newest = 0;
+    u32 latestVersion = 0;
+    for (unsigned i = 0; i < 10; i++) {
+        u32 header[2];
+        ReadFlash(i, 0, header, sizeof(header));
+        if (header[0] == 0x4547474D && header[1] >= latestVersion) {
+            newest = i;
+            latestVersion = header[1];
+        }
+    }
+    Require(latestVersion >= 2, "save sectors keep independent generations");
+    FLASH_BASE[newest * gFlash->sector.size] ^= 0x80;
+    Require(LoadSaveGame() && LOADED_SAVE->score == 1234 && LOADED_SAVE->chaosEmeralds[0] == 1
+                && LOADED_SAVE->unlockedLevels[0] == 8,
+            "an invalid newest save falls back to the prior sector without losing its progress");
+
+    u8 shortSource[13], readback[32];
+    for (unsigned i=0;i<sizeof(shortSource);i++) shortSource[i]=i*7+3;
+    Require(ProgramFlashSectorAndVerifyNBytes(15, shortSource, sizeof(shortSource)) == 0,
+            "native programming reads the exact short source size, not an entire sector");
+    ReadFlash(15, 0, readback, sizeof(readback));
+    Require(memcmp(readback,shortSource,sizeof(shortSource)) == 0, "programmed bytes match exactly");
+    for (unsigned i=sizeof(shortSource);i<sizeof(readback);i++) Require(readback[i] == 0xFF, "unused sector bytes stay erased");
+    u8 *snapshot = malloc(gFlash->romSize);
+    memcpy(snapshot, FLASH_BASE, gFlash->romSize);
+    Require(ProgramFlashSectorAndVerifyNBytes(16, shortSource, sizeof(shortSource)) != 0
+                && ProgramFlashSectorAndVerifyNBytes(0, shortSource, gFlash->sector.size+1) != 0
+                && EraseFlashSector(16) != 0, "out-of-range flash operations are rejected");
+    Require(memcmp(snapshot,FLASH_BASE,gFlash->romSize) == 0, "rejected writes preserve every save sector");
+    free(snapshot);
+    fprintf(stderr,"PASS: portable save generations, progress/emerald reload, corrupt-header fallback, exact-length programming and flash boundaries\n");
+}
+
 void __wrap_AgbMain(void)
 {
     mode = getenv("SA_OC_MODE") ? getenv("SA_OC_MODE") : "stage";
@@ -696,6 +751,10 @@ void __wrap_AgbMain(void)
     gSelectedOc = -1;
     gGameMode = GAME_MODE_SINGLE_PLAYER;
     LOADED_SAVE->unlockedCharacters = (1 << NUM_CHARACTERS) - 1;
+    if (!strcmp(mode, "save-format")) {
+        CheckPortableSave();
+        exit(0);
+    }
     if (!strcmp(mode, "lifecycle")) {
         CheckMenuLifecycle();
         exit(0);
@@ -710,9 +769,10 @@ void __wrap_AgbMain(void)
         fprintf(stderr, "PASS: multiplayer resets OC and accepts only native selector IDs\n");
         exit(0);
     }
-    if (!strcmp(mode, "special")) {
+    if (!strcmp(mode, "special") || !strcmp(mode, "special-result")) {
         gSelectedOc = oc;
         gSelectedCharacter = ExpectedBase();
+        gCurrentLevel = getenv("SA_OC_LEVEL") ? atoi(getenv("SA_OC_LEVEL")) : 0;
         CreateSpecialStage(ExpectedBase(), getenv("SA_OC_LEVEL") ? atoi(getenv("SA_OC_LEVEL")) : 0);
         specialStageTask = gTaskPtrs[gNumTasks - 1];
     } else if (!strcmp(mode, "stage") || !strcmp(mode, "abilities") || !strcmp(mode, "stage-lifecycle")
@@ -1808,7 +1868,52 @@ void __wrap_VBlankIntrWait(void)
     if (headless) gpsp_draw_frame(gameImage);
     __real_VBlankIntrWait();
     frames++;
-    if (!strcmp(mode, "special")) {
+    if (!strcmp(mode, "special-result")) {
+        const bool success = getenv("SA_OC_SPECIAL_SUCCESS") && atoi(getenv("SA_OC_SPECIAL_SUCCESS"));
+        const unsigned zone = (getenv("SA_OC_LEVEL") ? atoi(getenv("SA_OC_LEVEL")) : 0) / 4;
+        if (gGameStageTask != NULL) {
+            Require(specialResultFixture, "real bonus ending was triggered from the running stage");
+            const u8 expected = success ? CHAOS_EMERALD(zone) : 0;
+            for (unsigned i = 0; i < NUM_CHARACTERS; i++) {
+                Require(LOADED_SAVE->chaosEmeralds[i] == (i == ExpectedBase() ? expected : 0),
+                        "bonus grants exactly the expected native save slot and emerald, without altering others");
+            }
+            const u32 score = LOADED_SAVE->score;
+            Require(score > 0 && LoadSaveGame(), "real bonus ending writes a reloadable save with its score");
+            Require(LOADED_SAVE->score == score && LOADED_SAVE->chaosEmeralds[ExpectedBase()] == expected,
+                    "score and emerald survive reading the actual save sectors");
+            Require(gSelectedOc == oc && gSelectedCharacter == ExpectedBase(), "bonus return preserves native and OC selection");
+            if (oc >= 0) Require(specialVictoryMask == 15, "bonus results display all four real OC victory poses");
+            Capture("returned-to-level", frames);
+            fprintf(stderr, "PASS: special result fixture OC=%d zone=%u success=%d; natural timer/results/return, save reload score=%u emerald=0x%x poses=0x%x\n",
+                    oc, zone, success, score, expected, specialVictoryMask);
+            exit(0);
+        }
+        struct SpecialStage *stage = TASK_DATA(specialStageTask);
+        if (frames == 300) {
+            Require(stage->state == 5, "ending fixture begins in the real active bonus, without replacing its tasks");
+            /* Test fixture only: set the ring count at/just below the target
+             * and expire the clock. UI, player deceleration, results, emerald
+             * and return are then driven by the unchanged game routines. */
+            stage->rings = stage->ringsTarget - (success ? 0 : 1);
+            stage->ringsHundreds = stage->rings / 100;
+            stage->ringsTens = (stage->rings / 10) % 10;
+            stage->ringsUnits = stage->rings % 10;
+            stage->timeHundreds = stage->timeTens = stage->timeUnits = 0;
+            stage->timeTicks = 2;
+            specialResultFixture = true;
+        }
+        SetInput(stage->state == 8 && frames % 40 < 2 ? A_BUTTON : 0);
+        if (stage->state == 8) {
+            ++specialResultTicks;
+            if ((specialResultTicks <= 120 && specialResultTicks % 30 == 0) || specialResultTicks == 210 || specialResultTicks == 360)
+                Capture("bonus-results", specialResultTicks);
+        }
+        if (frames % 300 == 0) fprintf(stderr, "Bonus result OC=%d frame=%u state=%u player=%u target=%u masks=0x%x\n",
+                oc, frames, stage->state, stage->playerTask ? ((struct SpecialStagePlayer *)TASK_DATA(stage->playerTask))->state : 255,
+                stage->targetReached, specialVictoryMask);
+        Require(frames < 2400, "real timer ending reaches results and returns to the level");
+    } else if (!strcmp(mode, "special")) {
         if (frames == 300) CheckSpecialProjection();
         unsigned cycle = frames % 150;
         SetInput(DPAD_UP | (cycle < 50 ? DPAD_LEFT : cycle < 100 ? DPAD_RIGHT : 0)
@@ -1857,7 +1962,10 @@ void __wrap_VBlankIntrWait(void)
         } else if (menuCreated) DriveMenu();
         else {
             unsigned cycle = frames % 90;
-            SetInput(cycle < 4 ? A_BUTTON : cycle >= 45 && cycle < 49 ? START_BUTTON : 0);
+            SetInput(cycle < 2 || (cycle >= 36 && cycle < 38) || (cycle >= 54 && cycle < 56) ? START_BUTTON
+                : (cycle >= 4 && cycle < 6) || (cycle >= 8 && cycle < 10) ? DPAD_UP
+                : (cycle >= 12 && cycle < 14) || (cycle >= 16 && cycle < 18) ? DPAD_LEFT
+                : cycle >= 20 && cycle < 22 ? A_BUTTON : 0);
         }
     } else {
         if (confirmed && strcmp(mode, "locked")) {
@@ -1888,5 +1996,8 @@ void __wrap_VBlankIntrWait(void)
     displayedVisualPhase = pendingVisualPhase;
     displayedBodyVisible = pendingBodyVisible;
     pendingBodyVisible = false;
-    if (frames >= 7200) Fail("test timeout before requested flow completed");
+    if (frames >= 7200) {
+        Capture("timeout",frames);
+        Fail("test timeout before requested flow completed");
+    }
 }

@@ -23,6 +23,12 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
   del README y las atribuciones accesibles en Ajustes.
 - La selección OC utiliza sus atlas reales para espera, respiración, parpadeo
   y confirmación. Las transferencias de VRAM se producen al cambiar de pose.
+- Los resultados del bonus usan las cuatro poses de victoria propias de cada
+  OC, con su cadencia y el mismo pivote de pies. Se conserva su arte anterior.
+- El título, la presentación original y la creación de perfil se muestran en
+  240×160, evitando la repetición lateral de gráficos diseñados para GBA. Los
+  buffers HBlank conservan espacio para todas las filas del renderer portátil.
+  Al entrar a un nivel se restaura el encuadre de juego ampliado.
 - La frenada OC alcanza la última pose y la mantiene, sin reiniciar el derrape
   cada doce fotogramas. La fase de carrera trasera del bonus queda acotada.
 - La búsqueda de profundidad del bonus conserva la fila de perspectiva en
@@ -52,9 +58,18 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
   en 16 bytes. La traza nativa identificó la instrucción que fallaba.
 - La biblioteca de llamadas GBA termina de generarse antes de enlazar el juego;
   se evita leer su archivo mientras una compilación paralela lo reescribe.
+- Reparado el guardado real del motor: la detección portátil devolvía error y
+  activaba `FLAGS_NO_FLASH_MEMORY`. Ahora se configura la flash de 512 Kbit en
+  memoria, con lectura/escritura/verificación nativas y persistencia atómica.
+  Se copian los bytes reales de cada registro sin leer un sector entero desde
+  un buffer corto. Los límites se verifican antes de modificar la memoria.
+  El checksum usa palabras de 32 bits, igual que el formato GBA/ARM32, también
+  cuando se compila ARM64; se mantienen sectores anteriores para recuperación.
 - Android devuelve el control a SDL al recibir el cierre de su actividad,
   guarda y libera recursos sin `exit(0)`. Puede reiniciar el motor en el mismo
   proceso al recrearse la actividad. El backend host prueba dos ciclos reales.
+  La finalización del hilo SDL se vincula a su actividad original para que no
+  cierre otra actividad durante la recreación por cambios de configuración.
 - Si AAudio rechaza abrir el dispositivo, se prueban OpenSL ES y AudioTrack
   manteniendo formato, frecuencia y lógica del juego. La integración Android
   comprueba que se haya abierto un backend de audio real.
@@ -70,9 +85,22 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
 habilidades, daño, pausa, agua, reinicio y victoria de acto. Incluye los cinco
 originales, los siete OC, tres poses animadas de selección por OC y las siete
 zonas de bonus. Cada proceso debe emitir un marcador explícito de aprobación.
-La batería ampliada produce 95 marcadores. La prueba de victoria de acto usa
+La batería ampliada produce 132 marcadores. La prueba de victoria de acto usa
 una ubicación inicial próxima a la meta real y después entradas normales;
 no equivale a recorrer todo el acto.
+
+Hay 36 casos adicionales de final de bonus: siete zonas, los cinco personajes
+originales y los siete OC, con objetivo de anillos cumplido y sin cumplir. La
+fixture fija anillos/tiempo y deja que las rutinas reales desaceleren, terminen,
+muestren resultados, concedan la esmeralda cuando corresponda, escriban y
+recarguen el guardado y vuelvan al nivel. Verifica las cuatro poses de victoria
+por OC. Esto prueba las condiciones de salida; no es una partida completa
+recogiendo naturalmente todos los anillos.
+
+La prueba de almacenamiento del motor escribe dos generaciones, recarga el
+progreso y las esmeraldas, invalida la cabecera más reciente y comprueba la
+recuperación de la anterior. También detecta lecturas excesivas desde un buffer
+corto y exige que una escritura fuera de rango no modifique ningún sector.
 
 `bash android/test-platform.sh` verifica geometría a cinco resoluciones,
 proporción, escalado entero, edición de posiciones, acciones simultáneas,

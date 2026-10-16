@@ -26,10 +26,10 @@ extern bool headless;
 static void SetInput(u16 pressed)
 {
     static u16 previous;
-    const u16 masks[] = { A_BUTTON, START_BUTTON, DPAD_RIGHT };
-    const SDL_Keycode codes[] = { SDLK_c, SDLK_RETURN, SDLK_RIGHT };
+    const u16 masks[] = { A_BUTTON, START_BUTTON, DPAD_RIGHT, DPAD_LEFT, DPAD_UP };
+    const SDL_Keycode codes[] = { SDLK_c, SDLK_RETURN, SDLK_RIGHT, SDLK_LEFT, SDLK_UP };
     if (!headless) {
-        for (unsigned i = 0; i < 3; i++) {
+        for (unsigned i = 0; i < ARRAY_COUNT(masks); i++) {
             if ((previous ^ pressed) & masks[i]) {
                 SDL_Event event = { 0 };
                 event.type = pressed & masks[i] ? SDL_KEYDOWN : SDL_KEYUP;
@@ -100,7 +100,10 @@ void __wrap_VBlankIntrWait(void)
             SetInput(stageFrames > 200 ? DPAD_RIGHT | ((stageFrames % 120 < 20) ? A_BUTTON : 0) : 0);
         } else {
             const unsigned cycle = frames % 90;
-            SetInput(cycle < 4 ? A_BUTTON : cycle >= 45 && cycle < 49 ? START_BUTTON : 0);
+            SetInput(cycle < 2 || (cycle >= 36 && cycle < 38) || (cycle >= 54 && cycle < 56) ? START_BUTTON
+                : (cycle >= 4 && cycle < 6) || (cycle >= 8 && cycle < 10) ? DPAD_UP
+                : (cycle >= 12 && cycle < 14) || (cycle >= 16 && cycle < 18) ? DPAD_LEFT
+                : cycle >= 20 && cycle < 22 ? A_BUTTON : 0);
         }
         if (frames % 180 == 0) {
             fprintf(stderr, "Boot frame=%u stage=%u tasks=%d mode=%d x=%d\n", frames, stageFrames, gNumTasks, gGameMode, I(gPlayer.qWorldX));

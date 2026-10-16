@@ -1,4 +1,7 @@
 #include "global.h"
+#if PORTABLE && (GAME == GAME_SA2)
+#include <string.h>
+#endif
 #include "lib/agb_flash/flash_internal.h"
 #include "lib/agb_flash/agb_flash.h"
 
@@ -34,6 +37,61 @@ u16 (*EraseFlashChip)() = NULL;
 u16 (*EraseFlashSector)(u16 sectorNum) = NULL;
 #if !AGBFLASH_USE_V126
 const u16 *gFlashMaxTime = NULL;
+#endif
+
+#if PORTABLE && (GAME == GAME_SA2)
+/* The portable port owns FLASH_BASE in RAM and persists it outside the engine.
+ * The GBA routines below copy Thumb code to the stack and send chip commands;
+ * neither operation is a valid native implementation on Android/desktop. */
+static bool32 PortableFlashRange(u16 sector, u32 offset, u32 size)
+{
+    const struct FlashSector *layout = &DefaultFlash512K.type.sector;
+    return sector < layout->count && offset <= layout->size && size <= layout->size - offset;
+}
+
+static u16 PortableFlashEraseSector(u16 sector)
+{
+    if (!PortableFlashRange(sector, 0, 0)) return 0x80FF;
+    memset(FLASH_BASE + sector * DefaultFlash512K.type.sector.size, 0xFF, DefaultFlash512K.type.sector.size);
+    return 0;
+}
+
+static u16 PortableFlashEraseChip(void)
+{
+    memset(FLASH_BASE, 0xFF, DefaultFlash512K.type.romSize);
+    return 0;
+}
+
+static u16 PortableFlashProgramN(u16 sector, const void *source, u32 size)
+{
+    if (!source || !PortableFlashRange(sector, 0, size)) return 0x80FF;
+    u8 *destination = FLASH_BASE + sector * DefaultFlash512K.type.sector.size;
+    PortableFlashEraseSector(sector);
+    memcpy(destination, source, size);
+    return memcmp(destination, source, size) ? 1 : 0;
+}
+
+static u16 PortableFlashProgramSector(u16 sector, void *source)
+{
+    return PortableFlashProgramN(sector, source, DefaultFlash512K.type.sector.size);
+}
+
+static u16 PortableFlashWait(u8 phase, u8 *address, u8 value)
+{
+    (void)phase;
+    return *address == value ? 0 : 1;
+}
+
+u16 IdentifyFlashPortable(void)
+{
+    gFlash = &DefaultFlash512K.type;
+    gFlashMaxTime = DefaultFlash512K.maxTime;
+    ProgramFlashSector = PortableFlashProgramSector;
+    EraseFlashChip = PortableFlashEraseChip;
+    EraseFlashSector = PortableFlashEraseSector;
+    WaitForFlashWrite = PortableFlashWait;
+    return 0; // IdentifyFlash uses zero for success, not the boolean TRUE.
+}
 #endif
 
 void SetReadFlash1(u16 *dest);
@@ -227,6 +285,13 @@ void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 
 void ReadFlash(u16 sectorNum, u32 offset, void *dest, u32 size)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    if (PortableFlashRange(sectorNum, offset, size))
+        memcpy(dest, FLASH_BASE + sectorNum * DefaultFlash512K.type.sector.size + offset, size);
+    else
+        memset(dest, 0xFF, size);
+    return;
+#endif
     u8 *src;
     u16 i;
     u16 readFlash_Core_Buffer[0x40];
@@ -277,6 +342,10 @@ u32 VerifyFlashSector_Core(u8 *src, u8 *tgt, u32 size)
 
 u32 VerifyFlashSector(u16 sectorNum, u8 *src)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    if (!PortableFlashRange(sectorNum, 0, DefaultFlash512K.type.sector.size)) return 0x80FF;
+    return memcmp(FLASH_BASE + sectorNum * DefaultFlash512K.type.sector.size, src, DefaultFlash512K.type.sector.size) ? 1 : 0;
+#endif
     u16 i;
     u16 verifyFlashSector_Core_Buffer[0x80];
     u16 *funcSrc;
@@ -320,6 +389,10 @@ u32 VerifyFlashSector(u16 sectorNum, u8 *src)
 
 u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    if (!PortableFlashRange(sectorNum, 0, n)) return 0x80FF;
+    return memcmp(FLASH_BASE + sectorNum * DefaultFlash512K.type.sector.size, src, n) ? 1 : 0;
+#endif
     u16 i;
     u16 verifyFlashSector_Core_Buffer[0x80];
     u16 *funcSrc;
@@ -379,6 +452,10 @@ u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
 
 u32 ProgramFlashSectorAndVerifyNBytes(u16 sectorNum, void *dataSrc, u32 n)
 {
+#if PORTABLE && (GAME == GAME_SA2)
+    // The engine supplies a packed save struct, not a full 4 KB sector buffer.
+    return PortableFlashProgramN(sectorNum, dataSrc, n);
+#endif
     u8 i;
     u32 result;
 
