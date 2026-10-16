@@ -267,7 +267,7 @@ static const ColorRaw sWavesBrightnessPalette[] = INCPAL("graphics/sa2/title_scr
 static const u8 sWavesVerticalBrightnessGradiant[] = {
     (u8)(0.00000 * DISPLAY_HEIGHT), (u8)(0.01875 * DISPLAY_HEIGHT), (u8)(0.05000 * DISPLAY_HEIGHT), (u8)(0.08750 * DISPLAY_HEIGHT),
     (u8)(0.13125 * DISPLAY_HEIGHT), (u8)(0.20000 * DISPLAY_HEIGHT), (u8)(0.28750 * DISPLAY_HEIGHT), (u8)(0.41250 * DISPLAY_HEIGHT),
-    (u8)(0.60000 * DISPLAY_HEIGHT), (u8)(1.00000 * DISPLAY_HEIGHT),
+    (u8)(0.60000 * DISPLAY_HEIGHT), (u8)TITLE_DMA_ROWS,
 };
 
 static const u8 sPanUpNextVelocityChangeFrame[] = { 60, 19, 10, 10, 255 };
