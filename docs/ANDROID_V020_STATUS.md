@@ -144,6 +144,32 @@ mismo commit. Se activa explícitamente con la opción `publish_candidate` al
 ejecutar el workflow o con `[publish-rc1]` en el mensaje del commit. Siempre
 se publica como prerelease y se rechaza sobrescribir una RC1 existente.
 
+También puede promoverse el artefacto ya verificado con
+`sa2-publish-verified-rc.yml`: el manifiesto registra commit, ejecución, paquete
+y SHA-256. El publicador exige los tres jobs aprobados, comprueba que el código
+del juego no haya cambiado y publica los mismos bytes sin una nueva compilación
+ni una nueva clave de pruebas.
+
+### Evidencia de la candidata publicada
+
+- Código de la APK: `ba57e076f7ba84b6ab666be346ba001a3fc4cbbb`.
+- [Ejecución 38965740681](https://github.com/YlPorts/sa2/actions/runs/38965740681):
+  `apk`, `regressions` y `android-emulator` aprobados.
+- 132 marcadores del motor y 24 finales con rutas Android, sin errores ASan;
+  ocho pruebas unitarias y comprobaciones de controles, recursos y CpuFastSet.
+- APK x86_64 instalada en Android 16 / API 36: arranque, recreación de actividad
+  en el mismo proceso, ajustes, arrastre/guardado de A, reanudación, creación de
+  perfil original, entrada al nivel con toques y recarga del guardado después
+  de un cierre forzado. Las capturas de ajustes, editor y nivel se revisaron.
+- ARM32 y ARM64 compilados y recursos verificados; no se ejecutó su jugabilidad
+  en un dispositivo ARM. El emulador no prueba la GPU Mali del Galaxy A15.
+- APK: 35.766.313 bytes, `com.ylports.sonicadvance2.preview`, versionCode 21,
+  versionName `0.2.0-rc1-OCS4`, firma de pruebas.
+- SHA-256: `fa41cd674c0a0dd04b477638fff9d7ca06119e9938c2df28829f90fb6a05f9f2`.
+
+La Release adjunta el informe de APK, firma y alineación, registros nativos,
+informe y capturas Android, símbolos nativos y vínculo al commit exacto.
+
 ## Firma e instalación
 
 La firma anterior tiene SHA-256

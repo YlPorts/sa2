@@ -1,0 +1,94 @@
+name: Publish verified Sonic Advance 2 RC1
+
+on:
+  push:
+    branches: [android-v0.2.0-ocs4]
+    paths: [.github/release-candidates/v020-rc1.json]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: sa2-publish-verified-rc1
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'YlPorts/sa2' && contains(github.event.head_commit.message, '[publish-verified-rc1]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the completed source run and unchanged game code
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, re, subprocess
+          candidate=json.loads(pathlib.Path('.github/release-candidates/v020-rc1.json').read_text())
+          source=candidate['source_commit']
+          run_id=candidate['workflow_run_id']
+          assert re.fullmatch('[0-9a-f]{40}',source) and type(run_id) is int
+          def api(path):
+              return json.loads(subprocess.check_output(['gh','api','repos/YlPorts/sa2/'+path],text=True))
+          run=api('actions/runs/'+str(run_id))
+          assert run['status']=='completed' and run['conclusion']=='success'
+          assert run['head_sha']==source and run['head_branch']=='android-v0.2.0-ocs4'
+          assert run['path']=='.github/workflows/sa2-v020.yml'
+          jobs=api('actions/runs/'+str(run_id)+'/jobs?per_page=100')['jobs']
+          for name in ['apk','regressions','android-emulator']:
+              matches=[j for j in jobs if j['name']==name]
+              assert len(matches)==1 and matches[0]['conclusion']=='success',name
+          subprocess.run(['git','fetch','--depth=1','origin',source],check=True)
+          changed=subprocess.check_output(['git','diff','--name-only',source,'HEAD'],text=True).splitlines()
+          allowed={'.github/workflows/sa2-publish-verified-rc.yml','.github/release-candidates/v020-rc1.json',
+                   'docs/ANDROID_V020_STATUS.md','docs/RELEASE_v0.2.0-rc1.md'}
+          assert set(changed)<=allowed,'Game code differs from the verified binary: '+str(changed)
+          pathlib.Path('verified-run.txt').write_text(str(run_id))
+          PY
+      - name: Retrieve the exact tested APK and Android evidence
+        run: |
+          run_id="$(cat verified-run.txt)"
+          gh run download "$run_id" --name SonicAdvance2-v0.2.0-OCS4-candidate --dir candidate-input
+          gh run download "$run_id" --name sa2-v020-android36-emulator --dir emulator-report
+          gh run download "$run_id" --name sa2-v020-test-evidence --dir native-evidence
+      - name: Verify exact bytes and prepare explicit prerelease notes
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil
+          candidate=json.loads(pathlib.Path('.github/release-candidates/v020-rc1.json').read_text())
+          source=pathlib.Path('candidate-input')
+          target=pathlib.Path('publish');target.mkdir()
+          for name in ['SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk','apk-validation.json','signature.txt','zip-alignment.txt','native-symbols.tar.gz']:
+              shutil.copy2(next(source.rglob(name)),target/name)
+          for name in ['oc-runtime.log','android-runtime.log','android-bonus-runtime.log']:
+              shutil.copy2(next(pathlib.Path('native-evidence').rglob(name)),target/name)
+          shutil.make_archive(str(target/'android36-captures'),'zip','emulator-report')
+          report=next(pathlib.Path('emulator-report').rglob('report.json'))
+          assert json.loads(report.read_text())['status']=='passed'
+          shutil.copy2(report,target/'android36-emulator-report.json')
+          apk=target/'SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk'
+          digest=hashlib.sha256(apk.read_bytes()).hexdigest()
+          metadata=json.loads((target/'apk-validation.json').read_text())
+          assert digest==candidate['apk_sha256']==metadata['sha256']
+          assert metadata['package']==candidate['package']
+          assert set(metadata['abis'])=={'armeabi-v7a','arm64-v8a'}
+          assert all(x['seven_characters_byte_verified'] and x['pc_intro_absent'] for x in metadata['abis'].values())
+          (target/'SHA256SUMS').write_text(digest+'  '+apk.name+'\n')
+          url='https://github.com/YlPorts/sa2/actions/runs/'+str(candidate['workflow_run_id'])
+          commit='https://github.com/YlPorts/sa2/commit/'+candidate['source_commit']
+          (target/'SOURCE_COMMIT.txt').write_text(commit+'\n'+url+'\n')
+          notes=pathlib.Path('docs/RELEASE_v0.2.0-rc1.md').read_text()
+          notes+='\nCódigo de esta APK: '+commit+'\n\nPruebas, registros y capturas: '+url+'\n'
+          pathlib.Path('release-notes.md').write_text(notes)
+          PY
+      - name: Publish the verified binary without rebuilding or overwriting
+        run: |
+          if gh release view v0.2.0-ocs4-rc1 >/dev/null 2>&1 || gh api repos/YlPorts/sa2/git/ref/tags/v0.2.0-ocs4-rc1 >/dev/null 2>&1; then
+            echo 'Preserve the existing RC1 tag/release; select a new candidate version instead.' >&2
+            exit 1
+          fi
+          source_sha="$(python3 -c 'import json;print(json.load(open(".github/release-candidates/v020-rc1.json"))["source_commit"])')"
+          gh release create v0.2.0-ocs4-rc1 publish/* --target "$source_sha" --prerelease --latest=false --title 'Sonic Advance 2 Android v0.2.0 OCS4 — RC1 de prueba' --notes-file release-notes.md
