@@ -3,6 +3,7 @@ package org.libsdl.app;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -89,6 +90,8 @@ final class AndroidOptionsUi {
     }
     private Button button(String title,Runnable action){
         Button b=new Button(activity);b.setText(title);b.setTextColor(WHITE);b.setAllCaps(false);
+        b.setTypeface(Typeface.MONOSPACE);b.setTextSize(14);
+        b.setBackgroundTintList(ColorStateList.valueOf(0xff0d548f));
         b.setOnClickListener(v->action.run());return b;
     }
     private void choice(LinearLayout parent,String title,int index,String[] options){
