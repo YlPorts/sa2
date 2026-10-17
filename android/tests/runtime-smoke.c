@@ -14,6 +14,29 @@
 #include "game/shared/stage/player.h"
 #include "platform/shared/video/gpsp_renderer.h"
 #include <SDL.h>
+#ifdef __ANDROID__
+#include "platform/shared/android_controls.h"
+extern void GetInput(void);
+
+static void FastTouch(SDL_Window *window, int id)
+{
+    int width, height;
+    SDL_FRect rect;
+    SDL_GetRendererOutputSize(SDL_GetRenderer(window), &width, &height);
+    AndroidControls_Describe(id, width, height, &rect);
+    SDL_Event event = { 0 };
+    event.type = SDL_FINGERDOWN;
+    event.tfinger.touchId = 1;
+    event.tfinger.fingerId = id + 1;
+    event.tfinger.windowID = SDL_GetWindowID(window);
+    event.tfinger.x = (rect.x + rect.w / 2) / width;
+    event.tfinger.y = (rect.y + rect.h / 2) / height;
+    if (id == 0) event.tfinger.x += rect.w / width * .3f;
+    if (SDL_PushEvent(&event) != 1) abort();
+    event.type = SDL_FINGERUP;
+    if (SDL_PushEvent(&event) != 1) abort();
+}
+#endif
 
 extern uint16_t gameImage[];
 extern void __real_VBlankIntrWait(void);
@@ -44,6 +67,43 @@ static void SetInput(u16 pressed)
 
 void __wrap_AgbMain(void)
 {
+#ifdef __ANDROID__
+    if (getenv("SA_TEST_FAST_TAP")) {
+        EngineInit();
+        GameInit();
+        SDL_Window *window = SDL_GetWindowFromID(1);
+        if (!window || headless) abort();
+        /* Queue DOWN and UP before the real SDL VBlank wait. The renderer can
+         * present/poll more than once before returning to the next logic tick.
+         * Neither a render poll nor catch-up may consume the only tap. */
+        const int ids[] = { 1, 2, 6, 0 };
+        const u16 masks[] = { A_BUTTON, B_BUTTON, START_BUTTON, DPAD_RIGHT };
+        for (unsigned repeat = 0; repeat < 8; repeat++) {
+            for (unsigned i = 0; i < ARRAY_COUNT(ids); i++) {
+                FastTouch(window, ids[i]);
+                __real_VBlankIntrWait();
+                GetInput();
+                if (gPressedKeys != masks[i]) {
+                    fprintf(stderr, "FAIL: real SDL fast tap %u/%u expected=%x pressed=%x input=%x\n", repeat, i, masks[i], gPressedKeys, gInput);
+                    exit(2);
+                }
+                __real_VBlankIntrWait();
+                GetInput();
+                if (gInput || gReleasedKeys != masks[i]) abort();
+            }
+        }
+        FastTouch(window, 0);
+        FastTouch(window, 1);
+        __real_VBlankIntrWait();
+        GetInput();
+        if (gPressedKeys != (DPAD_RIGHT | A_BUTTON)) abort();
+        __real_VBlankIntrWait();
+        GetInput();
+        if (gInput || gReleasedKeys != (DPAD_RIGHT | A_BUTTON)) abort();
+        fprintf(stderr, "PASS: real Android SDL frame loop retains 32 fast taps and simultaneous direction+jump, with clean release\n");
+        exit(0);
+    }
+#endif
     if (getenv("SA_TEST_RECREATE")) {
         frames = 0;
         __real_AgbMain();

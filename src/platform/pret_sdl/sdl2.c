@@ -700,7 +700,9 @@ void VBlankIntrWait(void)
             }
 
             while (accumulator >= dt) {
+#ifndef __ANDROID__
                 REG_KEYINPUT = KEYS_MASK ^ Platform_GetKeyInput();
+#endif
                 if (frameAvailable) {
                     VDraw(sdlTexture);
                     frameAvailable = FALSE;
@@ -710,6 +712,12 @@ void VBlankIntrWait(void)
 
                     accumulator -= dt;
                 } else {
+#ifdef __ANDROID__
+                    /* Latch touch once, at the logic-frame boundary. Sampling
+                     * during both presentation and return consumes a short
+                     * DOWN/UP pair and overwrites it before GetInput runs. */
+                    REG_KEYINPUT = KEYS_MASK ^ Platform_GetKeyInput();
+#endif
                     newFrameRequested = TRUE;
                     return;
                 }

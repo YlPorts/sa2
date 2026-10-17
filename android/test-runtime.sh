@@ -50,6 +50,8 @@ cd "$WORK"
 export ASAN_OPTIONS=detect_leaks=0
 "${RUNNER[@]}" ./controls-check "$WORK/controls.bmp"
 if [[ "$ANDROID_BACKEND" == 1 ]]; then
+    SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy SA_TEST_FAST_TAP=1 \
+        "${RUNNER[@]}" ./sa2.runtime "$WORK"
     SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy SA_TEST_RECREATE=1 \
         "${RUNNER[@]}" ./sa2.runtime "$WORK"
     SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy SA_TEST_BOOT=1 \
