@@ -44,8 +44,8 @@ def acknowledge_observed_fullscreen_tutorial():
     if not all(near(p,(238,237,243)) for p in body): return False
     if not all(near(p,(73,93,146)) for p in button): return False
     (out/'android-fullscreen-tutorial.png').write_bytes(data)
-    adb('shell','input','tap','1673','499')
-    print('Acknowledged screenshot-verified Android fullscreen tutorial with null accessibility root',flush=True)
+    adb('shell','input','swipe','1673','499','1674','500','160')
+    print('Pressed screenshot-verified Android fullscreen tutorial button',flush=True)
     return True
 
 def hierarchy():
@@ -130,11 +130,19 @@ def assert_no_game_menu():
     # Check the actual Java view visibility and focused app window instead.
     # The positive pause test below still locates/clicks the real Button via
     # accessibility; a missing or stale visibility callback fails this check.
-    acknowledge_observed_fullscreen_tutorial()
     assert adb('shell','pidof',package).strip(), 'native process must remain alive'
-    window=adb('shell','dumpsys','window')
-    (out/'game-window.txt').write_text(window)
-    focus=[line for line in window.splitlines() if 'mCurrentFocus=' in line]
+    # A first-use system panel can remain focused after its first injected
+    # press. Retry only the screenshot-verified system button, and require the
+    # actual app window to regain focus before accepting any absence check.
+    deadline=time.monotonic()+15
+    while True:
+        acknowledge_observed_fullscreen_tutorial()
+        window=adb('shell','dumpsys','window')
+        (out/'game-window.txt').write_text(window)
+        focus=[line for line in window.splitlines() if 'mCurrentFocus=' in line]
+        if any(package+'/org.libsdl.app.SA2Activity' in line for line in focus): break
+        if time.monotonic()>=deadline: break
+        time.sleep(.4)
     assert any(package+'/org.libsdl.app.SA2Activity' in line for line in focus), 'the native game must own the focused window: '+str(focus)
     states=re.findall(r'SA Android pause settings visible=([01])',adb('logcat','-d'))
     assert states and states[-1]=='0', 'the actual Android settings button must be absent or GONE during gameplay'
