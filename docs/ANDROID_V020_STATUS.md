@@ -1,6 +1,75 @@
-# Android v0.2.0 OCS4 — candidata RC2
+# Android v0.2.0 OCS4 — candidata RC3
 
 Esta es una candidata de prueba, no la versión estable v0.2.0.
+
+## Selección, pantalla y pausa en RC3
+
+Se conserva el widescreen existente de 426×240. «Pantalla completa · encuadre»
+llena paneles anchos mediante escala uniforme y recorte vertical limitado: no
+amplía el mundo, altera las físicas ni cambia el disparo de eventos. El HUD
+se desplaza hacia el área visible. En 2340×1080 el margen seguro es de 22 píxeles
+del framebuffer. Los menús conservan 240×160; jefes y proporciones incompatibles
+usan el encuadre completo. Siguen disponibles 16:9 completo y píxeles enteros.
+
+Los retratos oscuros de Cream, Tails, Knuckles y Amy correspondían al bloqueo
+de personajes de una partida nueva. Android permite ahora seleccionar los
+cinco originales sin modificar los bits de desbloqueo ni inventar progreso.
+Se conservan sus sprites y paletas originales y los siete personajes OC.
+
+Se retira el botón permanente de tres puntos. «Ajustes» aparece solamente en
+la pausa nativa y se oculta al continuar; Atrás de Android también abre los
+ajustes. El cambio se comunica desde el juego al hilo de interfaz de Android.
+La prueba exige tanto localizar y pulsar el botón visible como comprobar su
+visibilidad real después de reanudar. Una SurfaceView de SDL sin controles Java
+visibles puede no exponer una raíz de accesibilidad en Android 36; se verifican
+entonces el estado real de la vista, la ventana enfocada y el proceso activo.
+La ausencia del símbolo de tres puntos se comprueba en el DEX de la APK.
+
+Se reprodujo además una pérdida real de pulsaciones breves en el bucle SDL:
+la presentación consumía el contacto pendiente y otra lectura sobrescribía
+`REG_KEYINPUT` antes de `GetInput`. El backend Android muestrea ahora una sola
+vez, al devolver el control al siguiente fotograma de lógica. El harness usa
+eventos SDL DOWN/UP reales: la rutina anterior falla en la primera pulsación
+de A (`expected=1 pressed=0 input=0`), mientras la corregida entrega 32 toques
+de A/B/Start/derecha, dirección+salto en el mismo tick y liberaciones limpias.
+La prueba forma parte del job Android nativo y no se empaqueta en la APK.
+
+La APK sin firma original utiliza `com.ylports.sonicadvance2.preview.rc3`,
+versionCode 23, `0.2.0-rc3-OCS4`. Conserva instaladas las versiones anteriores;
+sus datos privados no se importan automáticamente.
+
+La publicación exige aprobar compilación, regresiones y recorrido Android 36
+del mismo commit. El publicador RC3 verifica el manifiesto, el SHA-256 y los
+resultados antes de publicar exactamente el artefacto probado, sin recompilar.
+
+### Verificación de RC3
+
+La ejecución [39072881331](https://github.com/YlPorts/sa2/actions/runs/39072881331)
+aprobó `apk`, `regressions` y `android-emulator` sobre el commit
+`638d02dd6849933769ca20aeafb3974d0d6877c4`. Pasaron ocho pruebas unitarias,
+controles/plataforma, 132 casos nativos, cinco selecciones originales con
+guardado nuevo y 24 casos de resultados de bonus mediante fixtures Android.
+El bucle SDL real retuvo 32 pulsaciones breves y dirección+salto, comprobando
+también sus liberaciones. El arranque nativo alcanzó 1.200 frames de nivel y
+el motor se cerró/reinició dos veces en el mismo proceso.
+
+La variante x86_64 instalada en Android 36 completó perfil original, navegación
+por los cinco originales, confirmación de Amy, entrada al nivel, movimiento y
+salto. Las capturas revisadas muestran los retratos con sus colores, la partida
+a 2340×1080 sin barras laterales y con HUD visible, y el botón Ajustes presente
+en pausa y ausente al reanudar. También pasaron recreación de actividad, editor,
+suspensión, ajustes persistentes y recarga del perfil después de cierre forzado.
+
+Las instrucciones de la APK ARM64 aprobaron seis inicializaciones y cuatro
+pruebas de 90 ciclos de mezcla (360 en total), además del control negativo de
+RC1 en `0x6a4340`/`0x20`. Ambas ABI conservan los siete atlas y paletas
+verificados contra el código. La firma y la alineación ZIP/ELF se verificaron.
+
+APK ARM32/ARM64: 33.901.165 bytes; SHA-256
+`ff2e6d2678b62311e36a061ab90544cc6c30158e695a4da555673a0d7a0b50da`.
+Biblioteca ARM64: SHA-256
+`81a76e4d4adfbf6a4f848189e9138bcd02768868fc2a144ad5297adbd47863d2`.
+La jugabilidad ARM, GPU Mali y salida de audio en el A15 físico siguen pendientes.
 
 ## Cierre ARM64 de RC1 y corrección RC2
 
@@ -100,7 +169,7 @@ La identidad OC continúa guardándose por separado con el mismo formato OCS1.
   área táctil, restauración y persistencia. Se conserva la combinación de
   cruceta, salto y habilidad. Los toques breves se retienen hasta el siguiente
   tick; el movimiento de un contacto cancelado no crea un dedo fantasma.
-- Ajustes de Android se abren con el botón discreto de tres puntos. El juego y
+- Ajustes de Android se abren desde la pausa o con Atrás de Android. El juego y
   su audio se suspenden mientras están abiertos. Los cambios llegan al hilo
   del juego mediante una copia en la cola SDL, sin compartir referencias JNI.
 - Escalado con proporción correcta y alternativa de píxeles enteros. El filtro
@@ -197,10 +266,10 @@ harness. La firma se comprueba con `apksigner`.
 La alineación ZIP se verifica con `zipalign -P 16`; los segmentos ELF de las
 bibliotecas de 64 bits también se inspeccionan en la APK real.
 
-La publicación RC1 exige que pasen compilación, regresiones y emulador en el
-mismo commit. Se activa explícitamente con la opción `publish_candidate` al
-ejecutar el workflow o con `[publish-rc1]` en el mensaje del commit. Siempre
-se publica como prerelease y se rechaza sobrescribir una RC1 existente.
+La publicación de RC1 exigía compilación, regresiones y emulador en el
+mismo commit, con activación explícita. Se publicó como prerelease y se
+rechazaba sobrescribir una RC1 existente. RC3 conserva esas condiciones y
+publica mediante `sa2-publish-verified-rc3.yml` y su manifiesto específico.
 
 También puede promoverse el artefacto ya verificado con
 `sa2-publish-verified-rc.yml`: el manifiesto registra commit, ejecución, paquete
@@ -233,7 +302,7 @@ informe y capturas Android, símbolos nativos y vínculo al commit exacto.
 La firma anterior tiene SHA-256
 `15767e621886f4c420af89c6f9767d1857b5fe830782095177a0166400a14e76`.
 El repositorio no contiene esa clave privada. Si no está configurada en Actions,
-la candidata usa `com.ylports.sonicadvance2.preview` y una firma de pruebas.
+RC3 usa `com.ylports.sonicadvance2.preview.rc3` y una firma de pruebas.
 Así puede instalarse junto a la Beta 5 y sus archivos privados permanecen
 separados. No debe desinstalarse la Beta 5 para instalar esta candidata.
 
@@ -244,6 +313,12 @@ La clave se prepara fuera del repositorio y se elimina al terminar el job.
 
 ## Pendiente antes de una versión estable
 
+- En el A15: instalar RC3 junto a las anteriores, terminar el perfil original,
+  elegir Cream/Tails/Knuckles/Amy y entrar al nivel con cada uno; comprobar
+  toques breves y carrera+salto+habilidad con varios dedos. Pausar con Start,
+  abrir Ajustes y reanudar: la entrada de Ajustes debe desaparecer al jugar.
+  Alternar encuadre/16:9/píxeles enteros, suspender, reabrir y comprobar HUD,
+  proporciones, controles y persistencia. Registrar vídeo/log si falla.
 - Instalación y juego prolongado en Samsung Galaxy A15 SM-A155M / Android 16,
   tanto con ARM32 como con ARM64, incluyendo GPU Mali, audio y multitáctil real.
 - Comparación visual completa con GBA en todos los actos y jefes.
