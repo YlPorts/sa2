@@ -168,7 +168,9 @@ jobs:
           name: SonicAdvance2-v0.2.0-OCS4-candidate
           path: emulator-input
       - name: Enable emulator acceleration
-        run: sudo chmod a+rw /dev/kvm
+        run: |
+          sudo chmod a+rw /dev/kvm
+          python3 -m pip install 'Pillow==11.3.0'
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 36

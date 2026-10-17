@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Install and exercise the real release APK/UI on Android, preserving evidence."""
 import json
+import io
 from pathlib import Path
 import re
 import struct
@@ -8,6 +9,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+from PIL import Image
 
 source, out = map(Path, sys.argv[1:3])
 out.mkdir(parents=True, exist_ok=True)
@@ -25,6 +27,26 @@ def capture(name):
     print('Captured '+name, flush=True)
     return struct.unpack_from('>II',data,16)
 
+def acknowledge_observed_fullscreen_tutorial():
+    # Android36 sometimes exposes no accessibility root for its immersive
+    # tutorial. The first RC3 run captured this exact 2340x1080 system panel.
+    # Require its light body AND three blue button pixels before tapping the
+    # observed Got it location; never issue a blind tap into the native game.
+    data=adb('exec-out','screencap','-p',binary=True)
+    picture=Image.open(io.BytesIO(data)).convert('RGB')
+    if picture.size!=(2340,1080): return False
+    def near(point,expected):
+        actual=picture.getpixel((round(picture.width*point[0]),round(picture.height*point[1])))
+        return all(abs(a-b)<=8 for a,b in zip(actual,expected))
+    body=[(.24,.05),(.5,.05),(.75,.2)]
+    button=[(.69,.45),(.72,.49),(.745,.46)]
+    if not all(near(p,(238,237,243)) for p in body): return False
+    if not all(near(p,(73,93,146)) for p in button): return False
+    (out/'android-fullscreen-tutorial.png').write_bytes(data)
+    adb('shell','input','tap','1673','499')
+    print('Acknowledged screenshot-verified Android fullscreen tutorial with null accessibility root',flush=True)
+    return True
+
 def hierarchy():
     last_error=None
     for attempt in range(3):
@@ -37,6 +59,7 @@ def hierarchy():
             return root
         except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ET.ParseError) as error:
             last_error=error
+            acknowledge_observed_fullscreen_tutorial()
             time.sleep(.5)
     raise AssertionError('Android accessibility hierarchy unavailable after retries: '+str(last_error))
 
