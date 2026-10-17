@@ -32,6 +32,34 @@ instalarse junto a RC1 y Beta 5, conservando sus partidas privadas. No requiere
 desinstalar ninguna aplicación anterior ni importa automáticamente su progreso.
 RC1 sigue conservada como versión anterior con un cierre ARM64 conocido.
 
+### Verificación de RC2
+
+La ejecución [38992392672](https://github.com/YlPorts/sa2/actions/runs/38992392672)
+aprobó `apk`, `regressions` y `android-emulator` sobre el commit
+`3a6024d880c0782a3bc862d4c8512cf3376451e3`. Se publica el mismo artefacto con
+`sa2-publish-verified-rc2.yml`, que exige esos resultados y el hash de la APK,
+sin recompilar ni cambiar su firma temporal al publicarla.
+
+La CPU ARM64 ejecutó seis inicializaciones y cuatro casos de 90 ciclos de
+mezcla: intro (reloj 78), Leaf Forest (92), Special Stage (92) y anillos (50).
+Cada caso verifica la canción seleccionada, avance del secuenciador y muestras
+PCM/PSG válidas después de reinicializar. Se inspeccionan los bloques DMA activos
+y el buffer PSG. El control negativo reproduce la escritura a `0x20` de RC1.
+
+Pasaron ocho pruebas unitarias, controles/plataforma, conversión de recursos,
+132 escenarios nativos y 24 finales de bonus con rutas Android. La APK x86_64
+instalada en Android 16 completó el recorrido de ajustes, editor, recreación,
+reanudación, perfil original, entrada al nivel y recarga del guardado. Las
+capturas de arranque, editor y nivel se revisaron. El test reconoce el aviso
+de pantalla completa del sistema antes de tocar controles cubiertos.
+
+APK: `com.ylports.sonicadvance2.preview.rc2`, versionCode 22,
+`0.2.0-rc2-OCS4`, 33.898.548 bytes. SHA-256:
+`ebe60c8d1e49bcead4a2feffa9df96fc9dbd2d216517ba23790b83faadac7295`.
+La biblioteca ARM64 tiene SHA-256
+`1d246aa88ac9bbc4c5f1517141f58dd0936f5f56ec5b8d6e959fc11c24c97680`.
+La salida Android de audio y el juego ARM en el A15 físico siguen pendientes.
+
 ## Continuidad y recursos
 
 La rama `android-v0.2.0-ocs4` conserva `Mis-4-Ocs`. El árbol OCS4
@@ -180,7 +208,7 @@ y SHA-256. El publicador exige los tres jobs aprobados, comprueba que el código
 del juego no haya cambiado y publica los mismos bytes sin una nueva compilación
 ni una nueva clave de pruebas.
 
-### Evidencia de la candidata publicada
+### Evidencia conservada de RC1 (versión anterior)
 
 - Código de la APK: `ba57e076f7ba84b6ab666be346ba001a3fc4cbbb`.
 - [Ejecución 38965740681](https://github.com/YlPorts/sa2/actions/runs/38965740681):

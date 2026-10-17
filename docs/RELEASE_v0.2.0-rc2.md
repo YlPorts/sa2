@@ -23,6 +23,23 @@ Se mantienen las pruebas de personajes, bonus, controles y guardado, así como
 la instalación y recorrido real de la APK x86_64 en el emulador Android 16.
 Los informes, hashes, símbolos y capturas se adjuntan a la publicación.
 
+Validación aprobada en el commit `3a6024d880c0782a3bc862d4c8512cf3376451e3`:
+[Actions 38992392672](https://github.com/YlPorts/sa2/actions/runs/38992392672).
+Pasaron compilación, regresiones e instalación Android 16. La prueba ARM64
+completó seis inicializaciones y 360 ciclos de mezcla de intro, nivel, bonus y
+anillos, con muestras válidas y avance del secuenciador. También pasaron ocho
+pruebas unitarias, 132 escenarios del motor y 24 finales de bonus con rutas
+Android. Estos finales usan fixtures; sigue pendiente completar los bonus jugando.
+
+La APK x86_64 instalada en Android 16 completó recreación de actividad, ajustes,
+arrastre/guardado del control A, suspensión/reanudación, perfil original,
+entrada al nivel por controles táctiles y recarga del guardado tras forzar el
+cierre. Se revisaron las capturas de arranque, editor y partida.
+
+La APK ARM32/ARM64 publicada conserva exactamente el artefacto verificado:
+33.898.548 bytes, versionCode 22, SHA-256
+`ebe60c8d1e49bcead4a2feffa9df96fc9dbd2d216517ba23790b83faadac7295`.
+
 Si falta la firma de producción, el paquete es
 `com.ylports.sonicadvance2.preview.rc2` y la aplicación aparece como
 **Sonic Advance 2 RC2**. Puede instalarse junto a RC1 y Beta 5 sin desinstalarlas
