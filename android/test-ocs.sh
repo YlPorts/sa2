@@ -75,6 +75,13 @@ if [[ "${SA_OC_FOCUSED:-0}" == 1 ]]; then
     export SA_OC_RECORD_FRAMES=1 SA_OC_VISUAL_CAPTURE=1
 fi
 if [[ "${SA_OC_BUILD_ONLY:-0}" == 1 ]]; then exit 0; fi
+if [[ "${SA_OC_ANDROID_ORIGINALS:-0}" == 1 ]]; then
+    for ENTRY in 0 1 2 3 4; do
+        SA_OC_MODE=select SA_OC_ENTRY="$ENTRY" SA_OC_FRESH_SAVE=1 RunCase "${RUNNER[@]}" ./sa2.oc-runtime
+    done
+    printf 'All five original Android characters are visible and selectable from a fresh Sonic-only save.\n'
+    exit 0
+fi
 if [[ "${SA_OC_ANDROID_BONUS_MATRIX:-0}" == 1 ]]; then
     for ENTRY in 0 1 2 3 4 5 6 7 8 9 10 11; do
         for SUCCESS in 0 1; do

@@ -9,6 +9,7 @@ enum {
     SA_OPT_COUNT = SA_OPT_LAYOUT + 7 * 3
 };
 #define SA_OPTIONS_EVENT 0x534132
+enum { SA_SCREEN_FIT, SA_SCREEN_INTEGER, SA_SCREEN_FULL };
 typedef struct { int values[SA_OPT_COUNT]; bool open; } AndroidOptionsMessage;
 extern int gAndroidOptions[SA_OPT_COUNT];
 void AndroidOptions_Defaults(int values[SA_OPT_COUNT]);

@@ -106,6 +106,9 @@ typedef struct {
 #endif
 } StageUI; /* size: 0x2F0 */
 
+#ifdef __ANDROID__
+#include "platform/shared/android_presentation.h"
+#endif
 void Task_StageUIMain(void);
 void TaskDestructor_CreateStageUI(Task *t);
 
@@ -265,6 +268,9 @@ Task *CreateStageUI(void)
 
 void Task_StageUIMain(void)
 {
+#ifdef __ANDROID__
+    u16 firstHudOam = gOamFreeIndex;
+#endif
     if (!(gStageFlags & STAGE_FLAG__TURN_OFF_HUD)) {
         u32 time;
         s32 score;
@@ -516,6 +522,9 @@ void Task_StageUIMain(void)
             DisplaySprite(sd);
         }
     }
+#ifdef __ANDROID__
+    AndroidPresentation_InsetHud(firstHudOam);
+#endif
 }
 
 // Almost identical to Debug_PrintIntegerAt()"

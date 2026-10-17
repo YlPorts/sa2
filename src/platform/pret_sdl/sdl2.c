@@ -37,6 +37,7 @@
 #include "platform/shared/android_viewport.h"
 #include "platform/shared/android_options.h"
 #include "platform/shared/android_touch.h"
+#include "platform/shared/android_presentation.h"
 #ifdef SA1_RUNTIME_IMPORT
 #include "platform/shared/rom_assets.h"
 #endif
@@ -86,6 +87,7 @@ static unsigned sAndroidFpsFrames, sAndroidFps;
 static SDL_GameController *sAndroidController = NULL;
 static char sAndroidStagePath[1024];
 static bool sAndroidNativeUiCrop = false;
+static bool sAndroidGameplayViewport = false;
 static bool sAndroidDirectBgr555 = false;
 static Uint32 sAndroidColorLut[0x8000];
 static bool sAndroidColorLutReady = false;
@@ -136,6 +138,29 @@ void Platform_SetStartupStage(const char *stage)
 void Platform_SetNativeUiCrop(bool8 enabled)
 {
     sAndroidNativeUiCrop = enabled != FALSE;
+    if (enabled) sAndroidGameplayViewport = false;
+}
+
+void Platform_SetGameplayViewport(bool8 enabled)
+{
+    sAndroidGameplayViewport = enabled != FALSE;
+    if (sdlRenderer) SDL_GetRendererOutputSize(sdlRenderer, &sAndroidOutputW, &sAndroidOutputH);
+    SDL_Log("SA Android viewport gameplay=%d output=%dx%d mode=%d inset=%d", sAndroidGameplayViewport,
+            sAndroidOutputW, sAndroidOutputH, gAndroidOptions[SA_OPT_SCREEN], Platform_GetGameplayInsetY());
+}
+
+s16 Platform_GetGameplayInsetY(void)
+{
+    if (!sAndroidGameplayViewport || sAndroidNativeUiCrop) return 0;
+    return AndroidViewport_InsetY(sAndroidOutputW, sAndroidOutputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+}
+
+void Platform_SetPauseMenuVisible(bool8 visible)
+{
+#ifndef SA_ANDROID_HOST_TEST
+    extern void AndroidOptions_NotifyPauseMenu(bool visible);
+    AndroidOptions_NotifyPauseMenu(visible != FALSE);
+#endif
 }
 
 static void AndroidInitColorLut(void)
@@ -264,6 +289,7 @@ int main(int argc, char **argv)
     sAndroidSuspended = false;
     sAndroidOptionsOpen = false;
     sAndroidNativeUiCrop = false;
+    sAndroidGameplayViewport = false;
     AndroidClearInput();
     accumulator = 0.0;
     lastGameTime = SDL_GetPerformanceCounter();
@@ -720,10 +746,12 @@ void VBlankIntrWait(void)
         SDL_GetRendererOutputSize(sdlRenderer, &outputW, &outputH);
         if (sAndroidNativeUiCrop) {
             SDL_Rect nativeUiRect = { 0, 0, 240, 160 };
-            SDL_Rect destination = AndroidViewport_Game(outputW, outputH, 240, 160);
+            SDL_Rect destination = AndroidViewport_Menu(outputW, outputH, 240, 160);
             SDL_RenderCopy(sdlRenderer, sdlTexture, &nativeUiRect, &destination);
         } else {
-            SDL_Rect destination = AndroidViewport_Game(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+            SDL_Rect destination = sAndroidGameplayViewport
+                ? AndroidViewport_Game(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT)
+                : AndroidViewport_Menu(outputW, outputH, DISPLAY_WIDTH, DISPLAY_HEIGHT);
             SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &destination);
         }
 

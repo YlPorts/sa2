@@ -29,6 +29,7 @@
 
 #ifdef __ANDROID__
 extern void Platform_SetNativeUiCrop(bool8 enabled);
+extern void Platform_SetStartupStage(const char *stage);
 #endif
 
 #define OC_MENU_ENTRIES (NUM_CHARACTERS + OC_CHARACTER_COUNT)
@@ -412,6 +413,11 @@ static void RefreshSelection(OcMenu *menu, bool8 chosen)
 {
     u8 entry = menu->selection;
     Sprite *s = &menu->character;
+#ifdef __ANDROID__
+    static const char *const previews[] = { "character_preview_sonic", "character_preview_cream", "character_preview_tails",
+                                           "character_preview_knuckles", "character_preview_amy" };
+    if (entry < NUM_CHARACTERS) Platform_SetStartupStage(previews[entry]);
+#endif
     if (entry >= OC_SELECT_FIRST) {
         u8 oc = entry - OC_SELECT_FIRST;
         s->graphics.src = gOcFrameTiles[oc][chosen ? 28 : 0];
@@ -486,6 +492,11 @@ void CreateOcCharacterSelectionScreen(u8 initialSelection, bool8 allUnlocked)
     menu->selection = gSelectedOc >= 0 ? OC_SELECT_FIRST + gSelectedOc
                                       : (initialSelection < NUM_CHARACTERS ? initialSelection : CHARACTER_SONIC);
     menu->available = LOADED_SAVE->unlockedCharacters;
+#ifdef __ANDROID__
+    /* Android exposes every playable identity from the start. Keep the real
+     * story unlocks and per-character progress in the save unchanged. */
+    menu->available |= (1 << NUM_CHARACTERS) - 1;
+#endif
     menu->wheelPosition = -(s32)menu->selection * (1024 * 256) / OC_MENU_ENTRIES;
     menu->scrollFrame = OC_MENU_SCROLL_FRAMES;
     gDispCnt = 0x1740;
@@ -523,6 +534,9 @@ void CreateOcCharacterSelectionScreen(u8 initialSelection, bool8 allUnlocked)
     menu->fade.bldCnt = BLDCNT_EFFECT_DARKEN | BLDCNT_TGT1_ALL;
     UpdateScreenFade(&menu->fade);
     m4aSongNumStart(MUS_CHARACTER_SELECTION);
+#ifdef __ANDROID__
+    Platform_SetStartupStage("character_select_ready");
+#endif
 }
 
 static void BeginExitFade(OcMenu *menu)

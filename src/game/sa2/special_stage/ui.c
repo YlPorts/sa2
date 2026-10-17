@@ -15,6 +15,7 @@
 #endif
 
 #ifdef __ANDROID__
+#include "platform/shared/android_presentation.h"
 #define SP_RESULTS_WIDTH 240
 #define SP_RESULTS_HEIGHT 160
 #define SP_RESULTS_CENTER_X 120
@@ -94,12 +95,18 @@ static const struct UNK_80DF670 sChaosEmeraldUnlockedSprites[] = {
 
 void sub_806FB04(void)
 {
+#ifdef __ANDROID__
+    u16 firstHudOam = gOamFreeIndex;
+#endif
     struct SpecialStageUI *ui = TASK_DATA(gCurTask);
     struct SpecialStage *stage = ui->stage;
 
     RenderTime();
     RenderRingCounters();
     RenderMultiplier();
+#ifdef __ANDROID__
+    AndroidPresentation_InsetHud(firstHudOam);
+#endif
 
     if (ui->unk2A8 == 0) {
         if (stage->state == 4) {

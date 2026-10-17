@@ -57,11 +57,16 @@ void sub_806CA54(void);
 void sub_806CA18(void);
 void sub_806C158(void);
 
+#ifdef __ANDROID__
+#include "platform/shared/android_presentation.h"
+#endif
+
 void CreateSpecialStage(s16 selectedCharacter, s16 level)
 {
 #ifdef __ANDROID__
     extern void Platform_SetNativeUiCrop(bool8 enabled);
     Platform_SetNativeUiCrop(FALSE);
+    Platform_SetGameplayViewport(TRUE);
 #endif
     Task *t;
     struct SpecialStage *stage;
@@ -711,6 +716,9 @@ bool32 SpecialStagePauseMenuMain(void)
         } else if (gPressedKeys & A_BUTTON) {
             if (stage->pauseMenuCursor == 0) {
                 stage->paused = FALSE;
+#ifdef __ANDROID__
+                Platform_SetPauseMenuVisible(FALSE);
+#endif
                 // Don't jump when exiting menu
                 gPressedKeys &= ~A_BUTTON;
 
@@ -730,6 +738,9 @@ bool32 SpecialStagePauseMenuMain(void)
     if (gPressedKeys & START_BUTTON) {
         stage->paused = !stage->paused ? TRUE : FALSE;
         stage->pauseMenuCursor = 0;
+#ifdef __ANDROID__
+        Platform_SetPauseMenuVisible(stage->paused);
+#endif
     }
 
     BUG_FIX_RETURN(FALSE);
@@ -737,6 +748,10 @@ bool32 SpecialStagePauseMenuMain(void)
 
 static void SpecialStageOnDestroy(UNUSED Task *t)
 {
+#ifdef __ANDROID__
+    Platform_SetGameplayViewport(FALSE);
+    Platform_SetPauseMenuVisible(FALSE);
+#endif
     gBgOffsetsPrimary = &gBgOffsetsBuffer[0];
     gBgOffsetsSecondary = &gBgOffsetsBuffer[1];
 }

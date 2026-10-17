@@ -1,7 +1,21 @@
 #if defined(__ANDROID__) && !defined(SA_ANDROID_HOST_TEST)
 #include <jni.h>
 #include <SDL.h>
+#include <SDL_system.h>
 #include "platform/shared/android_options.h"
+
+void AndroidOptions_NotifyPauseMenu(bool visible)
+{
+    JNIEnv *env = SDL_AndroidGetJNIEnv();
+    jobject activity = SDL_AndroidGetActivity();
+    if (!env || !activity) return;
+    jclass cls = (*env)->GetObjectClass(env, activity);
+    jmethodID method = (*env)->GetMethodID(env, cls, "setNativePauseMenuVisible", "(Z)V");
+    if (method) (*env)->CallVoidMethod(env, activity, method, (jboolean)visible);
+    if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionDescribe(env); (*env)->ExceptionClear(env); }
+    (*env)->DeleteLocalRef(env, cls);
+    (*env)->DeleteLocalRef(env, activity);
+}
 
 /* UI threads enqueue a copy; all renderer/audio/input state changes remain on
  * the game thread. No JNI reference or Java array outlives this call. */

@@ -20,6 +20,8 @@ int main(int argc, char **argv)
         const float b = w < h ? w : h, unit = b * .105f * .85f;
         const float cx = b * .22f, cy = h - b * .25f;
         const int sources[][2] = { {426, 240}, {240, 160} };
+        int initial[SA_OPT_COUNT]; AndroidOptions_Defaults(initial); initial[SA_OPT_SCREEN] = SA_SCREEN_FIT;
+        AndroidOptions_Apply(initial);
         for (unsigned j = 0; j < 2; j++) {
             SDL_Rect fitted = AndroidViewport_Fit(w, h, sources[j][0], sources[j][1]);
             assert(fitted.w > 0 && fitted.h > 0);
@@ -34,7 +36,7 @@ int main(int argc, char **argv)
                 assert(integer.w % sources[j][0] == 0 && integer.h % sources[j][1] == 0);
                 assert(integer.w / sources[j][0] == integer.h / sources[j][1]);
             }
-            AndroidOptions_Defaults(options); AndroidOptions_Apply(options);
+            AndroidOptions_Defaults(options); options[SA_OPT_SCREEN] = SA_SCREEN_FIT; AndroidOptions_Apply(options);
         }
         assert(At(cx, cy, w, h) == 0);
         assert(At(cx + unit, cy, w, h) == DPAD_RIGHT);
@@ -62,6 +64,20 @@ int main(int argc, char **argv)
     assert(AndroidControls_CreateSurface(0, 0, 0) == NULL);
     assert(AndroidViewport_Fit(0, 0, 426, 240).w == 0);
     assert(AndroidViewport_Game(0, 0, 426, 240).w == 0);
+    // Galaxy A15 landscape: retain the 426x240 simulation and one scale on
+    // both axes, fill its entire 2340x1080 panel, and protect the complete HUD.
+    int full[SA_OPT_COUNT]; AndroidOptions_Defaults(full); AndroidOptions_Apply(full);
+    SDL_Rect filled = AndroidViewport_Game(2340, 1080, 426, 240);
+    assert(filled.x == 0 && filled.w == 2340 && filled.y < 0 && filled.y + filled.h >= 1080);
+    assert(abs(filled.w * 240 - filled.h * 426) < 426);
+    int inset = AndroidViewport_InsetY(2340, 1080, 426, 240);
+    assert(inset == 22);
+    assert(filled.y + (inset * filled.h / 240) >= 0);
+    assert(filled.y + ((240 - inset) * filled.h / 240) <= 1080);
+    SDL_Rect menu = AndroidViewport_Menu(2340, 1080, 240, 160);
+    assert(menu.x >= 0 && menu.y >= 0 && menu.x + menu.w <= 2340 && menu.y + menu.h <= 1080);
+    assert(AndroidViewport_InsetY(3840, 1080, 426, 240) == 0); // keep >=160 source rows
+    assert(AndroidViewport_InsetY(1280, 960, 426, 240) == 0); // safe frame on narrow panels
     int options[SA_OPT_COUNT];
     AndroidOptions_Defaults(options);
     options[SA_OPT_LAYOUT + 3] = 700; options[SA_OPT_LAYOUT + 4] = 650;

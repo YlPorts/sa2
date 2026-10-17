@@ -25,6 +25,9 @@
 #endif
 
 #include "game/shared/stage/water_effects.h"
+#ifdef __ANDROID__
+#include "platform/shared/android_presentation.h"
+#endif
 
 typedef struct {
     /* 0x00 */ Sprite s;
@@ -333,6 +336,9 @@ void Task_PauseMenuInit(void)
     m4aSongNumStart(SE_PAUSE_SCREEN);
 
     gFlags |= FLAGS_PAUSE_GAME;
+#ifdef __ANDROID__
+    Platform_SetPauseMenuVisible(TRUE);
+#endif
 
 #if (GAME == GAME_SA2)
     DmaCopy16(3, &GET_PALETTE_COLOR_OBJ(15, +9), pm->pal64, sizeof(pm->pal64));
@@ -344,6 +350,9 @@ void Task_PauseMenuInit(void)
 
 void TaskDestructor_PauseMenu(Task *t)
 {
+#ifdef __ANDROID__
+    Platform_SetPauseMenuVisible(FALSE);
+#endif
     PauseMenu *pm = TASK_DATA(t);
 #if (GAME == GAME_SA1)
     VramFree(pm->s2.graphics.dest);

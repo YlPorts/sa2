@@ -19,6 +19,7 @@ case "$GAME" in
     sa2)
         APP_NAME="Sonic Advance 2"
         if [[ "${SA_PACKAGE_SUFFIX:-}" == .preview.rc2 ]]; then APP_NAME="Sonic Advance 2 RC2"; fi
+        if [[ "${SA_PACKAGE_SUFFIX:-}" == .preview.rc3 ]]; then APP_NAME="Sonic Advance 2 RC3"; fi
         APK_NAME="SonicAdvance2-android-release.apk"
         ;;
     *)

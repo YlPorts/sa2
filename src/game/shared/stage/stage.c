@@ -18,6 +18,7 @@
 #ifdef __ANDROID__
 extern void Platform_SetStartupStage(const char *stage);
 extern void Platform_SetNativeUiCrop(bool8 enabled);
+#include "platform/shared/android_presentation.h"
 #define STAGE_STARTUP_STAGE(name) Platform_SetStartupStage(name)
 #else
 #define STAGE_STARTUP_STAGE(name) ((void)0)
@@ -281,6 +282,8 @@ void CreateGameStage(void)
 {
 #ifdef __ANDROID__
     Platform_SetNativeUiCrop(FALSE);
+    /* Fixed boss arenas retain their complete safe framing. */
+    Platform_SetGameplayViewport(ACT_INDEX(gCurrentLevel) != ACT_BOSS && !IS_EXTRA_STAGE(gCurrentLevel));
 #endif
     STAGE_STARTUP_STAGE("create_game_stage_enter");
     u8 i;
@@ -1198,6 +1201,10 @@ void GoToNextLevel(void)
 
 void TaskDestructor_GameStage(Task *t)
 {
+#ifdef __ANDROID__
+    Platform_SetGameplayViewport(FALSE);
+    Platform_SetPauseMenuVisible(FALSE);
+#endif
 #if (GAME == GAME_SA1)
     if ((gGameMode == GAME_MODE_TIME_ATTACK || (gGameMode == GAME_MODE_RACE) || (gGameMode == GAME_MODE_MULTI_PLAYER))
         || (gStageFlags & STAGE_FLAG__DEMO_RUNNING)) {

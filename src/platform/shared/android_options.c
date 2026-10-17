@@ -4,7 +4,7 @@
 #include <string.h>
 
 int gAndroidOptions[SA_OPT_COUNT] = {
-    0, 0, 85, 80, 120, 100, 100, 100, 0, 60, 0,
+    SA_SCREEN_FULL, 0, 85, 80, 120, 100, 100, 100, 0, 60, 0,
     -1, -1, 100, -1, -1, 100, -1, -1, 100, -1, -1, 100,
     -1, -1, 100, -1, -1, 100, -1, -1, 100
 };
@@ -13,7 +13,7 @@ static int ClampInt(int n, int low, int high) { return n < low ? low : n > high 
 
 void AndroidOptions_Defaults(int values[SA_OPT_COUNT])
 {
-    const int defaults[] = { 0, 0, 85, 80, 120, 100, 100, 100, 0, 60, 0 };
+    const int defaults[] = { SA_SCREEN_FULL, 0, 85, 80, 120, 100, 100, 100, 0, 60, 0 };
     memcpy(values, defaults, sizeof(defaults));
     for (int i = 0; i < 7; i++) {
         values[SA_OPT_LAYOUT + i * 3] = -1;
@@ -25,7 +25,7 @@ void AndroidOptions_Defaults(int values[SA_OPT_COUNT])
 void AndroidOptions_Apply(const int values[SA_OPT_COUNT])
 {
     memcpy(gAndroidOptions, values, sizeof(gAndroidOptions));
-    gAndroidOptions[SA_OPT_SCREEN] = ClampInt(values[SA_OPT_SCREEN], 0, 1);
+    gAndroidOptions[SA_OPT_SCREEN] = ClampInt(values[SA_OPT_SCREEN], SA_SCREEN_FIT, SA_SCREEN_FULL);
     gAndroidOptions[SA_OPT_FILTER] = ClampInt(values[SA_OPT_FILTER], 0, 1);
     gAndroidOptions[SA_OPT_SIZE] = ClampInt(values[SA_OPT_SIZE], 55, 140);
     gAndroidOptions[SA_OPT_OPACITY] = ClampInt(values[SA_OPT_OPACITY], 10, 100);

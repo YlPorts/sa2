@@ -9,6 +9,8 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.view.KeyEvent;
+import android.window.OnBackInvokedDispatcher;
 
 public class SA2Activity extends SDLActivity {
     static native void nativeOptions(int[] values, boolean open);
@@ -26,9 +28,32 @@ public class SA2Activity extends SDLActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onCreate(savedInstanceState);
         androidOptions = new AndroidOptionsUi(this);
-        androidOptions.attach();
+        if (Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> androidOptions.open());
+        }
         applyImmersiveMode();
         request60Hz();
+    }
+
+    // Android Back is available even when touch controls are hidden. Settings
+    // pause the native loop; no permanent menu icon covers the game scene.
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && androidOptions != null) {
+            if (event.getAction() == KeyEvent.ACTION_UP) androidOptions.open();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (androidOptions != null) androidOptions.open();
+    }
+
+    public void setNativePauseMenuVisible(boolean visible) {
+        runOnUiThread(() -> { if (androidOptions != null) androidOptions.setPauseMenuVisible(visible); });
     }
 
     @Override

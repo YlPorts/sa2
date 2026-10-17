@@ -92,14 +92,30 @@ def start():
     time.sleep(6)
     assert adb('shell','pidof',package).strip(), 'native process must remain alive'
 
+def open_settings():
+    for attempt in range(3):
+        adb('shell','input','keyevent','4')
+        try:
+            find('SONIC ADVANCE 2')
+            return
+        except AssertionError:
+            if attempt==2: raise
+
+def assert_no_game_menu():
+    nodes=list(hierarchy().iter('node'))
+    assert not any(n.get('text')=='⋮' or n.get('content-desc')=='Ajustes de Android' for n in nodes), 'gameplay must have no permanent settings overlay'
+
 checks=[]
 try:
     adb('logcat','-c')
+    adb('shell','wm','size','1080x2340')
     assert 'Success' in adb('install','-r',str(apk))
     checks.append('release APK installed')
     start()
     width,height=capture('01-original-startup')
     assert width>height, 'landscape orientation'
+    assert (width,height)==(2340,1080), 'Galaxy A15 aspect ratio must be exercised'
+    assert_no_game_menu()
     checks.append('Android36 native x86_64 boot and landscape')
     original_pid=adb('shell','pidof',package).strip()
     adb('shell','settings','put','system','font_scale','1.1')
@@ -111,7 +127,7 @@ try:
     recreated_width,recreated_height=capture('01b-recreated-activity')
     assert recreated_width>recreated_height, 'recreated game activity stays visible in landscape'
     checks.append('Android configuration recreation keeps the same process and restarts the real native engine')
-    click(description='Ajustes de Android')
+    open_settings()
     find('SONIC ADVANCE 2')
     capture('02-settings')
     select_setting('Pantalla:','Píxeles exactos')
@@ -134,9 +150,10 @@ try:
     checks.append('background and resume without native crash')
     adb('shell','am','force-stop',package)
     start()
-    click(description='Ajustes de Android')
+    open_settings()
     find('Pantalla: Píxeles exactos')
     capture('07-persisted-settings')
+    select_setting('Pantalla:','Pantalla completa · encuadre')
     click('Continuar jugando')
     time.sleep(.7)
     # Complete the original first-run profile with normal direction/A/Start
@@ -153,19 +170,44 @@ try:
         capture('07b-original-profile-created')
         checks.append('original first-run language/name profile completed through actual touch controls')
     inputs=[start_button,(tx,ty)]
+    selector_checked=False
     for n in range(100):
-        if 'SA Android gameplay ready' in adb('logcat','-d'):
+        current_log=adb('logcat','-d')
+        if not selector_checked and 'SA Android stage: character_select_ready' in current_log:
+            time.sleep(1)
+            capture('07c-original-selector-sonic')
+            for name in ['cream','tails','knuckles','amy']:
+                adb('shell','input','tap',str(right[0]),str(right[1]))
+                time.sleep(.45)
+                assert 'SA Android stage: character_preview_'+name in adb('logcat','-d'), 'normal touch navigation must reach '+name
+                capture('07c-original-selector-'+name)
+            selector_checked=True
+            checks.append('five original portraits navigated from a fresh save; Amy confirmed through the normal selector')
+        if 'SA Android gameplay ready' in current_log:
             ready=True
             break
         x,y=inputs[n%len(inputs)]
         adb('shell','input','tap',str(x),str(y))
         time.sleep(.3)
     assert ready, 'real Android touch input must reach the original game stage'
+    assert selector_checked, 'original character selector must be exercised before starting the stage'
     time.sleep(8)
     dx,dy=round(base*.22+base*.105*.85),round(height-base*.25)
     adb('shell','input','swipe',str(dx),str(dy),str(dx+1),str(dy),'1000')
     adb('shell','input','tap',str(tx),str(ty))
     capture('08-native-gameplay')
+    assert_no_game_menu()
+    assert 'viewport gameplay=1 output=2340x1080 mode=2 inset=22' in adb('logcat','-d'), 'full-screen A15 framing and HUD inset must be active in the native game'
+    adb('shell','input','tap',str(start_button[0]),str(start_button[1]))
+    find(description='Ajustes de Android')
+    capture('08b-pause-settings-entry')
+    click(description='Ajustes de Android')
+    click('Continuar jugando')
+    adb('shell','input','tap',str(start_button[0]),str(start_button[1]))
+    time.sleep(.5)
+    assert_no_game_menu()
+    capture('08c-resumed-without-overlay')
+    checks.append('A15 full-screen framing without stretching; settings button appears only while paused and disappears on resume')
     checks.append('original menus reach the real native level through touch; directional and jump targets exercised')
     adb('shell','am','force-stop',package)
     start()
@@ -175,7 +217,7 @@ try:
     capture('09-original-save-reloaded')
     checks.append('real original game profile survives force-stop and native save reload')
     log=adb('logcat','-d')
-    assert 'SA Android options loaded screen=1' in log, 'native startup must reload persisted configuration'
+    assert 'SA Android options loaded screen=2' in log, 'native startup must reload persisted full-screen configuration'
     assert 'SA Android options applied open=1 screen=1' in log, 'Java settings reach the native game thread'
     assert 'SA Android options applied open=0 screen=1' in log, 'closing settings resumes the native game thread'
     assert 'SA Android audio ready driver=' in log, 'a real Android audio backend must open successfully'

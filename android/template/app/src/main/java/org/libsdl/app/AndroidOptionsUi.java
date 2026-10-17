@@ -35,6 +35,7 @@ final class AndroidOptionsUi {
     private int[] values = defaults();
     private Dialog dialog;
     private int[] editingBefore;
+    private Button pauseSettings;
 
     AndroidOptionsUi(SA2Activity activity) {
         this.activity=activity;
@@ -45,7 +46,7 @@ final class AndroidOptionsUi {
 
     private static int[] defaults() {
         int[] v=new int[COUNT];
-        int[] head={0,0,85,80,120,100,100,100,0,60,0};
+        int[] head={2,0,85,80,120,100,100,100,0,60,0};
         System.arraycopy(head,0,v,0,head.length);
         for(int i=0;i<7;i++){v[LAYOUT+i*3]=-1;v[LAYOUT+i*3+1]=-1;v[LAYOUT+i*3+2]=100;}
         return v;
@@ -53,15 +54,16 @@ final class AndroidOptionsUi {
 
     private int dp(float n){return Math.round(n*activity.getResources().getDisplayMetrics().density);}
 
-    void attach() {
-        FrameLayout root=activity.findViewById(android.R.id.content);
-        TextView gear=new TextView(activity);
-        gear.setText("⋮");gear.setTextSize(26);gear.setTextColor(WHITE);
-        gear.setGravity(Gravity.CENTER);gear.setContentDescription("Ajustes de Android");
-        gear.setBackgroundColor(0x55001838);
-        FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(dp(40),dp(40),Gravity.TOP|Gravity.RIGHT);
-        lp.rightMargin=dp(6);lp.topMargin=dp(4);
-        root.addView(gear,lp);gear.setOnClickListener(v->open());
+    void setPauseMenuVisible(boolean visible) {
+        if (pauseSettings==null && visible) {
+            FrameLayout root=activity.findViewById(android.R.id.content);
+            pauseSettings=button("Ajustes",()->open());
+            pauseSettings.setContentDescription("Ajustes de Android");
+            FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(dp(160),dp(48),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+            lp.bottomMargin=dp(54);
+            root.addView(pauseSettings,lp);
+        }
+        if (pauseSettings!=null) pauseSettings.setVisibility(visible?View.VISIBLE:View.GONE);
     }
 
     private void send(boolean open) {
@@ -110,7 +112,7 @@ final class AndroidOptionsUi {
         });parent.addView(seek);
     }
 
-    private void open(){
+    void open(){
         if(dialog!=null&&dialog.isShowing())return;
         send(true);dialog=new Dialog(activity);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setOnDismissListener(d->{if(editingBefore!=null){values=editingBefore;editingBefore=null;}persist();send(false);dialog=null;});showMenu();dialog.show();
@@ -126,9 +128,9 @@ final class AndroidOptionsUi {
         panel.setPadding(dp(16),dp(8),dp(16),dp(12));
         TextView title=label("SONIC ADVANCE 2 · AJUSTES",20);title.setTextColor(GOLD);panel.addView(title);
         panel.addView(button("Continuar jugando",()->dialog.dismiss()));
-        choice(panel,"Pantalla",0,new String[]{"Proporción correcta","Píxeles exactos"});
+        choice(panel,"Pantalla",0,new String[]{"Escena completa · 16:9","Píxeles exactos","Pantalla completa · encuadre"});
         choice(panel,"Filtro",1,new String[]{"Nítido · vecino más cercano","Suave"});
-        panel.addView(label("Los menús conservan 3:2; la escena ampliada conserva su proporción.",12));
+        panel.addView(label("Encuadre llena pantallas anchas: recorta margen superior e inferior y mantiene el HUD visible. Menús 3:2 y jefes conservan la escena completa.",12));
         panel.addView(button("Editar posición y tamaño de cada control",()->showEditor()));
         slider(panel,"Tamaño de controles",SIZE,55,140);slider(panel,"Opacidad",OPACITY,10,100);
         slider(panel,"Área táctil",HIT,100,160);

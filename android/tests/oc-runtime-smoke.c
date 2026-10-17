@@ -751,7 +751,7 @@ void __wrap_AgbMain(void)
     gSelectedCharacter = CHARACTER_SONIC;
     gSelectedOc = -1;
     gGameMode = GAME_MODE_SINGLE_PLAYER;
-    LOADED_SAVE->unlockedCharacters = (1 << NUM_CHARACTERS) - 1;
+    if (!getenv("SA_OC_FRESH_SAVE")) LOADED_SAVE->unlockedCharacters = (1 << NUM_CHARACTERS) - 1;
     if (!strcmp(mode, "save-format")) {
         CheckPortableSave();
         exit(0);
@@ -834,6 +834,21 @@ static void DriveMenu(void)
     }
     if (cycle != 16) { SetInput(0); return; }
     if (strcmp(mode, "cancel")) CheckOcMenuGraphics();
+    if (getenv("SA_OC_FRESH_SAVE")) {
+        static const u8 banks[] = { 7, 11, 8, 9, 10 };
+        Require(entry < NUM_CHARACTERS && gSelectedOc == -1, "fresh-save selection uses an original identity");
+        Require(LOADED_SAVE->unlockedCharacters == CHARACTER_BIT(CHARACTER_SONIC),
+                "exposing Android characters never fabricates story unlocks in the save");
+        bool portraitSeen = false;
+        for (u16 i = 0; i < gOamFreeIndex; i++) {
+            const OamData *oam = &gOamMallocBuffer[i];
+            if (oam->split.tileNum >= 128 && oam->split.tileNum < 268 && oam->split.affineMode != ST_OAM_AFFINE_ERASE) {
+                Require(oam->split.paletteNum == banks[entry], "original portrait uses its real palette, not a locked silhouette");
+                portraitSeen = true;
+            }
+        }
+        Require(portraitSeen, "actual original portrait subframes reached the real rendered OAM");
+    }
     Capture("selector", menuFrames);
     if (!strcmp(mode, "cancel")) {
         if (!cancelled) { SetInput(B_BUTTON); cancelled = true; }
