@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,6 +43,7 @@ final class AndroidOptionsUi {
         prefs=activity.getSharedPreferences("sa-android-options-v1", 0);
         for(int i=0;i<COUNT;i++) values[i]=prefs.getInt("v"+i, values[i]);
         persist();
+        setPauseMenuVisible(false);
     }
 
     private static int[] defaults() {
@@ -64,6 +66,8 @@ final class AndroidOptionsUi {
             root.addView(pauseSettings,lp);
         }
         if (pauseSettings!=null) pauseSettings.setVisibility(visible?View.VISIBLE:View.GONE);
+        Log.i("SA2", "SA Android pause settings visible="
+                + ((pauseSettings!=null && pauseSettings.getVisibility()==View.VISIBLE)?1:0));
     }
 
     private void send(boolean open) {

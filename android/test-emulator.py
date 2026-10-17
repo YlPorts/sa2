@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+import zipfile
 from PIL import Image
 
 source, out = map(Path, sys.argv[1:3])
@@ -125,8 +126,18 @@ def open_settings():
             if attempt==2: raise
 
 def assert_no_game_menu():
-    nodes=list(hierarchy().iter('node'))
-    assert not any(n.get('text')=='⋮' or n.get('content-desc')=='Ajustes de Android' for n in nodes), 'gameplay must have no permanent settings overlay'
+    # A bare SDL SurfaceView legitimately has no accessibility root on API36.
+    # Check the actual Java view visibility and focused app window instead.
+    # The positive pause test below still locates/clicks the real Button via
+    # accessibility; a missing or stale visibility callback fails this check.
+    acknowledge_observed_fullscreen_tutorial()
+    assert adb('shell','pidof',package).strip(), 'native process must remain alive'
+    window=adb('shell','dumpsys','window')
+    (out/'game-window.txt').write_text(window)
+    focus=[line for line in window.splitlines() if 'mCurrentFocus=' in line]
+    assert any(package+'/org.libsdl.app.SA2Activity' in line for line in focus), 'the native game must own the focused window: '+str(focus)
+    states=re.findall(r'SA Android pause settings visible=([01])',adb('logcat','-d'))
+    assert states and states[-1]=='0', 'the actual Android settings button must be absent or GONE during gameplay'
 
 def wait_native_stage(name,timeout=30):
     deadline=time.monotonic()+timeout
@@ -141,6 +152,10 @@ checks=[]
 try:
     adb('logcat','-c')
     adb('shell','wm','size','1080x2340')
+    with zipfile.ZipFile(apk) as archive:
+        dex=archive.read('classes.dex')
+        assert '⋮'.encode() not in dex, 'the permanent three-dot overlay must be absent from the actual APK'
+        assert b'setNativePauseMenuVisible' in dex, 'the APK must include the real native pause callback'
     assert 'Success' in adb('install','-r',str(apk))
     checks.append('release APK installed')
     start()
@@ -240,6 +255,7 @@ try:
     assert 'viewport gameplay=1 output=2340x1080 mode=2 inset=22' in adb('logcat','-d'), 'full-screen A15 framing and HUD inset must be active in the native game'
     adb('shell','input','tap',str(start_button[0]),str(start_button[1]))
     find(description='Ajustes de Android')
+    assert re.findall(r'SA Android pause settings visible=([01])',adb('logcat','-d'))[-1]=='1', 'the actual Java settings button must become visible on pause'
     capture('08b-pause-settings-entry')
     click(description='Ajustes de Android')
     click('Continuar jugando')
