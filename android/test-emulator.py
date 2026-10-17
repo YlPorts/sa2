@@ -43,19 +43,25 @@ def hierarchy():
 def find(prefix='', description=''):
     for attempt in range(5):
         nodes=list(hierarchy().iter('node'))
-        for node in nodes:
-            if ((prefix and node.get('text','').startswith(prefix)) or
-                (description and node.get('content-desc','') == description)):
-                x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
-                if x2>x1 and y2>y1: return ((x1+x2)//2,(y1+y2)//2)
         # Android's own first-use immersive tutorial covers the app on a fresh
-        # system image. Acknowledge the observed system dialog like a user.
+        # system image. Its overlay can expose the app's underlying nodes,
+        # so dismiss it before returning a target that is actually covered.
+        dismissed=False
         for node in nodes:
             if node.get('package')=='com.android.systemui' and node.get('text')=='Got it':
                 x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
                 adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
                 print('Acknowledged Android fullscreen tutorial',flush=True)
+                dismissed=True
                 break
+        if dismissed:
+            time.sleep(.4)
+            continue
+        for node in nodes:
+            if ((prefix and node.get('text','').startswith(prefix)) or
+                (description and node.get('content-desc','') == description)):
+                x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
+                if x2>x1 and y2>y1: return ((x1+x2)//2,(y1+y2)//2)
         time.sleep(.4)
     raise AssertionError('Android UI target unavailable: '+prefix+description)
 
@@ -64,6 +70,22 @@ def click(prefix='',description=''):
     x,y=find(prefix,description)
     adb('shell','input','tap',str(x),str(y))
     time.sleep(.3)
+
+def select_setting(parent,choice):
+    # A delayed system tutorial can consume the tap that should open the
+    # choice dialog. Verify the resulting setting and repeat the observed
+    # action if necessary; an unresponsive app still fails after three tries.
+    for attempt in range(3):
+        try:
+            click(parent)
+            click(choice)
+            find(parent+' '+choice)
+            return
+        except AssertionError as error:
+            if not str(error).startswith('Android UI target unavailable:') or attempt==2:
+                raise
+            assert adb('shell','pidof',package).strip(), 'native process must remain alive during settings selection'
+            print('Retry observed settings action after system overlay: '+parent,flush=True)
 
 def start():
     adb('shell','am','start','-n',package+'/org.libsdl.app.RomImportActivity')
@@ -92,9 +114,7 @@ try:
     click(description='Ajustes de Android')
     find('SONIC ADVANCE 2')
     capture('02-settings')
-    click('Pantalla:')
-    click('Píxeles exactos')
-    find('Pantalla: Píxeles exactos')
+    select_setting('Pantalla:','Píxeles exactos')
     click('Editar posición')
     width,height=capture('03-control-editor')
     base=min(width,height)
