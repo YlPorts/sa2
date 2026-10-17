@@ -113,14 +113,6 @@ jobs:
           JOBS: '4'
           SA_EMULATOR_PACKAGE: '1'
         run: bash android/build-apk.sh sa2 > apk-build.log 2>&1
-      - name: Execute the actual ARM64 audio binary and reproduce the reported RC1 crash
-        run: |
-          python3 -m pip install 'unicorn==2.1.4'
-          mkdir -p android/out
-          curl --fail --location --retry 3 'https://github.com/YlPorts/sa2/releases/download/v0.2.0-ocs4-rc1/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk' -o "$RUNNER_TEMP/rc1.apk"
-          echo 'fa41cd674c0a0dd04b477638fff9d7ca06119e9938c2df28829f90fb6a05f9f2  '"$RUNNER_TEMP/rc1.apk" | sha256sum --check
-          python3 android/test-arm64-audio.py "$RUNNER_TEMP/rc1.apk" --expect-rc1-crash --output android/out/rc1-arm64-crash-reproduced.json
-          python3 android/test-arm64-audio.py android/out/SonicAdvance2-android-release.apk --output android/out/arm64-audio-report.json
       - name: Verify packaged payload and certificate
         run: |
           cp android/out/SonicAdvance2-android-release.apk android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk
@@ -134,6 +126,14 @@ jobs:
           fi
           sha256sum android/out/SonicAdvance2-Android-v0.2.0-OCS4-rc2.apk > android/out/SHA256SUMS
           tar -czf android/out/native-symbols.tar.gz build/android/*/sa2/sa2.android.elf build/android/*/sa2/sa2.android.map
+      - name: Execute the actual ARM64 audio binary and reproduce the reported RC1 crash
+        run: |
+          python3 -m pip install 'unicorn==2.1.4'
+          mkdir -p android/out
+          curl --fail --location --retry 3 'https://github.com/YlPorts/sa2/releases/download/v0.2.0-ocs4-rc1/SonicAdvance2-Android-v0.2.0-OCS4-rc1.apk' -o "$RUNNER_TEMP/rc1.apk"
+          echo 'fa41cd674c0a0dd04b477638fff9d7ca06119e9938c2df28829f90fb6a05f9f2  '"$RUNNER_TEMP/rc1.apk" | sha256sum --check
+          python3 android/test-arm64-audio.py "$RUNNER_TEMP/rc1.apk" --expect-rc1-crash --output android/out/rc1-arm64-crash-reproduced.json
+          python3 android/test-arm64-audio.py android/out/SonicAdvance2-android-release.apk --output android/out/arm64-audio-report.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -126,25 +126,42 @@ def main():
         assert bytes(runner.cpu.mem_read(at + 56, 8)) == struct.pack('<Q', runner.address('gMPlayTrack_' + name))
     mixer = runner.address('gSoundInfo')
     size = runner.elf.symbols['gSoundInfo'].size
-    pcm = mixer + size - 4907 * 2 * 4
+    pcm_bytes = 4907 * 2 * 4
+    pcm = mixer + size - pcm_bytes
+    cgb = runner.call('cgb_get_buffer')
+    cycles = 1
     checks = []
     # Original intro, level, special stage and effect songs exercise different
     # headers, sequencers, voicegroups and player slots, using real mixer code.
     for song in (1, 13, 51, 102):
         runner.call('m4aMPlayAllStop')
+        runner.call('m4aSoundInit')
+        cycles += 1
+        runner.cpu.mem_write(cgb, bytes(1600 * 4))
         runner.call('m4aSongNumStart', song)
+        entry = runner.elf.address('gSongTable') + song * 16
+        player = struct.unpack('<H', runner.elf.read(entry + 8, 2))[0]
+        name = ('BGM', 'SE1', 'SE2', 'SE3')[player]
+        state = runner.address('gMPlayInfo_' + name)
+        assert bytes(runner.cpu.mem_read(state, 8)) == struct.pack('<Q', BASE + runner.elf.pointer(entry))
         audible = False
         for _ in range(90):
             runner.call('m4aSoundMain')
-            audible |= any(runner.cpu.mem_read(pcm, 1600 * 4))
+            # SoundMain selects a DMA block from dmaCounter; it need not be
+            # block zero. Include all freshly cleared PCM blocks and the real
+            # PSG buffer, so a PSG-only passage also generates a valid signal.
+            audible |= any(runner.cpu.mem_read(pcm, pcm_bytes)) or any(runner.cpu.mem_read(cgb, 1600 * 4))
         assert audible, f'song {song}: real mixer produced no PCM samples'
-        checks.append({'song': song, 'ticks': 90, 'nonzero_pcm': audible})
+        clock = runner.u32(state + 16)
+        assert clock > 0, f'song {song}: native sequencer did not advance'
+        checks.append({'song': song, 'ticks': 90, 'nonzero_pcm': audible, 'sequencer_clock': clock})
     runner.call('m4aMPlayAllStop')
     runner.call('m4aSoundInit')
-    report.update(status='passed', checks=checks, initialization_cycles=2,
+    cycles += 1
+    report.update(status='passed', checks=checks, initialization_cycles=cycles,
                   memory_helpers=sorted(runner.memory_helpers))
     args.output.write_text(json.dumps(report, indent=2) + '\n')
-    print('PASS: packaged ARM64 m4aSoundInit twice, four real players and 360 mixer ticks with nonzero PCM')
+    print('PASS: packaged ARM64 m4aSoundInit six times, four real players and 360 mixer ticks with nonzero PCM')
 
 
 if __name__ == '__main__':
