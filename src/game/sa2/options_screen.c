@@ -1,6 +1,7 @@
 #include "global.h"
 #ifdef __ANDROID__
 extern void Platform_SetNativeUiCrop(bool8 enabled);
+extern void Platform_SetStartupStage(const char *stage);
 #endif
 #include "core.h"
 #include "sprite.h"
@@ -3715,6 +3716,9 @@ static bool16 ProfileNameScreenHandleDpadInput(void)
 
 static void ProfileNameScreenInputComplete(void)
 {
+#ifdef __ANDROID__
+    Platform_SetStartupStage("profile_name_confirmed");
+#endif
     struct ProfileNameScreen *profileNameScreen = TASK_DATA(gCurTask);
     ScreenFade *fade = &profileNameScreen->fade;
     struct NameInputDisplay *nameInput = &profileNameScreen->nameInput;
@@ -5798,6 +5802,9 @@ static void Task_LanguageScreenFadeIn(void)
 
     if (UpdateScreenFade(unk1F0)) {
         gCurTask->main = Task_LanguageScreenMain;
+#ifdef __ANDROID__
+        Platform_SetStartupStage("profile_language_ready");
+#endif
     }
 }
 
@@ -5924,6 +5931,9 @@ static void Task_ProfileNameScreenFadeIn(void)
     if (UpdateScreenFade(fade)) {
         profileNameScreen->matrixCursorIndex = 0;
         gCurTask->main = Task_ProfileNameScreenMain;
+#ifdef __ANDROID__
+        Platform_SetStartupStage("profile_name_ready");
+#endif
     }
 }
 

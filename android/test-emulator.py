@@ -128,6 +128,15 @@ def assert_no_game_menu():
     nodes=list(hierarchy().iter('node'))
     assert not any(n.get('text')=='⋮' or n.get('content-desc')=='Ajustes de Android' for n in nodes), 'gameplay must have no permanent settings overlay'
 
+def wait_native_stage(name,timeout=30):
+    deadline=time.monotonic()+timeout
+    while time.monotonic()<deadline:
+        log=adb('logcat','-d').rsplit('SA Android stage: before_engine_init',1)[-1]
+        if 'SA Android stage: '+name in log: return
+        assert adb('shell','pidof',package).strip(), 'native process must remain alive while waiting for '+name
+        time.sleep(.3)
+    raise AssertionError('Native scene never became ready: '+name)
+
 checks=[]
 try:
     adb('logcat','-c')
@@ -187,9 +196,17 @@ try:
     right=(round(base*.22+base*.105*.85),round(height-base*.25))
     boot_log=adb('logcat','-d').rsplit('SA Android stage: before_engine_init',1)[-1]
     if 'SA Android stage: before_new_profile' in boot_log:
-        for point,delay in [((tx,ty),1.0),(right,.3),((tx,ty),.3),(start_button,.3),(start_button,1.0)]:
+        wait_native_stage('profile_language_ready')
+        adb('shell','input','tap',str(tx),str(ty))
+        wait_native_stage('profile_name_ready')
+        # The Latin matrix starts on a space. Choose the next, nonempty
+        # character only after the name screen's actual fade has completed.
+        adb('shell','input','swipe',str(right[0]),str(right[1]),str(right[0]+1),str(right[1]),'180')
+        time.sleep(.3)
+        for point,delay in [((tx,ty),.4),(start_button,.4),(start_button,.4)]:
             adb('shell','input','tap',str(point[0]),str(point[1]))
             time.sleep(delay)
+        wait_native_stage('profile_name_confirmed')
         capture('07b-original-profile-created')
         checks.append('original first-run language/name profile completed through actual touch controls')
     inputs=[start_button,(tx,ty)]

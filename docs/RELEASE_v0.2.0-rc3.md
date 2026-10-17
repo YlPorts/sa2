@@ -2,7 +2,7 @@
 
 Esta candidata corrige la selección de personajes y retira el menú permanente de la partida. Conserva el widescreen de 426×240 que ya existía.
 
-- Sonic, Cream, Tails, Knuckles y Amy se pueden seleccionar desde una partida nueva. Sus retratos usan las paletas originales, sin las siluetas de bloqueo. Los desbloqueos de la historia y los niveles completados del guardado se conservan.
+- Sonic, Cream, Tails, Knuckles y Amy se pueden seleccionar en el modo de un jugador desde una partida nueva. Sus retratos usan las paletas originales, sin las siluetas de bloqueo. Los desbloqueos de la historia y los niveles completados del guardado se conservan.
 - Los siete OC siguen disponibles, incluidos Sans y Spider-Man. Sus atlas y habilidades se conservan.
 - Se elimina el botón de tres puntos. «Ajustes» aparece al pausar con Start y desaparece al continuar. Atrás de Android también abre los ajustes.
 - Nuevo ajuste «Pantalla completa · encuadre»: llena paneles anchos con escala uniforme y desplaza el HUD dentro del área visible. Recorta parte del margen vertical de la escena de 426×240; no amplía el mundo ni cambia la cámara, los eventos o las físicas. No es un nuevo motor ultrawide.
